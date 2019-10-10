@@ -76,12 +76,13 @@ void MX_FREERTOS_Init(void);
   * @brief  The application entry point.
   * @retval int
   */
+
+
 int main(void)
 {
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
-  
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -92,6 +93,7 @@ int main(void)
 
   /* USER CODE END Init */
 
+
   /* Configure the system clock */
   SystemClock_Config();
 
@@ -100,6 +102,7 @@ int main(void)
   HAL_Delay(250); // wait for the GPS to initialize
   #endif
   /* USER CODE END SysInit */
+
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
@@ -121,12 +124,14 @@ int main(void)
   MX_USART3_UART_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
+
   led_init();
+  led_set_rgb(255, 0, 0);
   CAN_Config(CAN_ID);
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
-  MX_FREERTOS_Init(); 
+  MX_FREERTOS_Init();
 
   /* Start scheduler */
   osKernelStart();

@@ -58,6 +58,12 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+#define LED
+#define KALMAN
+#define GPS
+#define ROCKET_FSM
+#define AB_CONTROL
+
 osThreadId sdWriteHandle;
 osThreadId task_ABHandle;
 osThreadId sensorBoardHandle;
