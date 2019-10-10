@@ -2,7 +2,7 @@
  * datagram_builder.h
  *
  *  Created on: 9 May 2018
- *      Author: Clément Nussbaumer
+ *      Author: Clï¿½ment Nussbaumer
  */
 
 #ifndef MISC_DATAGRAM_BUILDER_H_
@@ -12,6 +12,24 @@
 #include <Misc/datastructs.h>
 
 #include <stm32f4xx_hal.h>
+
+#if defined __GNUC__
+#define bswap16(x) __builtin_bswap16(x)
+#else
+#define bswap16(x) ((uint16_t)((((uint16_t) (x) & 0xff00) >> 8) | \
+                               (((uint16_t) (x) & 0x00ff) << 8)))
+#endif
+#endif
+
+#ifndef bswap32
+#if defined __GNUC__
+#define bswap32(x) __builtin_bswap32(x)
+#else
+#define bswap32(x) ((uint32_t)((((uint32_t) (x) & 0xff000000) >> 24) | \
+                               (((uint32_t) (x) & 0x00ff0000) >> 8) | \
+                               (((uint32_t) (x) & 0x0000ff00) << 8) | \
+                               (((uint32_t) (x) & 0x000000ff) << 24)))
+#endif
 
 class DatagramBuilder
 {
@@ -41,7 +59,7 @@ template<typename T>
   {
     if (currentIdx + 2 <= datagramSize)
       {
-        *(uint16_t*) ((uint8_t*) datagramPtr + currentIdx) = __bswap16 (*((uint16_t*) &val));
+        *(uint16_t*) ((uint8_t*) datagramPtr + currentIdx) = bswap16 (*((uint16_t*) &val));
         currentIdx += 2;
       }
   }
@@ -51,7 +69,7 @@ template<typename T>
   {
     if (currentIdx + 4 <= datagramSize)
       {
-        *(uint32_t*) ((uint8_t*) datagramPtr + currentIdx) = __bswap32 (*((uint32_t*) &val));
+        *(uint32_t*) ((uint8_t*) datagramPtr + currentIdx) = bswap32 (*((uint32_t*) &val));
         currentIdx += 4;
       }
   }

@@ -35,7 +35,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "led.h"
+#include "CAN_communication.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -95,7 +96,9 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  #ifdef GPS
+  HAL_Delay(250); // wait for the GPS to initialize
+  #endif
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -118,7 +121,8 @@ int main(void)
   MX_USART3_UART_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  led_init();
+  CAN_Config(CAN_ID);
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
