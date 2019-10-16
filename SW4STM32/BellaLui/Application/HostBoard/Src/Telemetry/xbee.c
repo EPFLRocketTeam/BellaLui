@@ -75,6 +75,7 @@ void TK_xBeeTelemetry (const void* args)
       uint32_t elapsed = HAL_GetTick() - packetStartTime;
       if ((currentXbeeTxBufPos > 0) && (elapsed) > XBEE_SEND_FRAME_TIMEOUT_MS)
         {
+    	  //timeout reached and buffer not empty, sending frame whatever the content
           sendXbeeFrame();
           packetStartTime = HAL_GetTick();
         } else if (currentXbeeTxBufPos==0 && elapsed > XBEE_SEND_FRAME_LONG_TIMEOUT_MS) {
@@ -83,6 +84,7 @@ void TK_xBeeTelemetry (const void* args)
         }
       osEvent event;
       do {
+    	  //as long as there is data to send, send it.
        event = osMessageGet (xBeeQueueHandle, 5);
        if (event.status == osEventMessage)
        {
@@ -121,8 +123,8 @@ void sendData (uint8_t* txData, uint16_t txDataSize)
     {
       addToBuffer (txData, txDataSize);
     }
-
-  if (XBEE_PAYLOAD_MAX_SIZE - currentXbeeTxBufPos < 20) // send the XBee frame if there remains less than 20 bytes available in the txDataBuffer
+  // send the XBee frame if there remains less than 20 bytes available in the txDataBuffer
+  if (XBEE_PAYLOAD_MAX_SIZE - currentXbeeTxBufPos < 20)
     {
       sendXbeeFrame ();
     }
@@ -137,10 +139,14 @@ inline void addToBuffer (uint8_t* txData, uint16_t txDataSize)
   currentXbeeTxBufPos += txDataSize;
 }
 
+/**
+ * Sends the data contained in the buffer (the frame)
+*/
 void sendXbeeFrame ()
 {
   if (osSemaphoreWait (xBeeTxBufferSemHandle, XBEE_UART_TIMEOUT) != osOK)
     {
+	  //could not obtain free semaphore in given timeout delay, setting LED red
 	  led_set_TK_rgb(led_xbee_id, 50, 0, 0);
       return;
     }
@@ -175,6 +181,7 @@ void sendXbeeFrame ()
 
   currentCrc = 0xff - currentCrc;
   txDmaBuffer[pos++] = currentCrc;
+  //send the data buffer to the xBee module
   HAL_UART_Transmit_DMA (xBee_huart, txDmaBuffer, pos);
 
   currentXbeeTxBufPos = 0;
@@ -188,7 +195,10 @@ void HAL_UART_TxCpltCallback (UART_HandleTypeDef *huart)
 		osSemaphoreRelease (xBeeTxBufferSemHandle);
 	}
 }
-
+/**
+ * Initialises the Xbee module given parameters in the XBEE_FRAME_OPTIONS
+ * Changes control register XBEE_FRAME_OPTIONS_CRC accordingly
+ */
 void initXbee ()
 {
   uint8_t checksum = 0;
