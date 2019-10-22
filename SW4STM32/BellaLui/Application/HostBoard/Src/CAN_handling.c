@@ -26,6 +26,9 @@ typedef float float32_t;
 #include "../../HostBoard/Inc/ekf/tiny_ekf.h"
 #include "../../HostBoard/Inc/Misc/Common.h"
 
+#include "flash_logging.h"
+
+
 #define BUFFER_SIZE 128
 
 #define GPS_DEFAULT (-1.0)
@@ -147,8 +150,14 @@ void TK_can_reader() {
 			msg = can_readBuffer();
 			// add to SD card
 #ifdef SDCARD
-			sendSDcard(msg);
+				sendSDcard(msg);
 #endif
+
+#ifdef FLASH_LOGGING
+			flash_log(msg);
+#endif
+
+
 			idx = board2Idx(msg.id_CAN);
 
 			switch(msg.id) {

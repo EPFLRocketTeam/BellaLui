@@ -39,6 +39,8 @@
 #include "Sensors/GPS_board.h"
 #include "ekf/tiny_ekf.h"
 #include "CAN_handling.h"
+
+#include "flash_logging.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,7 +65,9 @@
 #define GPS
 #define ROCKET_FSM
 #define AB_CONTROL
+#define FLASH_LOGGING
 
+osThreadId loggingHandle;
 osThreadId sdWriteHandle;
 osThreadId task_ABHandle;
 osThreadId sensorBoardHandle;
@@ -170,6 +174,11 @@ void MX_FREERTOS_Init(void) {
       osThreadDef(state_estimator, TK_state_estimation, osPriorityNormal, 0, 256);
       state_estimatorHandle = osThreadCreate(osThread(state_estimator), NULL);
     #endif
+
+	#ifdef FLASH_LOGGING
+     osThreadDef(task_logging, TK_logging_thread, osPriorityNormal, 0, 256);
+     loggingHandle = osThreadCreate(osThread(task_logging), NULL);
+   	#endif
 
     #ifdef SDCARD
       osThreadDef(sdWrite, TK_sd_sync, osPriorityNormal, 0, 1024);
