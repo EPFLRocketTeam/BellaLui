@@ -61,10 +61,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 #define LED
-#define KALMAN
-#define GPS
-#define ROCKET_FSM
-#define AB_CONTROL
+
 #define FLASH_LOGGING
 
 osThreadId loggingHandle;
