@@ -14,19 +14,19 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="elf" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="fr.ac6.managedbuild.config.gnu.cross.exe.debug.736238141" name="Debug" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=" parent="fr.ac6.managedbuild.config.gnu.cross.exe.debug" postannouncebuildStep="Generating hex and Printing size information:" postbuildStep="arm-none-eabi-objcopy -O ihex &quot;${BuildArtifactFileBaseName}.elf&quot; &quot;${BuildArtifactFileBaseName}.hex&quot; &amp;&amp; arm-none-eabi-size &quot;${BuildArtifactFileName}&quot;">
+				<configuration artifactExtension="elf" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="fr.ac6.managedbuild.config.gnu.cross.exe.debug.736238141" name="Debug" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=" parent="fr.ac6.managedbuild.config.gnu.cross.exe.debug" postannouncebuildStep="Generating hex and Printing size information:" postbuildStep="arm-none-eabi-objcopy -O ihex &quot;${BuildArtifactFileBaseName}.elf&quot; &quot;${BuildArtifactFileBaseName}.hex&quot; &amp;&amp; arm-none-eabi-size --format=berkeley &quot;${BuildArtifactFileName}&quot;">
 					<folderInfo id="fr.ac6.managedbuild.config.gnu.cross.exe.debug.736238141." name="/" resourcePath="">
 						<toolChain id="fr.ac6.managedbuild.toolchain.gnu.cross.exe.debug.1387161127" name="Ac6 STM32 MCU GCC" superClass="fr.ac6.managedbuild.toolchain.gnu.cross.exe.debug">
-							<option id="fr.ac6.managedbuild.option.gnu.cross.prefix.2081490838" name="Prefix" superClass="fr.ac6.managedbuild.option.gnu.cross.prefix" value="arm-none-eabi-" valueType="string"/>
-							<option id="fr.ac6.managedbuild.option.gnu.cross.mcu.2079028983" name="Mcu" superClass="fr.ac6.managedbuild.option.gnu.cross.mcu" value="STM32F446RETx" valueType="string"/>
-							<option id="fr.ac6.managedbuild.option.gnu.cross.board.1565108157" name="Board" superClass="fr.ac6.managedbuild.option.gnu.cross.board" value="BellaLui" valueType="string"/>
-							<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="fr.ac6.managedbuild.option.gnu.cross.core.1083960614" name="Core" superClass="fr.ac6.managedbuild.option.gnu.cross.core" valueType="stringList">
+							<option id="fr.ac6.managedbuild.option.gnu.cross.prefix.2081490838" name="Prefix" superClass="fr.ac6.managedbuild.option.gnu.cross.prefix" useByScannerDiscovery="false" value="arm-none-eabi-" valueType="string"/>
+							<option id="fr.ac6.managedbuild.option.gnu.cross.mcu.2079028983" name="Mcu" superClass="fr.ac6.managedbuild.option.gnu.cross.mcu" useByScannerDiscovery="false" value="STM32F446RETx" valueType="string"/>
+							<option id="fr.ac6.managedbuild.option.gnu.cross.board.1565108157" name="Board" superClass="fr.ac6.managedbuild.option.gnu.cross.board" useByScannerDiscovery="false" value="BellaLui" valueType="string"/>
+							<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="fr.ac6.managedbuild.option.gnu.cross.core.1083960614" name="Core" superClass="fr.ac6.managedbuild.option.gnu.cross.core" useByScannerDiscovery="false" valueType="stringList">
 								<listOptionValue builtIn="false" value="ARM Cortex-M4"/>
 								<listOptionValue builtIn="false" value="CM4"/>
 							</option>
-							<option id="fr.ac6.managedbuild.option.gnu.cross.instructionSet.1512095091" name="Instruction Set" superClass="fr.ac6.managedbuild.option.gnu.cross.instructionSet" value="fr.ac6.managedbuild.option.gnu.cross.instructionSet.thumbII" valueType="enumerated"/>
-							<option id="fr.ac6.managedbuild.option.gnu.cross.fpu.103240733" name="Floating point hardware" superClass="fr.ac6.managedbuild.option.gnu.cross.fpu" value="fr.ac6.managedbuild.option.gnu.cross.fpu.fpv4-sp-d16" valueType="enumerated"/>
-							<option id="fr.ac6.managedbuild.option.gnu.cross.floatabi.1767136188" name="Floating-point ABI" superClass="fr.ac6.managedbuild.option.gnu.cross.floatabi" value="fr.ac6.managedbuild.option.gnu.cross.floatabi.hard" valueType="enumerated"/>
+							<option id="fr.ac6.managedbuild.option.gnu.cross.instructionSet.1512095091" name="Instruction Set" superClass="fr.ac6.managedbuild.option.gnu.cross.instructionSet" useByScannerDiscovery="false" value="fr.ac6.managedbuild.option.gnu.cross.instructionSet.thumbII" valueType="enumerated"/>
+							<option id="fr.ac6.managedbuild.option.gnu.cross.fpu.103240733" name="Floating point hardware" superClass="fr.ac6.managedbuild.option.gnu.cross.fpu" useByScannerDiscovery="false" value="fr.ac6.managedbuild.option.gnu.cross.fpu.fpv4-sp-d16" valueType="enumerated"/>
+							<option id="fr.ac6.managedbuild.option.gnu.cross.floatabi.1767136188" name="Floating-point ABI" superClass="fr.ac6.managedbuild.option.gnu.cross.floatabi" useByScannerDiscovery="false" value="fr.ac6.managedbuild.option.gnu.cross.floatabi.hard" valueType="enumerated"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="fr.ac6.managedbuild.targetPlatform.gnu.cross.2022360767" isAbstract="false" osList="all" superClass="fr.ac6.managedbuild.targetPlatform.gnu.cross"/>
 							<builder buildPath="${workspace_loc:/BellaLui}/Debug" id="fr.ac6.managedbuild.builder.gnu.cross.517782529" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="fr.ac6.managedbuild.builder.gnu.cross">
 								<outputEntries>
@@ -111,14 +111,14 @@
 								</inputType>
 							</tool>
 							<tool id="fr.ac6.managedbuild.tool.gnu.cross.cpp.linker.865916451" name="MCU G++ Linker" superClass="fr.ac6.managedbuild.tool.gnu.cross.cpp.linker">
-								<option id="fr.ac6.managedbuild.tool.gnu.cross.cpp.linker.script.1106089638" name="Linker Script (-T)" superClass="fr.ac6.managedbuild.tool.gnu.cross.cpp.linker.script" value="../STM32F446RETx_FLASH.ld" valueType="string"/>
+								<option id="fr.ac6.managedbuild.tool.gnu.cross.cpp.linker.script.1106089638" name="Linker Script (-T)" superClass="fr.ac6.managedbuild.tool.gnu.cross.cpp.linker.script" useByScannerDiscovery="false" value="../STM32F446RETx_FLASH.ld" valueType="string"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.link.option.libs.1572142667" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="RocketFS"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.link.option.paths.832950551" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries}&quot;"/>
 								</option>
-								<option id="gnu.cpp.link.option.flags.2056676992" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-specs=nosys.specs -specs=nano.specs" valueType="string"/>
+								<option id="gnu.cpp.link.option.flags.2056676992" name="Linker flags" superClass="gnu.cpp.link.option.flags" useByScannerDiscovery="false" value="-specs=nosys.specs -specs=nano.specs -specs=rdimon.specs -lc -lrdimon" valueType="string"/>
 								<option id="gnu.cpp.link.option.other.286826529" name="Other options (-Xlinker [option])" superClass="gnu.cpp.link.option.other" useByScannerDiscovery="false"/>
 								<option id="fr.ac6.managedbuild.tool.gnu.cross.cpp.linker.libmath.1037897628" name="Use C math library (-lm)" superClass="fr.ac6.managedbuild.tool.gnu.cross.cpp.linker.libmath" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="true" id="gnu.cpp.link.option.userobjs.1615087192" name="Other objects" superClass="gnu.cpp.link.option.userobjs" useByScannerDiscovery="false" valueType="userObjs"/>
@@ -129,7 +129,7 @@
 							</tool>
 							<tool id="fr.ac6.managedbuild.tool.gnu.archiver.213700857" name="MCU GCC Archiver" superClass="fr.ac6.managedbuild.tool.gnu.archiver"/>
 							<tool id="fr.ac6.managedbuild.tool.gnu.cross.assembler.1090481076" name="MCU GCC Assembler" superClass="fr.ac6.managedbuild.tool.gnu.cross.assembler">
-								<option id="gnu.both.asm.option.include.paths.1803323141" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths"/>
+								<option id="gnu.both.asm.option.include.paths.1803323141" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" useByScannerDiscovery="false"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.229865987" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.assembler.input.136824465" superClass="fr.ac6.managedbuild.tool.gnu.cross.assembler.input"/>
 							</tool>
@@ -155,7 +155,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="elf" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="" id="fr.ac6.managedbuild.config.gnu.cross.exe.release.319804816" name="Release" parent="fr.ac6.managedbuild.config.gnu.cross.exe.release" postannouncebuildStep="Generating hex and Printing size information:" postbuildStep="arm-none-eabi-objcopy -O ihex &quot;${BuildArtifactFileBaseName}.elf&quot; &quot;${BuildArtifactFileBaseName}.hex&quot; &amp;&amp; arm-none-eabi-size &quot;${BuildArtifactFileName}&quot;">
+				<configuration artifactExtension="elf" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="" id="fr.ac6.managedbuild.config.gnu.cross.exe.release.319804816" name="Release" optionalBuildProperties="" parent="fr.ac6.managedbuild.config.gnu.cross.exe.release" postannouncebuildStep="Generating hex and Printing size information:" postbuildStep="arm-none-eabi-objcopy -O ihex &quot;${BuildArtifactFileBaseName}.elf&quot; &quot;${BuildArtifactFileBaseName}.hex&quot; &amp;&amp; arm-none-eabi-size &quot;${BuildArtifactFileName}&quot;">
 					<folderInfo id="fr.ac6.managedbuild.config.gnu.cross.exe.release.319804816." name="/" resourcePath="">
 						<toolChain id="fr.ac6.managedbuild.toolchain.gnu.cross.exe.release.422982421" name="Ac6 STM32 MCU GCC" superClass="fr.ac6.managedbuild.toolchain.gnu.cross.exe.release">
 							<option id="fr.ac6.managedbuild.option.gnu.cross.prefix.2081490838" name="Prefix" superClass="fr.ac6.managedbuild.option.gnu.cross.prefix" value="arm-none-eabi-" valueType="string"/>
@@ -283,4 +283,5 @@
 		<configuration configurationName="Release"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

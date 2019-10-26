@@ -63,6 +63,7 @@
 #define LED
 
 #define FLASH_LOGGING
+#define OS_STKCHECK
 
 osThreadId loggingHandle;
 osThreadId sdWriteHandle;
@@ -173,7 +174,7 @@ void MX_FREERTOS_Init(void) {
     #endif
 
 	#ifdef FLASH_LOGGING
-     osThreadDef(task_logging, TK_logging_thread, osPriorityNormal, 0, 256);
+     osThreadDef(task_logging, TK_logging_thread, osPriorityNormal, 0, 1024);
      loggingHandle = osThreadCreate(osThread(task_logging), NULL);
    	#endif
 

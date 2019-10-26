@@ -18,7 +18,7 @@
  * FS-specific defines
  */
 #define NUM_BLOCKS 4080
-#define NUM_FILES 64
+#define NUM_FILES 8
 #define PROTECTED_BLOCKS 8
 
 

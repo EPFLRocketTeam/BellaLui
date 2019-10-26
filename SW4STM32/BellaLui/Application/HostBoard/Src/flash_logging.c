@@ -39,6 +39,12 @@ void flash_log(CAN_msg message) {
 	xSemaphoreGive(lock);
 }
 
+
+void __debug(const char* message) {
+	printf("%s\n", message);
+}
+
+
 void TK_logging_thread(void const *pvArgs) {
 	static CAN_msg back_buffer[LOGGING_BUFFER_SIZE];
 	static uint32_t back_buffer_length = 0;
@@ -49,23 +55,26 @@ void TK_logging_thread(void const *pvArgs) {
 
 	lock = xSemaphoreCreateBinary();
 
-
 	/*
 	 * Allocate, initialise and mount the FileSystem.
 	 */
-	FileSystem fs;
 
-	rocket_fs_device(&fs, "emulator", 4096 * 4096, 4096);
-	rocket_fs_bind(&fs, &flash_read, &flash_write, &flash_erase_subsector);
-	rocket_fs_mount(&fs);
+	FileSystem* fs = (FileSystem*) pvPortMalloc(sizeof(FileSystem));
+
+	// rocket_fs_debug(fs, &__debug);
+	rocket_fs_device(fs, "NOR Flash", 4096 * 4096, 4096);
+	rocket_fs_bind(fs, &flash_read, &flash_write, &flash_erase_subsector);
+
+	rocket_fs_mount(fs);
+
 
 	/*
 	 * Open the 'Flight Data' file or create a new one if it does not exist.
 	 */
-	File* flight_data = rocket_fs_getfile(&fs, "Flight Data");
+	File* flight_data = rocket_fs_getfile(fs, "Flight Data");
 
 	if(!flight_data) {
-		flight_data = rocket_fs_newfile(&fs, "Flight Data", RAW);
+		flight_data = rocket_fs_newfile(fs, "Flight Data", RAW);
 
 		if (!flight_data) {
 			/*
@@ -83,7 +92,7 @@ void TK_logging_thread(void const *pvArgs) {
 	 * Initialise a stream pointing to the 'Flight Data' file.
 	 */
 	Stream stream;
-	rocket_fs_stream(&stream, &fs, flight_data, APPEND);
+	rocket_fs_stream(&stream, fs, flight_data, APPEND);
 
 	if(!stream.write) {
 		/*
@@ -135,6 +144,8 @@ void TK_logging_thread(void const *pvArgs) {
 			stream.write32(current.id_CAN);
 			stream.write32(current.timestamp);
 		}
+
+		led_set_TK_rgb(led_identifier, 0, 50, 50);
 	}
 
 	stream.close();

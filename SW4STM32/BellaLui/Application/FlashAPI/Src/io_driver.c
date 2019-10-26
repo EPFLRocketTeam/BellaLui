@@ -165,7 +165,7 @@ void __flash_erase(uint32_t instruction, uint32_t address) {
 	with_address(&cmd, address);
 
 
-	if(!qspi_run(&cmd, ERASE_SUBSECTOR)) {
+	if(!qspi_run(&cmd, instruction)) {
 		flash_fatal(ERROR_ERASE | ERROR_RUN);
 	}
 

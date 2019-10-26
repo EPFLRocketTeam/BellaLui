@@ -78,8 +78,6 @@ osStatus initSdFile ()
 {
   FileSystem fs;
 
-  rocket_fs_device(&fs, "flash", 4096 * 4096, 4096);
-
   MX_FATFS_Init ();
   led_set_TK_rgb(led_sdcard_id, 0, 50, 50);
 
