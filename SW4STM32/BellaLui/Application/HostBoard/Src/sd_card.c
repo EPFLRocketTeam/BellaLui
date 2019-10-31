@@ -14,6 +14,8 @@
 #include "../../HostBoard/Inc/Misc/Common.h"
 #include "../../HostBoard/Inc/Misc/datastructs.h"
 
+#include "rocket_fs.h"
+
 #define MAX_FOLDER_NUMBER 1000
 #define SD_BUFFER_SIZE 512
 volatile bool new_sd_data_ready = 0;
@@ -74,6 +76,8 @@ int sd_write(char str[], int size) {
 
 osStatus initSdFile ()
 {
+  FileSystem fs;
+
   MX_FATFS_Init ();
   led_set_TK_rgb(led_sdcard_id, 0, 50, 50);
 
