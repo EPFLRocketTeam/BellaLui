@@ -40,6 +40,7 @@
 #include "ekf/tiny_ekf.h"
 #include "CAN_handling.h"
 
+#include "heavy_io.h"
 #include "flash_logging.h"
 /* USER CODE END Includes */
 
@@ -124,6 +125,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
+	init_heavy_scheduler();
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -158,6 +160,11 @@ void MX_FREERTOS_Init(void) {
       osThreadDef(can_reader, TK_can_reader, osPriorityNormal, 0, 1024);
       canReaderHandle = osThreadCreate(osThread(can_reader), NULL);
 
+      osThreadDef(heavy_io, TK_heavy_io_scheduler, osPriorityNormal, 0, 1024);
+	  canReaderHandle = osThreadCreate(osThread(heavy_io), NULL);
+
+
+
     #ifdef GPS
       osThreadDef(task_GPSHandle, TK_GPS_board, osPriorityNormal, 0, 256);
       task_GPSHandle = osThreadCreate(osThread(task_GPSHandle), NULL);
@@ -174,7 +181,7 @@ void MX_FREERTOS_Init(void) {
     #endif
 
 	#ifdef FLASH_LOGGING
-     osThreadDef(task_logging, TK_logging_thread, osPriorityNormal, 0, 1024);
+     osThreadDef(task_logging, TK_logging_thread, osPriorityNormal, 0, 256);
      loggingHandle = osThreadCreate(osThread(task_logging), NULL);
    	#endif
 

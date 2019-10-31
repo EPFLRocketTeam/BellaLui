@@ -24,9 +24,11 @@
 
 
 typedef struct Stream {
+	bool *eof;
+
 	void (*close)();
 
-	void     (*read)(uint8_t* buffer, uint32_t length);
+	int32_t  (*read)(uint8_t* buffer, uint32_t length);
 	uint8_t  (*read8)();
 	uint16_t (*read16)();
 	uint32_t (*read32)();

@@ -19,5 +19,10 @@
 void flash_log(CAN_msg message);
 void TK_logging_thread(void const *pvArgs);
 
+void acquire_flash_lock();
+void release_flash_lock();
+
+void on_dump_request();
+int32_t dump_file_on_sd(const char* filename);
 
 #endif /* APPLICATION_HOSTBOARD_INC_FLASH_LOGGING_H_ */

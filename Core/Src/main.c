@@ -72,7 +72,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-extern void initialise_monitor_handles(void);
+// extern void initialise_monitor_handles(void);
 /* USER CODE END 0 */
 
 /**

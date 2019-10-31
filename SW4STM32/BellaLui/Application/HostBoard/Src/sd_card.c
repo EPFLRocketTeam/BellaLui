@@ -76,8 +76,6 @@ int sd_write(char str[], int size) {
 
 osStatus initSdFile ()
 {
-  FileSystem fs;
-
   MX_FATFS_Init ();
   led_set_TK_rgb(led_sdcard_id, 0, 50, 50);
 
