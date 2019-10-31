@@ -32,7 +32,7 @@ void bme_redundancy(uint8_t rslt_bme[MAX_SENSOR_NUMBER]);
 void bno_redundancy(uint8_t rslt_bno[MAX_SENSOR_NUMBER]);
 
 extern I2C_HandleTypeDef hi2c3;
-//extern I2C_HandleTypeDef fmpi2c1;
+extern I2C_HandleTypeDef hfmpi2c1;
 
 struct bno055_data
 {
@@ -325,7 +325,7 @@ int8_t stm32_i2c_read (uint8_t sensor_id, uint8_t dev_id, uint8_t reg_addr, uint
 		rslt = HAL_I2C_Mem_Read(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
 	}
 	else if (sensor_id == 2) {
-		rslt = HAL_I2C_Mem_Read(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
+		rslt = HAL_I2C_Mem_Read(&hfmpi2c1, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
 	}
 	xTaskResumeAll();
 	return rslt;
@@ -339,7 +339,7 @@ int8_t stm32_i2c_write (uint8_t sensor_id, uint8_t dev_id, uint8_t reg_addr, uin
 		rslt = HAL_I2C_Mem_Write(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
 	}
 	else if (sensor_id == 2) {
-		rslt = HAL_I2C_Mem_Write(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
+		rslt = HAL_I2C_Mem_Write(&hfmpi2c1, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
 	}
 	xTaskResumeAll();
 	return rslt;
