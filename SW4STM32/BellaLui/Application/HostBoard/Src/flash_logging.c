@@ -35,16 +35,16 @@ void flash_log(CAN_msg message) {
 	 * Write the CAN message to the front buffer.
 	 */
 
-	xSemaphoreTake(buffer_lock, 1);
+	if(xSemaphoreTake(buffer_lock, 20) == pdTRUE) {
+		if (front_buffer_index < LOGGING_BUFFER_SIZE) {
+			front_buffer[front_buffer_index] = message;
+			front_buffer_index++;
+		} else {
+			// Error: Buffer overflow. Too many CAN messages to process.
+		}
 
-	if (front_buffer_index < LOGGING_BUFFER_SIZE) {
-		front_buffer[front_buffer_index] = message;
-		front_buffer_index++;
-	} else {
-		// Error: Buffer overflow. Too many CAN messages to process.
+		xSemaphoreGive(buffer_lock);
 	}
-
-	xSemaphoreGive(buffer_lock);
 }
 
 void TK_logging_thread(void const *pvArgs) {
@@ -55,6 +55,7 @@ void TK_logging_thread(void const *pvArgs) {
 
 	uint32_t led_identifier = led_register_TK();
 
+	FileSystem *fs = get_flash_fs();
 
 	buffer_lock = xSemaphoreCreateMutex();
 	master_io_semaphore = xSemaphoreCreateBinary();
@@ -63,9 +64,6 @@ void TK_logging_thread(void const *pvArgs) {
 	/*
 	 * Allocate, initialise and mount the FileSystem.
 	 */
-
-	FileSystem *fs = get_flash_fs();
-
 
 	/*
 	 * Open the 'Flight Data' file or create a new one if it does not exist.
@@ -120,7 +118,7 @@ void TK_logging_thread(void const *pvArgs) {
 			/*
 			 * Copy the front buffer to the back buffer and reset the index counter.
 			 */
-			xSemaphoreTake(buffer_lock, 1);
+			xSemaphoreTake(buffer_lock, portMAX_DELAY);
 
 			for (uint32_t i = 0; i < front_buffer_index; i++) {
 				back_buffer[i] = front_buffer[i];
@@ -151,7 +149,7 @@ void TK_logging_thread(void const *pvArgs) {
 		stream.close();
 
 		xSemaphoreGive(master_io_semaphore);
-		xSemaphoreTake(slave_io_semaphore, 10);
+		xSemaphoreTake(slave_io_semaphore, portMAX_DELAY);
 
 		/*
 		 * Reopen the stream

@@ -11,7 +11,7 @@
 #define LED_LOOP_BREAK 500  // [ms] time in between each start of thread sequence
 #define LED_INIT_DELAY 1000 // [ms] initial time to display a solid color
 
-#define MAX_N_THREADS 10
+#define MAX_N_THREADS 32
 
 volatile int n_threads = 0;
 volatile uint16_t r_list[MAX_N_THREADS] = {0};

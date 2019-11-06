@@ -72,7 +72,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-// extern void initialise_monitor_handles(void);
+extern void initialise_monitor_handles(void);
 /* USER CODE END 0 */
 
 /**
@@ -82,7 +82,8 @@ void MX_FREERTOS_Init(void);
 
 int main(void) {
 	/* USER CODE BEGIN 1 */
-	// initialise_monitor_handles();
+	initialise_monitor_handles();
+	printf("BellaLui v1.0\n\n");
 
 	/* USER CODE END 1 */
 
@@ -123,7 +124,7 @@ int main(void) {
 	MX_USART6_UART_Init();
 	/* USER CODE BEGIN 2 */
 	led_init();
-	led_set_rgb(255, 0, 0);
+	led_set_rgb(127, 255, 0);
 
 	// printf("BellaLui v1.0\n\n");
 
