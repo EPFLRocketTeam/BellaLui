@@ -18,13 +18,13 @@
  * FS-specific defines
  */
 #define NUM_BLOCKS 4080
-#define NUM_FILES 64
+#define NUM_FILES 16
 #define PROTECTED_BLOCKS 8
 
 
 
 typedef struct Stream {
-	bool *eof;
+	bool* eof;
 
 	void (*close)();
 
@@ -63,6 +63,7 @@ typedef struct FileSystem {
 
 	uint32_t total_used_blocks;
 	uint8_t partition_table[NUM_BLOCKS];
+   uint8_t reverse_partition_table[NUM_BLOCKS];
 	bool partition_table_modified;
 	DataBlock data_blocks[NUM_BLOCKS];
 	File files[NUM_FILES];

@@ -15,7 +15,7 @@
 FileSystem* get_flash_fs();
 
 void init_heavy_scheduler();
-void schedule_heavy_task(int32_t (*task)(const void*), const void* arg, void (*feedback)(int32_t));
+void schedule_heavy_task(int32_t (*task)(void*), const void* arg, void (*feedback)(int32_t));
 void TK_heavy_io_scheduler();
 
 #endif /* APPLICATION_HOSTBOARD_INC_HEAVY_IO_H_ */

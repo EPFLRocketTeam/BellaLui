@@ -38,6 +38,7 @@
 // Erase commands
 #define ERASE_SUBSECTOR 0x20 // 4KB subsector
 #define ERASE_SECTOR 0xD8
+#define ERASE_ALL 0x60
 
 
 

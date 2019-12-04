@@ -6,22 +6,18 @@
  */
 
 #include "heavy_io.h"
-
-#include "flash.h"
 #include "led.h"
 
 #include <cmsis_os.h>
-#include <stdbool.h>
 
 
 #define MAX_TASKS 256
 
 
-
 struct Node {
 	const void* arg;
-	const int32_t (*task)(const void* arg);
-	const void (*feedback)(int32_t);
+	int32_t (*task)(const void* arg);
+	void (*feedback)(int32_t);
 	struct Node* next;
 };
 
@@ -31,34 +27,20 @@ struct FIFO {
 };
 
 
-static FileSystem *fs;
-
-static SemaphoreHandle_t scheduler_lock;
-static SemaphoreHandle_t task_semaphore;
+static volatile SemaphoreHandle_t task_semaphore;
 
 static volatile struct FIFO queue = { 0 };
 
 
 void init_heavy_scheduler() {
-	scheduler_lock = xSemaphoreCreateBinary();
 	task_semaphore = xSemaphoreCreateCounting(256, 0);
 }
 
-static bool ready = false;
-
-FileSystem* get_flash_fs() {
-	if(!ready) {
-		xSemaphoreTake(scheduler_lock, portMAX_DELAY);
-		ready = true;
-	}
-
-	return fs;
-}
 
 /*
  * TODO: Better concurrent implementation of FIFO queue.
  */
-void schedule_heavy_task(int32_t (*task)(const void*), const void* arg, void (*feedback)(int32_t)) {
+void schedule_heavy_task(int32_t (*task)(void*), const void* arg, void (*feedback)(int32_t)) {
 	struct Node* node = pvPortMalloc(sizeof(struct Node));
 
 	node->task = task;
@@ -76,33 +58,40 @@ void schedule_heavy_task(int32_t (*task)(const void*), const void* arg, void (*f
 	xSemaphoreGive(task_semaphore);
 }
 
-
-
-void __debug(const char *message) {
-	//printf("%s\n", message);
-}
-
 void TK_heavy_io_scheduler() {
 	uint32_t led_identifier = led_register_TK();
 
-	fs = (FileSystem*) pvPortMalloc(sizeof(FileSystem));
+	on_dump_request();
 
-	rocket_fs_debug(fs, &__debug);
-	rocket_fs_device(fs, "NOR Flash", 4096 * 4096, 4096);
-	rocket_fs_bind(fs, &flash_read, &flash_write, &flash_erase_subsector);
+   CAN_msg msg;
 
-	rocket_fs_mount(fs);
+	for(uint32_t i = 0; i < 4096; i++) {
+      msg.data = 1;
+      msg.id = 2;
+      msg.id_CAN = 3;
+      msg.timestamp = i;
+
+      osDelay(2);
+
+      flash_log(msg);
+	}
 
 
-	xSemaphoreGive(scheduler_lock);
+	osDelay(1000);
 
 	while(true) {
 		xSemaphoreTake(task_semaphore, portMAX_DELAY);
+
+		printf("Launching task\n");
 
 		struct Node* task = queue.first;
 		queue.first = task->next;
 
 		task->feedback(task->task(task->arg));
+
+		if(!queue.first) { // Avoid inconsistent FIFO queue state
+			queue.first = queue.last;
+		}
 
 		led_set_TK_rgb(led_identifier, 0xFF, 0xAA, 0);
 	}

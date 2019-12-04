@@ -38,6 +38,7 @@
 #include "led.h"
 #include "CAN_communication.h"
 
+#include "flash_runtime.h"
 #include "rocket_fs.h"
 #include "flash.h"
 /* USER CODE END Includes */
@@ -126,9 +127,11 @@ int main(void) {
 	led_init();
 	led_set_rgb(127, 255, 0);
 
-	// printf("BellaLui v1.0\n\n");
-
 	CAN_Config(CAN_ID);
+
+   // flash_erase_all();
+
+	init_filesystem();
 	/* USER CODE END 2 */
 
 	/* Call init function for freertos objects (in freertos.c) */

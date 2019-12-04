@@ -155,6 +155,36 @@ void flash_write(uint32_t address, uint8_t* buffer, uint32_t length) {
  * 	 - erase_ut.c
  *
  */
+void flash_erase_all() {
+   __write_enable_latch();
+
+   Command cmd = get_default_command();
+
+   if(!qspi_run(&cmd, ERASE_ALL)) {
+      flash_fatal(ERROR_ERASE | ERROR_RUN);
+   }
+
+   /*
+    * Checks if the controller is ready to proceed to the next command
+    */
+   cmd = get_default_command();
+   with_data(&cmd, 1);
+
+   if(!qspi_poll(&cmd, READ_FLAG_STATUS_REGISTER, 7, true)) {
+      flash_fatal(ERROR_ERASE | ERROR_STATE);
+   }
+
+   /*
+    * Checks if the protection fault flag is set
+    */
+   uint8_t flags = __read_flags();
+
+   if(flags & (1 << 5)) {
+      __write_disable_latch(); // Manually reset the latch
+
+      flash_fatal(ERROR_ERASE | ERROR_STATE);
+   }
+}
 
 void __flash_erase(uint32_t instruction, uint32_t address) {
 

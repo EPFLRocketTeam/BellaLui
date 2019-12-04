@@ -12,7 +12,7 @@
 #include <stdbool.h>
 
 
-typedef enum FileType { EMPTY, RAW, ECC, CRC_VERIFIABLE, LOW_REDUNDANCE, HIGH_REDUNDANCE, FOURIER_REDUNDANCE } FileType;
+typedef enum FileType { EMPTY, RAW, ECC, CHECKSUM, LOW_REDUNDANCE, HIGH_REDUNDANCE, FOURIER_REDUNDANCE } FileType;
 
 // 32 bytes
 typedef struct File {

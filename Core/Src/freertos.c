@@ -126,6 +126,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
 	init_heavy_scheduler();
+	init_logging();
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -183,7 +184,7 @@ void MX_FREERTOS_Init(void) {
 	#ifdef FLASH_LOGGING
      osThreadDef(task_logging, TK_logging_thread, osPriorityNormal, 0, 256);
      loggingHandle = osThreadCreate(osThread(task_logging), NULL);
-   	#endif
+   #endif
 
     #ifdef SDCARD
       osThreadDef(sdWrite, TK_sd_sync, osPriorityNormal, 0, 1024);
