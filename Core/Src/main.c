@@ -35,12 +35,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "led.h"
-#include "CAN_communication.h"
+#include <debug/led.h>
+#include <debug/console.h>
+#include <CAN_communication.h>
 
-#include "flash_runtime.h"
-#include "rocket_fs.h"
-#include "flash.h"
+#include <storage/flash_runtime.h>
+#include <rocket_fs.h>
+#include <flash.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -83,6 +84,8 @@ extern void initialise_monitor_handles(void);
 
 int main(void) {
 	/* USER CODE BEGIN 1 */
+
+	// Semi hosting has to be enabled in eclipse, otherwise the program will sigtrap at the instruction initialise_monitor_handler() in main.c
 	initialise_monitor_handles();
 	printf("BellaLui v1.0\n\n");
 

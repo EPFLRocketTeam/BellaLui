@@ -12,21 +12,20 @@
 typedef float float32_t;
 
 #include <stdbool.h>
-#include "cmsis_os.h"
+#include <cmsis_os.h>
 
-#include "../../HostBoard/Inc/CAN_communication.h"
-#include "main.h"
-#include "../../HostBoard/Inc/led.h"
-#include "../../HostBoard/Inc/Telemetry/telemetry_handling.h"
-#include "../../HostBoard/Inc/airbrake/airbrake.h"
-#include "../../HostBoard/Inc/Sensors/GPS_board.h"
-#include "../../HostBoard/Inc/Sensors/sensor_board.h"
-#include "../../HostBoard/Inc/Misc/datastructs.h"
-#include "../../HostBoard/Inc/sd_card.h"
-#include "../../HostBoard/Inc/ekf/tiny_ekf.h"
-#include "../../HostBoard/Inc/Misc/Common.h"
+#include <CAN_communication.h>
+#include <debug/led.h>
+#include <telemetry/telemetry_handling.h>
+#include <airbrakes/airbrake.h>
+#include <sensors/GPS_board.h>
+#include <sensors/sensor_board.h>
+#include <misc/datastructs.h>
+#include <misc/Common.h>
+#include <storage/sd_card.h>
+#include <kalman/tiny_ekf.h>
 
-#include "flash_logging.h"
+#include <storage/flash_logging.h>
 
 
 #define BUFFER_SIZE 128

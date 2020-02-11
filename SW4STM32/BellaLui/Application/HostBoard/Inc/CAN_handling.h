@@ -8,7 +8,7 @@
 #ifndef CAN_HANDLING_H_
 #define CAN_HANDLING_H_
 
-#include "../../HostBoard/Inc/Misc/datastructs.h"
+#include <misc/datastructs.h>
 
 void TK_can_reader();
 

@@ -9,11 +9,8 @@
  *      Author: Tim Lebailly
  */
 
-#include "../../HostBoard/Inc/CAN_communication.h"
-
-#include "main.h"
-
-#include "../../HostBoard/Inc/led.h"
+#include <CAN_communication.h>
+#include <debug/led.h>
 
 #define CAN_BUFFER_DEPTH 64
 
