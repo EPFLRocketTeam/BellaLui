@@ -117,6 +117,7 @@ void __flash_write_page(uint32_t address, uint8_t* buffer, uint32_t length) {
 	/*
 	 * Checks if the controller is ready to proceed to the next command
 	 */
+
 	cmd = get_default_command();
 	with_data(&cmd, 1);
 
@@ -135,17 +136,21 @@ void __flash_write_page(uint32_t address, uint8_t* buffer, uint32_t length) {
 }
 
 void flash_write(uint32_t address, uint8_t* buffer, uint32_t length) {
-	while(length > PAGE_SIZE) {
-		__flash_write_page(address, buffer, PAGE_SIZE);
-		buffer += PAGE_SIZE;
-		address += PAGE_SIZE;
-		length -= PAGE_SIZE;
+	uint32_t internal_address = address % PAGE_SIZE;
+
+	while(internal_address + length > PAGE_SIZE) {
+		uint32_t write_length = PAGE_SIZE - internal_address;
+
+		__flash_write_page(address, buffer, write_length);
+		buffer += write_length;
+		address += write_length;
+		length -= write_length;
+
+		internal_address = 0;
 	}
 
 	__flash_write_page(address, buffer, length);
 }
-
-
 
 /*
  *

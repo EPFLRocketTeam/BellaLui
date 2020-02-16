@@ -67,19 +67,22 @@ void TK_heavy_io_scheduler() {
 
    CAN_msg msg;
 
-	for(uint32_t i = 0; i < 4096; i++) {
+
+	uint32_t start = HAL_GetTick();
+
+	uint32_t num_messages = 8192;
+
+	for(uint32_t i = 0; i < num_messages; i++) {
       msg.data = 1;
       msg.id = 2;
-      msg.id_CAN = 3;
-      msg.timestamp = i;
-
-      osDelay(2);
+      msg.id_CAN = 0xCAFEBABE;
+      msg.timestamp = HAL_GetTick();
 
       flash_log(msg);
 	}
 
+	printf("CAN message processing time: %ldµs\n", 1000 * (HAL_GetTick() - start) / num_messages);
 
-	osDelay(1000);
 
 	while(true) {
 		xSemaphoreTake(task_semaphore, portMAX_DELAY);

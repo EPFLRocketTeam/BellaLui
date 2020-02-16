@@ -1,0 +1,15 @@
+/*
+ * test.h
+ *
+ *  Created on: 12 Feb 2020
+ *      Author: Arion
+ */
+
+#ifndef APPLICATION_HOSTBOARD_INC_COMMUNICATION_TEST_TEST_H_
+#define APPLICATION_HOSTBOARD_INC_COMMUNICATION_TEST_TEST_H_
+
+
+void run_tests();
+
+
+#endif /* APPLICATION_HOSTBOARD_INC_COMMUNICATION_TEST_TEST_H_ */

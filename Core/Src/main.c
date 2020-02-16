@@ -42,6 +42,8 @@
 #include <storage/flash_runtime.h>
 #include <rocket_fs.h>
 #include <flash.h>
+
+#include <communication/test/test.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -81,7 +83,6 @@ extern void initialise_monitor_handles(void);
  * @brief  The application entry point.
  * @retval int
  */
-
 int main(void) {
 	/* USER CODE BEGIN 1 */
 
@@ -127,12 +128,13 @@ int main(void) {
 	MX_USART3_UART_Init();
 	MX_USART6_UART_Init();
 	/* USER CODE BEGIN 2 */
+
 	led_init();
 	led_set_rgb(127, 255, 0);
 
 	CAN_Config(CAN_ID);
 
-   // flash_erase_all();
+    // flash_erase_all();
 
 	init_filesystem();
 	/* USER CODE END 2 */

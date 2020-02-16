@@ -19,23 +19,27 @@
 #include <debug/console.h>
 
 #include <rocket_fs.h>
+#include <flash.h>
 #include <storage/flash_runtime.h>
 #include <storage/heavy_io.h>
 
 
 
-static volatile CAN_msg front_buffer[LOGGING_BUFFER_SIZE] = { 0 };
+static volatile uint8_t front_buffer[LOGGING_BUFFER_SIZE] = { 0 };
 static volatile uint32_t front_buffer_index = 0;
 
-static volatile SemaphoreHandle_t buffer_lock;
+static volatile SemaphoreHandle_t master_swap;
+static volatile SemaphoreHandle_t slave_swap;
 
 static volatile SemaphoreHandle_t master_io_semaphore;
 static volatile SemaphoreHandle_t slave_io_semaphore;
 static volatile bool flash_ignore_write = false;
 
+static volatile uint32_t last_update = 0;
 
 void init_logging() {
-   buffer_lock = xSemaphoreCreateMutex();
+   master_swap = xSemaphoreCreateBinary();
+   slave_swap = xSemaphoreCreateBinary();
    master_io_semaphore = xSemaphoreCreateBinary();
    slave_io_semaphore = xSemaphoreCreateBinary();
 }
@@ -45,20 +49,31 @@ void flash_log(CAN_msg message) {
 	 * Write the CAN message to the front buffer.
 	 */
 
-	if(xSemaphoreTake(buffer_lock, 20 * portTICK_PERIOD_MS) == pdTRUE) {
-		if (front_buffer_index < LOGGING_BUFFER_SIZE) {
-			front_buffer[front_buffer_index] = message;
-			front_buffer_index++;
-		} else {
-			// Error: Buffer overflow. Too many CAN messages to process.
-		}
+	if(front_buffer_index <= LOGGING_BUFFER_SIZE - 12) {
+		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 24);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 16);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 8);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 0);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.id);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.id_CAN >> 24);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.id_CAN >> 16);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.id_CAN >> 8);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.id_CAN >> 0);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.timestamp >> 16);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.timestamp >> 8);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.timestamp >> 0);
+	}
 
-		xSemaphoreGive(buffer_lock);
+	vTaskDelay(400 * portTICK_PERIOD_MS / 1000);  // Add delay to smoothen the thread blocking time due to flash synchronisation
+
+	if(front_buffer_index >= LOGGING_BUFFER_SIZE) {
+		xSemaphoreGive(master_swap);
+		xSemaphoreTake(slave_swap, 10 * portTICK_PERIOD_MS);
 	}
 }
 
 void TK_logging_thread(void const *pvArgs) {
-	static CAN_msg back_buffer[LOGGING_BUFFER_SIZE];
+	static uint8_t back_buffer[LOGGING_BUFFER_SIZE];
 	static uint32_t back_buffer_length = 0;
 
 	uint32_t led_identifier = led_register_TK();
@@ -119,7 +134,11 @@ void TK_logging_thread(void const *pvArgs) {
 			 * Copy the front buffer to the back buffer and reset the index counter.
 			 */
 
-			xSemaphoreTake(buffer_lock, portMAX_DELAY);
+			xSemaphoreTake(master_swap, portMAX_DELAY);
+
+			if(front_buffer_index > LOGGING_BUFFER_SIZE) {
+				front_buffer_index = LOGGING_BUFFER_SIZE;
+			}
 
 			for (uint32_t i = 0; i < front_buffer_index; i++) {
 				back_buffer[i] = front_buffer[i];
@@ -128,33 +147,21 @@ void TK_logging_thread(void const *pvArgs) {
 			back_buffer_length = front_buffer_index;
 			front_buffer_index = 0;
 
-			xSemaphoreGive(buffer_lock);
+			xSemaphoreGive(slave_swap);
 
 			/*
 			 * Process the back buffer and write its content to the flash memory.
 			 */
 
-			CAN_msg current;
-			for (uint32_t i = 0; i < back_buffer_length; i++) {
-				current = back_buffer[i];
-
-				stream.write32(current.data);
-				stream.write8(current.id);
-				stream.write32(current.id_CAN);
-				stream.write8((uint8_t) (current.timestamp << 16));
-            stream.write8((uint8_t) (current.timestamp << 8));
-            stream.write8((uint8_t) current.timestamp);
-
-            can++;
-			}
+			stream.write(back_buffer, back_buffer_length);
+			can += back_buffer_length;
 
 			led_set_TK_rgb(led_identifier, 0, 50, 50);
 		}
 
-		printf("Wrote %d CAN messages.\n", can);
+		printf("Wrote %d bytes worth of CAN messages\n", can);
 
 		stream.close();
-		rocket_fs_flush(fs);
 
 		printf("Entering passive logging mode\n");
 
@@ -169,6 +176,8 @@ void TK_logging_thread(void const *pvArgs) {
 void acquire_flash_lock() {
 	if(!flash_ignore_write) {
 		flash_ignore_write = true;
+		xSemaphoreGive(master_swap);
+		xSemaphoreTake(slave_swap, portMAX_DELAY);
 		xSemaphoreTake(master_io_semaphore, portMAX_DELAY);
 	}
 }
@@ -270,15 +279,17 @@ int32_t dump_file_on_sd(const char* filename) {
 	 * Stage 3: Transfer data from Flash to SD card.
 	 */
 
-	uint8_t buffer[64];
+	uint8_t buffer[LOGGING_BUFFER_SIZE];
 	uint32_t total_bytes_read = 0;
 	uint32_t total_bytes_written = 0;
 
    int32_t bytes_read = 1;
    UINT bytes_written = 0;
 
+   rocket_fs_touch(fs, flash_file);
+
 	while(total_bytes_read < flash_file->length && bytes_read > 0) {
-	   bytes_read = stream.read(buffer, 64);
+	   bytes_read = stream.read(buffer, LOGGING_BUFFER_SIZE);
 
 		f_write(&sd_file, buffer, bytes_read, &bytes_written);
 
@@ -353,17 +364,17 @@ int32_t dump_everything_on_sd(void* arg) {
     * Stage 3: Transfer data from Flash to SD card.
     */
 
-   uint8_t buffer[64];
+   uint8_t buffer[2048];
    uint32_t total_bytes_written = 0;
    UINT bytes_written = 0;
 
-   for(int32_t address = 0; address < 4096 * 4096; address += 64) {
-      flash_read(address, buffer, 64);
-      f_write(&sd_file, buffer, 64, &bytes_written);
+   for(int32_t address = 0; address < 4096 * 4096; address += 2048) {
+      flash_read(address, buffer, 2048);
+      f_write(&sd_file, buffer, 2048, &bytes_written);
 
       total_bytes_written += bytes_written;
 
-      if(bytes_written < 64) {
+      if(bytes_written < 2048) {
          // TODO: Disk full: delete old files.
       }
    }

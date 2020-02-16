@@ -96,6 +96,7 @@ void rocket_fs_flush(FileSystem* fs); // Flushes the partition table
 File* rocket_fs_newfile(FileSystem* fs, const char* name, FileType type);
 void rocket_fs_delfile(FileSystem* fs, File* file);
 File* rocket_fs_getfile(FileSystem* fs, const char* name);
+void rocket_fs_touch(FileSystem* fs, File* file);
 bool rocket_fs_stream(Stream* stream, FileSystem* fs, File* file, StreamMode mode);
 
 
