@@ -5,41 +5,25 @@
  *      Author: Arion
  */
 
+#include <cmsis_os.h>
 #include <debug/console.h>
-#include <tim.h>
-#include <stdint.h>
+#include <stm32f4xx_hal.h>
+#include <sync.h>
 
 
-#define TICK_FREQUENCY 20
+#define TICK_PERIOD (1000 / 20) // 20Hz
+#define NUM_SYNCHRONIZABLES 8
+
+static uint32_t last_update[NUM_SYNCHRONIZABLES];
 
 
-static TIM_HandleTypeDef the_timer;
+void sync_logic(uint8_t identifier) {
+	uint32_t time = HAL_GetTick();
+	int32_t delta = TICK_PERIOD - (time - last_update[identifier]);
 
-static uint32_t last_update = 0;
-
-
-void init_timer() {
-	HAL_TIM_Base_MspInit(&htim2);
-
-	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim2.Init.Period = -1;
-	htim2.Init.Prescaler = (uint16_t) (SystemCoreClock / 1000000) - 1;
-	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim2.Init.RepetitionCounter = 0;
-
-	HAL_TIM_Base_Init(&htim2);
-	HAL_TIM_Base_Start(&htim2);
-}
-
-uint32_t prev = 0;
-
-void sync_data_acquisition() {
-	uint32_t time = __HAL_TIM_GET_COUNTER(&htim2);
-	int32_t delta = time - last_update;
-
-	if(HAL_GetTick() - prev >= 100) {
-		prev = HAL_GetTick();
-		last_update = time;
+	if(delta > 0) {
+		last_update[identifier] = time;
+		osDelay(delta);
 		printf("%ld\n", delta);
 	}
 

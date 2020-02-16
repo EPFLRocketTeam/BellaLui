@@ -8,7 +8,8 @@
 #ifndef APPLICATION_HOSTBOARD_INC_SYNC_H_
 #define APPLICATION_HOSTBOARD_INC_SYNC_H_
 
-void init_timer();
-void sync_data_acquisition();
+#include <stdint.h>
+
+void sync_logic(uint8_t identifier);
 
 #endif /* APPLICATION_HOSTBOARD_INC_SYNC_H_ */

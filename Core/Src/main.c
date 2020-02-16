@@ -38,10 +38,8 @@
 #include <debug/led.h>
 #include <debug/console.h>
 
-#include <rocket_fs.h>
-#include <flash.h>
+#include <storage/flash_runtime.h>
 
-#include <sync.h>
 
 /* USER CODE END Includes */
 
@@ -127,8 +125,6 @@ int main(void) {
 	MX_USART3_UART_Init();
 	MX_USART6_UART_Init();
 	/* USER CODE BEGIN 2 */
-
-	init_timer();
 
 	led_init();
 	led_set_rgb(127, 255, 0);

@@ -64,7 +64,7 @@ void flash_log(CAN_msg message) {
 
 	// vTaskDelay(400 * portTICK_PERIOD_MS / 1000);  // Add delay to smoothen the thread blocking time due to flash synchronisation
 
-	sync_data_acquisition();
+	sync_logic(0);
 
 	if(front_buffer_index >= LOGGING_BUFFER_SIZE) {
 		xSemaphoreGive(master_swap);
