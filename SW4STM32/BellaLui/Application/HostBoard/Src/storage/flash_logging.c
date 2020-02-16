@@ -35,8 +35,6 @@ static volatile SemaphoreHandle_t master_io_semaphore;
 static volatile SemaphoreHandle_t slave_io_semaphore;
 static volatile bool flash_ignore_write = false;
 
-static volatile uint32_t last_update = 0;
-
 void init_logging() {
    master_swap = xSemaphoreCreateBinary();
    slave_swap = xSemaphoreCreateBinary();
@@ -64,7 +62,9 @@ void flash_log(CAN_msg message) {
 		front_buffer[front_buffer_index++] = (uint8_t) (message.timestamp >> 0);
 	}
 
-	vTaskDelay(400 * portTICK_PERIOD_MS / 1000);  // Add delay to smoothen the thread blocking time due to flash synchronisation
+	// vTaskDelay(400 * portTICK_PERIOD_MS / 1000);  // Add delay to smoothen the thread blocking time due to flash synchronisation
+
+	sync_data_acquisition();
 
 	if(front_buffer_index >= LOGGING_BUFFER_SIZE) {
 		xSemaphoreGive(master_swap);
@@ -159,7 +159,7 @@ void TK_logging_thread(void const *pvArgs) {
 			led_set_TK_rgb(led_identifier, 0, 50, 50);
 		}
 
-		printf("Wrote %d bytes worth of CAN messages\n", can);
+		printf("Wrote %ld bytes worth of CAN messages\n", can);
 
 		stream.close();
 

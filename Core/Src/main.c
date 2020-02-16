@@ -37,13 +37,12 @@
 /* USER CODE BEGIN Includes */
 #include <debug/led.h>
 #include <debug/console.h>
-#include <CAN_communication.h>
 
-#include <storage/flash_runtime.h>
 #include <rocket_fs.h>
 #include <flash.h>
 
-#include <communication/test/test.h>
+#include <sync.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -128,6 +127,8 @@ int main(void) {
 	MX_USART3_UART_Init();
 	MX_USART6_UART_Init();
 	/* USER CODE BEGIN 2 */
+
+	init_timer();
 
 	led_init();
 	led_set_rgb(127, 255, 0);

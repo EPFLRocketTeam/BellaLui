@@ -9,7 +9,8 @@
 #define APPLICATION_HOSTBOARD_INC_THREADS_H_
 
 
-
+void create_semaphores();
+void create_threads();
 
 
 #endif /* APPLICATION_HOSTBOARD_INC_THREADS_H_ */
