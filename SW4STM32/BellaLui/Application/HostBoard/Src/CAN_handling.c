@@ -37,7 +37,9 @@ BARO_data BARO_buffer[CIRC_BUFFER_SIZE];
 
 float kalman_z  = 0;
 float kalman_vz = 0;
+float motor_pressure = 0;
 int32_t ab_angle = 42;
+
 
 // wrapper to avoid fatal crashes when implementing redundancy
 int board2Idx(uint32_t board) {
@@ -93,6 +95,24 @@ bool handleBaroData(BARO_data data) {
 	return false;
 }
 
+bool handleABData(IMU_data data) {
+#ifdef XBEE
+	return telemetry_handleABData(data);
+#else
+	//IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
+#endif
+	return true;
+}
+
+bool handleMotorData(IMU_data data) {
+#ifdef XBEE
+	return telemetry_handleMotorPressureData(data);
+#else
+	//IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
+#endif
+	return true;
+}
+
 float can_getAltitude() {
 	//return altitude_estimate; // from TK_state_estimation
 	return kalman_z;
@@ -139,6 +159,8 @@ void TK_can_reader() {
 	bool new_baro[MAX_BOARD_NUMBER] = {0};
 	bool new_imu [MAX_BOARD_NUMBER] = {0};
 	bool new_gps [MAX_BOARD_NUMBER] = {0};
+	bool new_ab = 0;
+	bool new_motor_pressure = 0;
 	int idx = 0;
 
 	osDelay (500); // Wait for the other threads to be ready
@@ -222,7 +244,13 @@ void TK_can_reader() {
 				break;
 			case DATA_ID_AB_INC:
 				ab_angle = (int32_t) msg.data;
+				// new_ab = true;
 				break;
+			/*
+			case DATA_ID_MOTOR_PRESSURE:
+				motor_pressure = (int32_t) msg.data;
+				new_motor_pressure = true;
+			 */
 			}
 		}
 
@@ -257,6 +285,14 @@ void TK_can_reader() {
 				new_imu[i] = !handleIMUData(imu[i]);
 			}
 		}
+		/*
+		if (new_ab) {
+			new_ab = !handleABData(ab_angle);
+		}
+		if (new_motorpressure) {
+			new_motor_pressure = !handleMotorData(motor_pressure);
+		}
+		 */
 
 		osDelay (10);
 	}

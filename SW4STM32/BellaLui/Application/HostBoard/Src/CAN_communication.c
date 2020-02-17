@@ -11,6 +11,8 @@
 
 #include <CAN_communication.h>
 #include <debug/led.h>
+#include <storage/flash_logging.h>
+#include <sync.h>
 
 #define CAN_BUFFER_DEPTH 64
 
@@ -44,6 +46,9 @@ uint32_t pointer_inc(uint32_t val, uint32_t size){
 void can_addMsg(CAN_msg msg) {
 	can_buffer[can_buffer_pointer_tx] = msg;
 	can_buffer_pointer_tx = pointer_inc(can_buffer_pointer_tx, CAN_BUFFER_DEPTH);
+
+	flash_log(msg);
+	sync_logic(0);
 
 	if (can_buffer_pointer_tx == can_buffer_pointer_rx) { // indicates overflow
 		can_buffer_pointer_rx = pointer_inc(can_buffer_pointer_rx, CAN_BUFFER_DEPTH); // skip one msg in the rx buffer

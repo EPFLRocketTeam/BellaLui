@@ -47,24 +47,18 @@ void flash_log(CAN_msg message) {
 	 * Write the CAN message to the front buffer.
 	 */
 
-	if(front_buffer_index <= LOGGING_BUFFER_SIZE - 12) {
+	if(front_buffer_index <= LOGGING_BUFFER_SIZE - 8) {
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 24);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 16);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 8);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 0);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.id);
-		front_buffer[front_buffer_index++] = (uint8_t) (message.id_CAN >> 24);
-		front_buffer[front_buffer_index++] = (uint8_t) (message.id_CAN >> 16);
-		front_buffer[front_buffer_index++] = (uint8_t) (message.id_CAN >> 8);
-		front_buffer[front_buffer_index++] = (uint8_t) (message.id_CAN >> 0);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.timestamp >> 16);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.timestamp >> 8);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.timestamp >> 0);
 	}
 
 	// vTaskDelay(400 * portTICK_PERIOD_MS / 1000);  // Add delay to smoothen the thread blocking time due to flash synchronisation
-
-	sync_logic(0);
 
 	if(front_buffer_index >= LOGGING_BUFFER_SIZE) {
 		xSemaphoreGive(master_swap);

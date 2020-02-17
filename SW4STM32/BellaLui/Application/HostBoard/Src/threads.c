@@ -5,7 +5,7 @@
  *      Author: Arion
  */
 
-
+#define SENSOR
 #define LED
 
 #define FLASH_LOGGING
@@ -22,6 +22,10 @@
 #include <debug/led.h>
 #include <storage/flash_logging.h>
 #include <storage/heavy_io.h>
+
+#ifdef SENSOR
+#include <sensors/sensor_board.h>
+#endif
 
 
 osThreadId loggingHandle;

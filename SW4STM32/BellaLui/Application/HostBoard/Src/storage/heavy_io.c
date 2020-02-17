@@ -63,7 +63,7 @@ void schedule_heavy_task(int32_t (*task)(void*), const void* arg, void (*feedbac
 void TK_heavy_io_scheduler() {
 	uint32_t led_identifier = led_register_TK();
 
-	on_dump_request();
+	/*on_dump_request();
 
    CAN_msg msg;
 
@@ -81,7 +81,7 @@ void TK_heavy_io_scheduler() {
       flash_log(msg);
 	}
 
-	printf("CAN message processing time: %ldµs\n", 1000 * (HAL_GetTick() - start) / num_messages);
+	printf("CAN message processing time: %ldµs\n", 1000 * (HAL_GetTick() - start) / num_messages);*/
 
 
 	while(true) {
