@@ -1,5 +1,5 @@
 /*
- * flash_logging.c
+ * flash_rocket_logging.c
  *
  *  Created on: 22 Oct 2019
  *      Author: Arion
@@ -153,16 +153,16 @@ void TK_logging_thread(void const *pvArgs) {
 			led_set_TK_rgb(led_identifier, 0, 50, 50);
 		}
 
-		printf("Wrote %ld bytes worth of CAN messages\n", can);
+		rocket_log("Wrote %ld bytes worth of CAN messages\n", can);
 
 		stream.close();
 
-		printf("Entering passive logging mode\n");
+		rocket_log("Entering passive rocket_logging mode\n");
 
 		xSemaphoreGive(master_io_semaphore);
 		xSemaphoreTake(slave_io_semaphore, portMAX_DELAY);
 
-		printf("Entering active logging mode\n");
+		rocket_log("Entering active rocket_logging mode\n");
 	}
 }
 
@@ -186,10 +186,10 @@ void release_flash_lock() {
 
 void on_dump_feedback(int32_t error_code) {
 	if(error_code != 0) {
-		printf("Dump failed with error code: %ld\n", error_code);
+		rocket_log("Dump failed with error code: %ld\n", error_code);
 		// An error occurred while copying the flash data into the SD card.
 	} else {
-      printf("Dump succeeded\n");
+      rocket_log("Dump succeeded\n");
 	}
 }
 
@@ -297,7 +297,7 @@ int32_t dump_file_on_sd(const char* filename) {
 
 	stream.close();
 
-   printf("Wrote %ld bytes to the sd card.\n", total_bytes_written);
+	rocket_log("Wrote %ld bytes to the sd card.\n", total_bytes_written);
 
 	f_sync(&sd_file);
 	f_close(&sd_file);
@@ -373,7 +373,7 @@ int32_t dump_everything_on_sd(void* arg) {
       }
    }
 
-   printf("Wrote %ld bytes to the sd card.\n", total_bytes_written);
+   rocket_log("Wrote %ld bytes to the sd card.\n", total_bytes_written);
 
    f_sync(&sd_file);
    f_close(&sd_file);

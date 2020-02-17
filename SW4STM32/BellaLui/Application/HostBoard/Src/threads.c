@@ -5,12 +5,15 @@
  *      Author: Arion
  */
 
-#define SENSOR
-#define LED
+#include <stddef.h>
+#include <usart.h>
 
+//#define SENSOR
+#define LED
+#define XBEE
 #define FLASH_LOGGING
 #define OS_STKCHECK
-
+#define CAN_LED
 
 
 #include "FreeRTOS.h"
@@ -22,6 +25,7 @@
 #include <debug/led.h>
 #include <storage/flash_logging.h>
 #include <storage/heavy_io.h>
+#include <telemetry/xbee.h>
 
 #ifdef SENSOR
 #include <sensors/sensor_board.h>

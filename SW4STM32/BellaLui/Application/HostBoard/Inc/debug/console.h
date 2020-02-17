@@ -10,6 +10,7 @@
 
 // Semi hosting has to be enabled in eclipse, otherwise the program will sigtrap at the instruction initialise_monitor_handler() in main.c
 
-int printf(const char *format, ...);
+//#define rocket_log printf
+int rocket_log(const char *format, ...);
 
 #endif /* APPLICATION_HOSTBOARD_INC_DEBUG_CONSOLE_H_ */

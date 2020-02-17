@@ -13,6 +13,7 @@
 #include <debug/led.h>
 #include <storage/flash_logging.h>
 #include <sync.h>
+#include <main.h>
 
 #define CAN_BUFFER_DEPTH 64
 
@@ -46,9 +47,6 @@ uint32_t pointer_inc(uint32_t val, uint32_t size){
 void can_addMsg(CAN_msg msg) {
 	can_buffer[can_buffer_pointer_tx] = msg;
 	can_buffer_pointer_tx = pointer_inc(can_buffer_pointer_tx, CAN_BUFFER_DEPTH);
-
-	flash_log(msg);
-	sync_logic(0);
 
 	if (can_buffer_pointer_tx == can_buffer_pointer_rx) { // indicates overflow
 		can_buffer_pointer_rx = pointer_inc(can_buffer_pointer_rx, CAN_BUFFER_DEPTH); // skip one msg in the rx buffer
@@ -129,10 +127,16 @@ void can_setFrame(uint32_t data, uint8_t data_id, uint32_t timestamp) {
     TxData[6] = (uint8_t) (timestamp >> 8);
     TxData[7] = (uint8_t) (timestamp >> 0);
 
+	//flash_log(msg);
+	sync_logic(0);
+
 	while (HAL_CAN_IsTxMessagePending(&hcan1, TxMailbox)) {} // wait for CAN to be ready
 
+	CAN_msg message = (CAN_msg) {data, data_id, timestamp, TxHeader.StdId};
+
     if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) == HAL_OK) {
-    	can_addMsg((CAN_msg) {data, data_id, timestamp, TxHeader.StdId});
+    	flash_log(message);
+    	can_addMsg(message);
     } else { // something bad happen
     	// not sure what to do
     }

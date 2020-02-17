@@ -174,11 +174,6 @@ void TK_can_reader() {
 				sendSDcard(msg);
 #endif
 
-#ifdef FLASH_LOGGING
-			flash_log(msg);
-#endif
-
-
 			idx = board2Idx(msg.id_CAN);
 
 			switch(msg.id) {

@@ -62,6 +62,36 @@ void xbee_freertos_init(UART_HandleTypeDef *huart) {
 
 void TK_xBeeTelemetry (const void* args)
 {
+	while(true) {
+		uint8_t buffer[8];
+	    uint32_t pos = 0;
+
+	    txDmaBuffer[pos++] = XBEE_START;
+	      txDmaBuffer[pos++] = 0;
+	      txDmaBuffer[pos++] = sizeof(XBEE_FRAME_OPTIONS) + 8;
+
+	      currentCrc = XBEE_FRAME_OPTIONS_CRC;
+
+	      for (int i = 0; i < sizeof(XBEE_FRAME_OPTIONS); i++)
+	        {
+	          txDmaBuffer[pos++] = XBEE_FRAME_OPTIONS[i];
+	          currentCrc += XBEE_FRAME_OPTIONS[i];
+	        }
+
+	      for (int i = 0; i < 8; ++i)
+	        {
+	          txDmaBuffer[pos++] = buffer[i];
+	          currentCrc += buffer[i];
+	        }
+
+	      currentCrc = 0xff - currentCrc;
+	      txDmaBuffer[pos++] = currentCrc;
+	      //send the data buffer to the xBee module
+	      HAL_UART_Transmit_DMA (xBee_huart, txDmaBuffer, pos);
+
+	}
+
+
   led_xbee_id = led_register_TK();
   led_set_TK_rgb(led_xbee_id, 100, 50, 0);
 
