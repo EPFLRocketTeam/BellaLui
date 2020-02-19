@@ -15,21 +15,16 @@
 #define OS_STKCHECK
 //#define CAN_LED
 
+#include <CAN_handling.h>
+#include <sync.h>
+#include <debug/led.h>
+#include <storage/flash_logging.h>
+#include <storage/heavy_io.h>
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
 
-
-#include <CAN_handling.h>
-#include <debug/led.h>
-#include <storage/flash_logging.h>
-#include <storage/heavy_io.h>
-#include <telemetry/xbee.h>
-
-#ifdef SENSOR
-#include <sensors/sensor_board.h>
-#endif
 
 
 osThreadId loggingHandle;
