@@ -42,8 +42,12 @@ DatagramBuilder::DatagramBuilder (uint16_t datagramPayloadSize, uint8_t datagram
 	write8 (datagramType);
 
 	//EPFL Prefix
-	const char *EPFL_PREFIX = "EPFL";
-	write8((uint32_t) EPFL_PREFIX);
+	/*const char *EPFL_PREFIX = "EPFL";
+	write32((uint32_t) EPFL_PREFIX);*/
+	write8((uint8_t) 'E');
+	write8((uint8_t) 'P');
+	write8((uint8_t) 'F');
+	write8((uint8_t) 'L');
 
 	datagramCrc = CRC_16_GENERATOR_POLY.initialValue;
 	for (int16_t i = currentIdx - 5; i < currentIdx; i++)

@@ -39,7 +39,7 @@ static uint8_t XBEE_FRAME_OPTIONS[XBEE_FRAME_OPTIONS_SIZE] =
       0x00,           // Broadcast radius (0 = max)
       0x43 };          // Transmit options (disable ACK and Route discovery)
 
-uint8_t XBEE_FRAME_OPTIONS_CRC = 0;
+uint32_t XBEE_FRAME_OPTIONS_CRC = 0;
 uint16_t XBEE_SEND_FRAME_TIMEOUT_MS = 32;
 
 uint8_t currentCrc = 0;
@@ -62,34 +62,27 @@ void xbee_freertos_init(UART_HandleTypeDef *huart) {
 
 void TK_xBeeTelemetry (const void* args)
 {
-	while(true) {
-		uint8_t buffer[8];
-	    uint32_t pos = 0;
+	/*while(true) {
+		uint8_t command[] = {0x7E,
+			                     0x00, 0x10, // length
+			                     0x10,  // Frame type // Transmit Request frame - 0x10
+			                     0x00,           // Frame ID - Setting it to '0' will disable response frame.
+			                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff,     // 64 bit dest address // broadcast
+			                     0xff, 0xfe,           // 16 bits dest address (0xff fe = broadcast) unknown address
+			                     0x00,           // Broadcast radius (0 = max) no hops
+			                     0x43,
+			                     0xff, //DATA
+			                     0xfe, //DATA
+			                     0xb4 // CRC
+		};
+		led_set_rgb(0,0,255);
+		HAL_UART_Transmit_DMA (xBee_huart, command, sizeof(command));
+		osDelay(1000);
+		led_set_rgb(255,0,0);
+		osDelay(1000);
+	}*/
 
-	    txDmaBuffer[pos++] = XBEE_START;
-	      txDmaBuffer[pos++] = 0;
-	      txDmaBuffer[pos++] = sizeof(XBEE_FRAME_OPTIONS) + 8;
 
-	      currentCrc = XBEE_FRAME_OPTIONS_CRC;
-
-	      for (int i = 0; i < sizeof(XBEE_FRAME_OPTIONS); i++)
-	        {
-	          txDmaBuffer[pos++] = XBEE_FRAME_OPTIONS[i];
-	          currentCrc += XBEE_FRAME_OPTIONS[i];
-	        }
-
-	      for (int i = 0; i < 8; ++i)
-	        {
-	          txDmaBuffer[pos++] = buffer[i];
-	          currentCrc += buffer[i];
-	        }
-
-	      currentCrc = 0xff - currentCrc;
-	      txDmaBuffer[pos++] = currentCrc;
-	      //send the data buffer to the xBee module
-	      HAL_UART_Transmit_DMA (xBee_huart, txDmaBuffer, pos);
-
-	}
 
 
   led_xbee_id = led_register_TK();
@@ -109,7 +102,7 @@ void TK_xBeeTelemetry (const void* args)
           packetStartTime = HAL_GetTick();
         } else if (currentXbeeTxBufPos==0 && elapsed > XBEE_SEND_FRAME_LONG_TIMEOUT_MS) {
         	// force dummy frame creation
-        	telemetry_handleIMUData((IMU_data) {{1,1,1}, {0,0,0}, 0});
+        	telemetry_handleIMUData((IMU_data) {{1,1.5f,666.0f}, {0,0,0}, 0});
         }
       osEvent event;
       do {
@@ -215,8 +208,10 @@ void sendXbeeFrame ()
 
   currentXbeeTxBufPos = 0;
 
+
+
   led_set_TK_rgb(led_xbee_id, 0, 50, 0);
-}
+ }
 
 void HAL_UART_TxCpltCallback (UART_HandleTypeDef *huart)
 {

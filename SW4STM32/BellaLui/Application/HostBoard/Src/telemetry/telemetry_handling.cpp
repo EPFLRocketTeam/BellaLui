@@ -28,6 +28,7 @@ extern "C" {
 #define AB_TIMEMIN 500
 //#define TELE_RAW_TIMEMIN 100
 
+volatile static uint32_t Packet_Number = 0;
 
 // for import in C code
 extern "C" bool telemetry_handleGPSData(GPS_data data);
@@ -35,7 +36,7 @@ extern "C" bool telemetry_handleIMUData(IMU_data data);
 extern "C" bool telemetry_handleBaroData(BARO_data data);
 extern "C" bool telemetry_handleWarningPacketData(bool id, uint32_t value);
 extern "C" bool telemetry_handleMotorPressureData(uint32_t pressure);
-extern "C" bool telemetry_handleABData(uint32_t ab_angle);
+extern "C" bool telemetry_handleABData();
 
 extern osMessageQId xBeeQueueHandle;
 
@@ -65,12 +66,12 @@ Telemetry_Message createTelemetryDatagram (IMU_data* imu_data, BARO_data* baro_d
 {
 
 	//here, the Datagram is created
-	DatagramBuilder builder = DatagramBuilder (SENSOR_DATAGRAM_PAYLOAD_SIZE, TELEMETRY_ERT18, telemetrySeqNumber);
+	DatagramBuilder builder = DatagramBuilder (SENSOR_DATAGRAM_PAYLOAD_SIZE, TELEMETRY, telemetrySeqNumber);
 
 	// ## Beginning of datagram Payload ##
 	// time stamp
 	builder.write32<uint32_t> (time_stamp);
-
+	builder.write32<uint32_t> (Packet_Number++);
 	builder.write32<float32_t> (imu_data->acceleration.x);
 	builder.write32<float32_t> (imu_data->acceleration.y);
 	builder.write32<float32_t> (imu_data->acceleration.z);
@@ -95,6 +96,7 @@ Telemetry_Message createAirbrakesDatagram (uint32_t time_stamp, uint32_t telemet
 {
 	DatagramBuilder builder = DatagramBuilder (AB_DATAGRAM_PAYLOAD_SIZE, AIRBRAKES, telemetrySeqNumber++);
 	builder.write32<uint32_t> (time_stamp);
+	builder.write32<uint32_t> (Packet_Number++);
 	builder.write32<float32_t> (can_getABangle()); // AB_angle
 
 	return builder.finalizeDatagram ();
@@ -106,6 +108,7 @@ Telemetry_Message createGPSDatagram (uint32_t seqNumber, GPS_data gpsData)
 	DatagramBuilder builder = DatagramBuilder (GPS_DATAGRAM_PAYLOAD_SIZE, GPS, seqNumber++);
 
 	builder.write32<uint32_t> (HAL_GetTick ());
+	builder.write32<uint32_t> (Packet_Number++);
 	builder.write8 (gpsData.sats);
 	builder.write32<float32_t> (gpsData.hdop);
 	builder.write32<float32_t> (gpsData.lat);
@@ -120,6 +123,7 @@ Telemetry_Message createMotorPressurePacketDatagram(uint32_t time_stamp, float32
 	DatagramBuilder builder = DatagramBuilder (MOTORPRESSURE_DATAGRAM_PAYLOAD_SIZE, MOTOR, seqNumber++);
 
 	builder.write32<uint32_t> (time_stamp);
+	builder.write32<uint32_t> (Packet_Number++);
 	builder.write32<float32_t> (pressure);
 
 	return builder.finalizeDatagram();
@@ -127,9 +131,10 @@ Telemetry_Message createMotorPressurePacketDatagram(uint32_t time_stamp, float32
 //new
 Telemetry_Message createWarningPacketDatagram(uint32_t time_stamp, bool id, uint32_t value, uint32_t seqNumber)
 {
-	DatagramBuilder builder = DatagramBuilder (WARNING_DATAGRAM_PAYLOAD_SIZE, EVENT, seqNumber++);
+	DatagramBuilder builder = DatagramBuilder (WARNING_DATAGRAM_PAYLOAD_SIZE, STATUS, seqNumber++);
 
 	builder.write32<uint32_t> (time_stamp);
+	builder.write32<uint32_t> (Packet_Number++);
 	builder.write32<bool> (id);
 	builder.write32<uint32_t> (value);
 	builder.write32<float32_t> (can_getState()); // flight status
@@ -271,12 +276,12 @@ bool telemetry_handleWarningPacketData(bool id, uint32_t value)
 	return handled;
 }
 
-bool telemetry_handleABData(uint32_t ab_angle) {
+bool telemetry_handleABData() {
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
 
 	if (now - last_airbrakes_update > AB_TIMEMIN) {
-		m6 = createTelemetryDatagram (&imu, &baro, now, telemetrySeqNumber++);
+		m6 = createAirbrakesDatagram (now, telemetrySeqNumber++);
 		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m6, 10) != osOK) {
 			vPortFree(m6.ptr); // free the datagram if we couldn't queue it
 		}

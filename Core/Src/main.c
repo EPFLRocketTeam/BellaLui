@@ -128,7 +128,7 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 
 	led_init();
-	led_set_rgb(127, 255, 0);
+	led_set_rgb(127, 255, 255);
 
 	CAN_Config(CAN_ID_TELEMETRY_BOARD); // A changer en fonction de la board
 
@@ -136,7 +136,7 @@ int main(void) {
 
 	init_filesystem();
 
-	// while(1);
+	//while(1);
 
 	/* USER CODE END 2 */
 

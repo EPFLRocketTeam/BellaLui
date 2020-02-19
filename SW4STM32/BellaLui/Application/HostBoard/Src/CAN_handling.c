@@ -12,6 +12,7 @@
 typedef float float32_t;
 
 #include <stdbool.h>
+#include <threads.h>
 #include <cmsis_os.h>
 
 #include <CAN_communication.h>
@@ -62,6 +63,9 @@ bool handleGPSData(GPS_data data) {
 	return false;
 }
 
+
+
+#define XBEE
 bool handleIMUData(IMU_data data) {
 #ifdef XBEE
 	return telemetry_handleIMUData(data);
@@ -95,18 +99,18 @@ bool handleBaroData(BARO_data data) {
 	return false;
 }
 
-bool handleABData(IMU_data data) {
+bool handleABData() {
 #ifdef XBEE
-	return telemetry_handleABData(data);
+	return telemetry_handleABData();
 #else
-	//IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
+	IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = can_getABangle();
 #endif
 	return true;
 }
 
 bool handleMotorData(IMU_data data) {
 #ifdef XBEE
-	return telemetry_handleMotorPressureData(data);
+	//return telemetry_handleMotorPressureData(data);
 #else
 	//IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
 #endif
