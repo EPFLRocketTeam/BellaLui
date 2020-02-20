@@ -81,7 +81,10 @@ void Error_Handler(void);
 #define LED_nB_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> branch 'master' of https://github.com/EPFLRocketTeam/BellaLui.git
 
 /* USER CODE END Private defines */
 

@@ -13,7 +13,7 @@
 #include <debug/led.h>
 #include <storage/flash_logging.h>
 #include <sync.h>
-#include <main.h>
+#include <threads.h>
 
 #define CAN_BUFFER_DEPTH 64
 
@@ -34,14 +34,8 @@ int can_id_led = -1;
 
 uint32_t can_readFrame(void);
 
-uint32_t pointer_inc(uint32_t val, uint32_t size){
-	val++;
-
-	while(val >= size) {
-		val-=size;
-	}
-
-	return val;
+uint32_t pointer_inc(uint32_t val, uint32_t size) {
+	return (val + 1) % size;
 }
 
 void can_addMsg(CAN_msg msg) {
@@ -136,6 +130,7 @@ void can_setFrame(uint32_t data, uint8_t data_id, uint32_t timestamp) {
     if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) == HAL_OK) {
     	//flash_log(message);
     	can_addMsg(message);
+
     } else { // something bad happen
     	// not sure what to do
     }

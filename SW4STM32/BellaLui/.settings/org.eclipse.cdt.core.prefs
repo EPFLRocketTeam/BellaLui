@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+environment/project/fr.ac6.managedbuild.config.gnu.cross.exe.debug.736238141/append=true
+environment/project/fr.ac6.managedbuild.config.gnu.cross.exe.debug.736238141/appendContributed=true
+environment/project/fr.ac6.managedbuild.config.gnu.cross.exe.debug.736238141/compiler_prefix/delimiter=\:
+environment/project/fr.ac6.managedbuild.config.gnu.cross.exe.debug.736238141/compiler_prefix/operation=replace
+environment/project/fr.ac6.managedbuild.config.gnu.cross.exe.debug.736238141/compiler_prefix/value=/usr/local/bin/arm-none-eabi-

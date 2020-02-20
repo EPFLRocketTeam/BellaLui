@@ -96,7 +96,7 @@ bool handleBaroData(BARO_data data) {
 	return false;
 }
 
-bool handleABData() {
+bool handleABData(int32_t new_angle) {
 #ifdef XBEE
 	return telemetry_handleABData();
 #else

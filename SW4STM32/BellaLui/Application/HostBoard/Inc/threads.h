@@ -31,7 +31,11 @@
 #ifdef SENSOR_BOARD
 #define CAN_ID CAN_ID_MAIN_BOARD
 #define SENSOR
+<<<<<<< HEAD
 #define KALMAN
+=======
+//#define KALMAN
+>>>>>>> branch 'master' of https://github.com/EPFLRocketTeam/BellaLui.git
 //#define FLASH_LOGGING
 #define BOARD_LED_R (0)
 #define BOARD_LED_G (100)
