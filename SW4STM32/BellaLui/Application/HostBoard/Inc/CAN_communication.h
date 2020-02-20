@@ -61,7 +61,7 @@ typedef struct
 
 // Define all the board ID's (lower means higher priority for CAN protocol)
 #define CAN_ID_MAIN_BOARD 0
-#define CAN_ID_BLACK_BOX_BOARD 1
+#define CAN_ID_GPS_BOARD 1
 #define CAN_ID_TELEMETRY_BOARD 2
 #define CAN_ID_AIBRAKE_BOARD 3
 #define CAN_ID_DEBUG_BOARD 6

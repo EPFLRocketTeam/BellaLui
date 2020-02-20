@@ -119,8 +119,6 @@ void TK_xBeeTelemetry (const void* args)
           vPortFree (m->ptr);
         }
       } while(event.status == osEventMessage);
-
-      osDelay(10);
     }
 }
 

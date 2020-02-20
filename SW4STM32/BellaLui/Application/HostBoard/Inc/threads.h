@@ -10,8 +10,8 @@
 
 
 
-#define DEBUG
-#define SENSOR_BOARD
+//#define DEBUG
+#define TELEMETRY_BOARD
 
 
 #define OS_STKCHECK
@@ -20,9 +20,9 @@
 
 
 #ifdef GPS_BOARD
-#define CAN_ID CAN_ID_TELEMETRY_BOARD
+#define CAN_ID CAN_ID_GPS_BOARD
 #define GPS
-#define KALMAN
+#define FLASH_LOGGING
 #define BOARD_LED_R (0)
 #define BOARD_LED_G (100)
 #define BOARD_LED_B (0)
@@ -31,12 +31,9 @@
 #ifdef SENSOR_BOARD
 #define CAN_ID CAN_ID_MAIN_BOARD
 #define SENSOR
-<<<<<<< HEAD
 #define KALMAN
-=======
-//#define KALMAN
->>>>>>> branch 'master' of https://github.com/EPFLRocketTeam/BellaLui.git
-//#define FLASH_LOGGING
+#define ROCKET_FSM
+#define FLASH_LOGGING
 #define BOARD_LED_R (0)
 #define BOARD_LED_G (100)
 #define BOARD_LED_B (0)

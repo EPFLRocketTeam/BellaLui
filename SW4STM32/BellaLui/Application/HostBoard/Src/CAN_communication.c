@@ -125,10 +125,8 @@ void can_setFrame(uint32_t data, uint8_t data_id, uint32_t timestamp) {
 
 	CAN_msg message = (CAN_msg) {data, data_id, timestamp, TxHeader.StdId};
 
-	sync_logic(0);
-
     if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) == HAL_OK) {
-    	//flash_log(message);
+    	flash_log(message);
     	can_addMsg(message);
 
     } else { // something bad happen

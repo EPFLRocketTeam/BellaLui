@@ -37,6 +37,8 @@
 #include <math.h>
 #include <stdbool.h>
 
+#include <sync.h>
+
 #define I2C_TIMEOUT 3
 #define BARO_CALIB_N 128
 
@@ -88,6 +90,8 @@ void TK_sensor_board(void const * argument)
 	led_sensor_id_baro = led_register_TK();
 
 	for(;;) {
+		sync_logic(0);
+
 		if (imu_init) {
 			set_sensor_led(led_sensor_id_imu, fetch_bno() == BNO055_SUCCESS);
 		} else {

@@ -11,3 +11,9 @@
 int rocket_log(const char *format, ...) {
 	return 0;
 }
+
+void rocket_log_init() {
+	#ifdef DEBUG
+	initialise_monitor_handles();
+	#endif
+}

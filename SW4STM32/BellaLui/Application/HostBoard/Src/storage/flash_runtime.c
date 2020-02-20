@@ -14,7 +14,7 @@
 
 
 
-static volatile FileSystem fs = { 0 };
+static FileSystem fs = { 0 };
 static volatile bool ready = false;
 
 

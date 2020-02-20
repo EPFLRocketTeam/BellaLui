@@ -74,7 +74,6 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-extern void initialise_monitor_handles(void);
 /* USER CODE END 0 */
 
 /**
@@ -85,7 +84,7 @@ int main(void) {
 	/* USER CODE BEGIN 1 */
 
 	// Semi hosting has to be enabled in eclipse, otherwise the program will sigtrap at the instruction initialise_monitor_handler() in main.c
-	initialise_monitor_handles();
+	rocket_log_init();
 	rocket_log("BellaLui v1.0\n\n");
 
 	/* USER CODE END 1 */

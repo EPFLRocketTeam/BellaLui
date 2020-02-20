@@ -21,11 +21,11 @@ extern "C" {
 }
 
 
-#define TELE_TIMEMIN 100
-#define GPS_TIMEMIN 500
+#define TELE_TIMEMIN 20
+#define GPS_TIMEMIN 100
 #define MOTOR_TIMEMIN 100
-#define WARNING_TIMEMIN 100
-#define AB_TIMEMIN 500
+#define WARNING_TIMEMIN 500
+#define AB_TIMEMIN 100
 //#define TELE_RAW_TIMEMIN 100
 
 volatile static uint32_t Packet_Number = 0;
@@ -34,7 +34,7 @@ volatile static uint32_t Packet_Number = 0;
 extern "C" bool telemetry_handleGPSData(GPS_data data);
 extern "C" bool telemetry_handleIMUData(IMU_data data);
 extern "C" bool telemetry_handleBaroData(BARO_data data);
-extern "C" bool telemetry_handleWarningPacketData(bool id, uint32_t value);
+extern "C" bool telemetry_handleWarningPacketData(bool id, uint8_t value);
 extern "C" bool telemetry_handleMotorPressureData(uint32_t pressure);
 extern "C" bool telemetry_handleABData();
 
@@ -129,15 +129,15 @@ Telemetry_Message createMotorPressurePacketDatagram(uint32_t time_stamp, float32
 	return builder.finalizeDatagram();
 }
 //new
-Telemetry_Message createWarningPacketDatagram(uint32_t time_stamp, bool id, uint32_t value, uint32_t seqNumber)
+Telemetry_Message createWarningPacketDatagram(uint32_t time_stamp, uint8_t id, uint8_t value, uint32_t seqNumber)
 {
 	DatagramBuilder builder = DatagramBuilder (WARNING_DATAGRAM_PAYLOAD_SIZE, STATUS, seqNumber++);
 
 	builder.write32<uint32_t> (time_stamp);
 	builder.write32<uint32_t> (Packet_Number++);
-	builder.write32<bool> (id);
-	builder.write32<uint32_t> (value);
-	builder.write32<float32_t> (can_getState()); // flight status
+	builder.write8 (id);
+	builder.write32<float32_t> (42.0f);
+	builder.write8(value); // flight status
 
 	return builder.finalizeDatagram();
 }
@@ -260,7 +260,7 @@ bool telemetry_handleMotorPressureData(uint32_t pressure)
 	return handled;
 }
 
-bool telemetry_handleWarningPacketData(bool id, uint32_t value)
+bool telemetry_handleWarningPacketData(bool id, uint8_t value)
 {
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
