@@ -63,9 +63,6 @@ bool handleGPSData(GPS_data data) {
 	return false;
 }
 
-
-
-#define XBEE
 bool handleIMUData(IMU_data data) {
 #ifdef XBEE
 	return telemetry_handleIMUData(data);
@@ -103,7 +100,7 @@ bool handleABData() {
 #ifdef XBEE
 	return telemetry_handleABData();
 #else
-	IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = can_getABangle();
+	ab_angle = can_getABangle();
 #endif
 	return true;
 }
@@ -284,10 +281,10 @@ void TK_can_reader() {
 				new_imu[i] = !handleIMUData(imu[i]);
 			}
 		}
-		/*
+
 		if (new_ab) {
 			new_ab = !handleABData(ab_angle);
-		}
+		} /*
 		if (new_motorpressure) {
 			new_motor_pressure = !handleMotorData(motor_pressure);
 		}

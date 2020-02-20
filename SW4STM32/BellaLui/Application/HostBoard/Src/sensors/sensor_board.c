@@ -195,8 +195,8 @@ int8_t fetch_bme()
 		can_setFrame(bme_data.pressure/100, DATA_ID_PRESSURE, HAL_GetTick());
 		if(!cntr)
 		{
-			sprintf(buf, "Pres: %"PRIu32"\nTemp: %"PRIu32"\nHum: %"PRIu32"\n",
-					bme_data.pressure, bme_data.temperature, bme_data.humidity);
+			//sprintf(buf, "Pres: %"PRIu32"\nTemp: %"PRIu32"\nHum: %"PRIu32"\n",
+			//		bme_data.pressure, bme_data.temperature, bme_data.humidity);
 			//INFO(buf);
 		}
 	}
@@ -225,11 +225,11 @@ int8_t fetch_bno()
 		can_setFrame((int32_t)(1000*gyro.z), DATA_ID_GYRO_Z, HAL_GetTick());
 		if(!cntr)
 		{
-			sprintf(buf, "Accel: [%f, %f, %f]\n", accel.x, accel.y, accel.z);
+			//sprintf(buf, "Accel: [%f, %f, %f]\n", accel.x, accel.y, accel.z);
 			//INFO(buf);
-			sprintf(buf, "Gyro: [%f, %f, %f]\n", gyro.x, gyro.y, gyro.z);
+			//sprintf(buf, "Gyro: [%f, %f, %f]\n", gyro.x, gyro.y, gyro.z);
 			//INFO(buf);
-			sprintf(buf, "Mag: [%f, %f, %f]\n\n\n", mag.x, mag.y, mag.z);
+			//sprintf(buf, "Mag: [%f, %f, %f]\n\n\n", mag.x, mag.y, mag.z);
 			//INFO(buf);
 		}
 	}
