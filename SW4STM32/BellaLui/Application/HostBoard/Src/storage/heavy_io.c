@@ -63,9 +63,11 @@ void schedule_heavy_task(int32_t (*task)(void*), const void* arg, void (*feedbac
 void TK_heavy_io_scheduler() {
 	uint32_t led_identifier = led_register_TK();
 
-	/*on_dump_request();
 
-   CAN_msg msg;
+	// on_dump_request();
+
+
+   /*CAN_msg msg;
 
 
 	uint32_t start = HAL_GetTick();

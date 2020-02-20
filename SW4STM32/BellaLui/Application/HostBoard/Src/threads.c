@@ -7,13 +7,7 @@
 
 #include <stddef.h>
 #include <usart.h>
-
-//#define SENSOR
-#define LED
-#define XBEE
-//#define FLASH_LOGGING
-#define OS_STKCHECK
-//#define CAN_LED
+#include <threads.h>
 
 #include <CAN_handling.h>
 #include <sync.h>
@@ -46,8 +40,8 @@ void create_semaphores() {
 }
 
 void create_threads() {
-	//osThreadDef(task_LED, TK_led_handler, osPriorityNormal, 0, 256);
-	//task_LEDHandle = osThreadCreate(osThread(task_LED), NULL);
+	osThreadDef(task_LED, TK_led_handler, osPriorityNormal, 0, 256);
+	task_LEDHandle = osThreadCreate(osThread(task_LED), NULL);
 
 	osThreadDef(can_reader, TK_can_reader, osPriorityNormal, 0, 1024);
 	canReaderHandle = osThreadCreate(osThread(can_reader), NULL);
