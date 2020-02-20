@@ -24,7 +24,7 @@ typedef float float32_t;
 #include <misc/datastructs.h>
 #include <misc/Common.h>
 #include <storage/sd_card.h>
-#include <kalman/tiny_ekf.h>
+//#include <kalman/tiny_ekf.h>
 
 #include <storage/flash_logging.h>
 

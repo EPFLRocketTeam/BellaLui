@@ -31,7 +31,6 @@
 #ifdef SENSOR_BOARD
 #define CAN_ID CAN_ID_MAIN_BOARD
 #define SENSOR
-#define GPS
 #define KALMAN
 #define CAN_LED
 #define FLASH_LOGGING
@@ -40,16 +39,6 @@
 #define BOARD_LED_B (0)
 //#define CERNIER_LEGACY_DATA
 //#define SDCARD
-#endif
-
-#ifdef BLACK_BOX_BOARD
-#define BOARD_LED_R (0)
-#define BOARD_LED_G (100)
-#define BOARD_LED_B (0)
-#define CAN_ID CAN_ID_BLACK_BOX_BOARD
-//#define SDCARD
-#define SENSOR
-#define GPS
 #endif
 
 #ifdef TELEMETRY_BOARD
@@ -91,6 +80,21 @@
 #include <sensors/sensor_board.h>
 #endif
 
+#ifdef KALMAN
+#include <kalman/tiny_ekf.h>
+#endif
+
+#ifdef GPS
+#include <sensors/GPS_board.h>
+#endif
+
+#ifdef AB_CONTROL
+#include <airbrakes/airbrake.h>
+#endif
+
+#ifdef ROCKET_FSM
+#include <misc/state_machine.h>
+#endif
 
 void create_semaphores();
 void create_threads();

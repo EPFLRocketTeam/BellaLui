@@ -79,9 +79,7 @@ void Error_Handler(void);
 #define LED_nB_Pin GPIO_PIN_15
 #define LED_nB_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
-#define BOARD_LED_R (255)
-#define BOARD_LED_G ( 31)
-#define BOARD_LED_B (  0)
+
 #define CAN_ID CAN_ID_DEFAULT
 
 
