@@ -127,12 +127,11 @@ void can_setFrame(uint32_t data, uint8_t data_id, uint32_t timestamp) {
     TxData[6] = (uint8_t) (timestamp >> 8);
     TxData[7] = (uint8_t) (timestamp >> 0);
 
-	//flash_log(msg);
-	sync_logic(0);
-
 	while (HAL_CAN_IsTxMessagePending(&hcan1, TxMailbox)) {} // wait for CAN to be ready
 
 	CAN_msg message = (CAN_msg) {data, data_id, timestamp, TxHeader.StdId};
+
+	sync_logic(0);
 
     if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) == HAL_OK) {
     	flash_log(message);

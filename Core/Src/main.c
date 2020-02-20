@@ -32,6 +32,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "threads.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -85,7 +86,7 @@ int main(void) {
 	/* USER CODE BEGIN 1 */
 
 	// Semi hosting has to be enabled in eclipse, otherwise the program will sigtrap at the instruction initialise_monitor_handler() in main.c
-	//initialise_monitor_handles();
+	// initialise_monitor_handles();
 	rocket_log("BellaLui v1.0\n\n");
 
 	/* USER CODE END 1 */
@@ -128,15 +129,15 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 
 	led_init();
-	led_set_rgb(127, 255, 0);
+	led_set_rgb(127, 255, 255);
 
-	CAN_Config(CAN_ID_TELEMETRY_BOARD); // A changer en fonction de la board
+	CAN_Config(CAN_ID); // A changer en fonction de la board
 
     // flash_erase_all();
 
 	init_filesystem();
 
-	// while(1);
+	//while(1);
 
 	/* USER CODE END 2 */
 

@@ -7,6 +7,7 @@
 
 #include <stddef.h>
 #include <usart.h>
+#include <threads.h>
 
 #include <CAN_handling.h>
 #include <sync.h>
