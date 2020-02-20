@@ -31,9 +31,8 @@
 #ifdef SENSOR_BOARD
 #define CAN_ID CAN_ID_MAIN_BOARD
 #define SENSOR
-#define KALMAN
-#define CAN_LED
-#define FLASH_LOGGING
+//#define KALMAN
+//#define FLASH_LOGGING
 #define BOARD_LED_R (0)
 #define BOARD_LED_G (100)
 #define BOARD_LED_B (0)

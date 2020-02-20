@@ -23,7 +23,7 @@ void sync_logic(uint8_t identifier) {
 
 	if(delta > 0) {
 		last_update[identifier] = time;
-		osDelay(delta);
+		osDelay(delta / portTICK_PERIOD_MS);
 	}
 
 }

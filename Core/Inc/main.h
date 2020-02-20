@@ -80,8 +80,6 @@ void Error_Handler(void);
 #define LED_nB_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
-#define CAN_ID CAN_ID_DEFAULT
-
 
 /* USER CODE END Private defines */
 

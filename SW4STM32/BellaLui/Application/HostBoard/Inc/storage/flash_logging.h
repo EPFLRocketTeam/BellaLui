@@ -14,7 +14,7 @@
 
 
 // Bigger buffer does not work
-#define LOGGING_BUFFER_SIZE (64 * 8)
+#define LOGGING_BUFFER_SIZE (8 * 8)
 
 void init_logging();
 void flash_log(CAN_msg message);
