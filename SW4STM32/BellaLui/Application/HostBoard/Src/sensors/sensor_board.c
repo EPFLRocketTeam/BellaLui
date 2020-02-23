@@ -104,8 +104,6 @@ void TK_sensor_board(void const * argument)
 			baro_init = set_sensor_led(led_sensor_id_baro, init_bme() == BME280_OK);
 		}
 
-		osDelay(10);
-
 		if(!baro_init && !imu_init) {
 			osDelay(1000);
 		}

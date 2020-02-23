@@ -150,6 +150,8 @@ void TK_logging_thread(void const *pvArgs) {
 			stream.write(back_buffer, back_buffer_length);
 			can += back_buffer_length;
 
+			rocket_log("Wrote 2KB worth of CAN messages.\n");
+
 			led_set_TK_rgb(led_identifier, 0, 50, 50);
 		}
 
@@ -281,6 +283,8 @@ int32_t dump_file_on_sd(const char* filename) {
    UINT bytes_written = 0;
 
    rocket_fs_touch(fs, flash_file);
+
+   rocket_log("Dumping file...\n");
 
 	while(total_bytes_read < flash_file->length && bytes_read > 0) {
 	   bytes_read = stream.read(buffer, LOGGING_BUFFER_SIZE);

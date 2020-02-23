@@ -10,6 +10,8 @@
 #include <misc/rocket_constants.h>
 #include <stm32f4xx_hal.h>
 
+#include <sync.h>
+
 #include "../../../HostBoard/Inc/CAN_communication.h"
 
 void TK_state_machine (void const * argument)
@@ -46,7 +48,7 @@ void TK_state_machine (void const * argument)
   // State Machine main task loop
   for (;;)
     {
-      osDelay (10);
+      sync_logic(1);
       can_setFrame(currentState, DATA_ID_STATE, HAL_GetTick());
 
       // if new imu data is available

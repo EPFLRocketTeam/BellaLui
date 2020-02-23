@@ -22,8 +22,8 @@ void sync_logic(uint8_t identifier) {
 	int32_t delta = TICK_PERIOD - (time - last_update[identifier]);
 
 	if(delta > 0) {
-		last_update[identifier] = time;
 		osDelay(delta / portTICK_PERIOD_MS);
 	}
 
+	last_update[identifier] = time;
 }

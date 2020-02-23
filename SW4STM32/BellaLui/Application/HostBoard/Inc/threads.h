@@ -10,9 +10,9 @@
 
 
 
-//#define DEBUG
-#define TELEMETRY_BOARD
-
+#define DEBUG
+#define DEBUG_BOARD
+//==#define SENSOR_BOARD
 
 #define OS_STKCHECK
 #define LED
@@ -67,7 +67,7 @@
 #define BOARD_LED_G (50)
 #define BOARD_LED_B (50)
 #define CAN_ID CAN_ID_DEBUG_BOARD
-#define SENSOR
+#define FLASH_LOGGING
 //#define SDCARD
 #endif
 
