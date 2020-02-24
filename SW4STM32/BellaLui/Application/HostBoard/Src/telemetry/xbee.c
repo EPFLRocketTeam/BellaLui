@@ -102,7 +102,7 @@ void TK_xBeeTelemetry (const void* args)
           packetStartTime = HAL_GetTick();
         } else if (currentXbeeTxBufPos==0 && elapsed > XBEE_SEND_FRAME_LONG_TIMEOUT_MS) {
         	// force dummy frame creation
-        	telemetry_handleIMUData((IMU_data) {{1,1.5f,666.0f}, {0,0,0}, 0});
+        	telemetry_handleIMUData((IMU_data) {{666.0f, 666.0f, 666.0f}, {666, 666, 666}, 666.0f});
         }
       osEvent event;
       do {

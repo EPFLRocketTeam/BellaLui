@@ -10,8 +10,8 @@
 
 
 
-//#define DEBUG
-#define TELEMETRY_BOARD
+#define DEBUG
+#define SENSOR_BOARD
 
 
 #define OS_STKCHECK

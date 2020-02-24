@@ -60,7 +60,7 @@ void flash_log(CAN_msg message) {
 
 	// vTaskDelay(400 * portTICK_PERIOD_MS / 1000);  // Add delay to smoothen the thread blocking time due to flash synchronisation
 
-	if(front_buffer_index >= LOGGING_BUFFER_SIZE) {
+	if(front_buffer_index >= LOGGING_BUFFER_SIZE - 1) {
 		xSemaphoreGive(master_swap);
 		xSemaphoreTake(slave_swap, 10 * portTICK_PERIOD_MS);
 	}
@@ -150,10 +150,12 @@ void TK_logging_thread(void const *pvArgs) {
 			stream.write(back_buffer, back_buffer_length);
 			can += back_buffer_length;
 
-			led_set_TK_rgb(led_identifier, 0, 50, 50);
+			if(back_buffer > 0) {
+				led_set_TK_rgb(led_identifier, 0, 50, 50);
+			} else {
+				led_set_TK_rgb(led_identifier, 255, 0, 0);
+			}
 		}
-
-		rocket_log("Wrote %ld bytes worth of CAN messages\n", can);
 
 		stream.close();
 

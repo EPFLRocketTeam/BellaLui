@@ -24,7 +24,7 @@ extern "C" {
 #define TELE_TIMEMIN 20
 #define GPS_TIMEMIN 100
 #define MOTOR_TIMEMIN 100
-#define WARNING_TIMEMIN 500
+#define WARNING_TIMEMIN 50
 #define AB_TIMEMIN 100
 //#define TELE_RAW_TIMEMIN 100
 

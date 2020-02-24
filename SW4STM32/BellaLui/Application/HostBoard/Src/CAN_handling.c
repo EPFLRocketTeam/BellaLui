@@ -64,12 +64,11 @@ bool handleGPSData(GPS_data data) {
 }
 
 bool handleIMUData(IMU_data data) {
+	IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
 #ifdef XBEE
 	return telemetry_handleIMUData(data);
 #elif defined(KALMAN)
 	return kalman_handleIMUData(data);
-#else
-	IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
 #endif
 	return true;
 }
@@ -85,13 +84,13 @@ bool handleBaroData(BARO_data data) {
 		data.base_altitude = altitudeFromPressure(data.base_pressure);
 	}
 
+	currentBaroTimestamp = HAL_GetTick();
+	BARO_buffer[(++currentBaroSeqNumber) % CIRC_BUFFER_SIZE] = data;
+
 #ifdef XBEE
 	return telemetry_handleBaroData(data);
 #elif defined(KALMAN)
 	return kalman_handleBaroData(data);
-#else
-	BARO_buffer[(++currentBaroSeqNumber) % CIRC_BUFFER_SIZE] = data;
-	currentBaroTimestamp = HAL_GetTick();
 #endif
 	return false;
 }
