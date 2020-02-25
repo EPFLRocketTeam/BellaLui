@@ -64,11 +64,8 @@ void TK_heavy_io_scheduler() {
 	uint32_t led_identifier = led_register_TK();
 
 
-<<<<<<< HEAD
 	on_dump_request();
-=======
 	on_fullsd_dump_request();
->>>>>>> branch 'master' of https://github.com/EPFLRocketTeam/BellaLui.git
 
 
    /*CAN_msg msg;

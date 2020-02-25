@@ -147,15 +147,11 @@ void TK_sensor_board(void const * argument) {
 			baro_init[3] = set_sensor_led(led_sensor_id_baro, init_bme(3, rslt_bme) == BME280_OK);
 		}*/
 
-<<<<<<< HEAD
 		osDelay(10);
 
 		if(!baro_init[0] && !baro_init[1] && !baro_init[2] && !baro_init[3]
 		    && !imu_init[0] && !imu_init[1] && !imu_init[2] && !imu_init[3])
 		{ // If none of the sensors are initialized
-=======
-		if(!baro_init && !imu_init) {
->>>>>>> branch 'master' of https://github.com/EPFLRocketTeam/BellaLui.git
 			osDelay(1000);
 		}
 		else
