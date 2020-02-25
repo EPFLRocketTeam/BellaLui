@@ -11,8 +11,13 @@
 
 
 #define DEBUG
+<<<<<<< HEAD
 #define SENSOR_BOARD
 
+=======
+#define DEBUG_BOARD
+//==#define SENSOR_BOARD
+>>>>>>> branch 'master' of https://github.com/EPFLRocketTeam/BellaLui.git
 
 #define OS_STKCHECK
 #define LED
@@ -67,7 +72,7 @@
 #define BOARD_LED_G (50)
 #define BOARD_LED_B (50)
 #define CAN_ID CAN_ID_DEBUG_BOARD
-#define SENSOR
+#define FLASH_LOGGING
 //#define SDCARD
 #endif
 

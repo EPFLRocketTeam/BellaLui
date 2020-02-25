@@ -84,8 +84,8 @@ bool handleBaroData(BARO_data data) {
 		data.base_altitude = altitudeFromPressure(data.base_pressure);
 	}
 
-	currentBaroTimestamp = HAL_GetTick();
 	BARO_buffer[(++currentBaroSeqNumber) % CIRC_BUFFER_SIZE] = data;
+	currentBaroTimestamp = HAL_GetTick();
 
 #ifdef XBEE
 	return telemetry_handleBaroData(data);
