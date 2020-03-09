@@ -27,7 +27,8 @@ osThreadId task_ABHandle;
 osThreadId sensorBoardHandle;
 osThreadId task_LEDHandle;
 osThreadId task_GPSHandle;
-osThreadId xBeeTelemetryHandle;
+osThreadId telemetryTransmissionHandle;
+osThreadId telemetryReceptionHandle;
 osThreadId canReaderHandle;
 osThreadId kalmanHandle;
 osThreadId rocketfsmHandle;
@@ -82,8 +83,10 @@ void create_threads() {
 
 	#ifdef XBEE
 	  xbee_freertos_init(&huart1);
-	  osThreadDef(xBeeTelemetry, TK_xBeeTelemetry, osPriorityNormal, 0, 128);
-	  xBeeTelemetryHandle = osThreadCreate(osThread(xBeeTelemetry), NULL);
+	  osThreadDef(xBeeTransmission, TK_xBeeTransmit, osPriorityNormal, 0, 128);
+	  telemetryTransmissionHandle = osThreadCreate(osThread(xBeeTransmission), NULL);
+	  osThreadDef(xBeeReception, TK_xBeeReceive, osPriorityNormal, 0, 128);
+	  telemetryReceptionHandle = osThreadCreate(osThread(xBeeReception), NULL);
 	#endif
 
 	#ifdef KALMAN

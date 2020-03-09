@@ -37,8 +37,8 @@ extern "C" bool telemetry_handleBaroData(BARO_data data);
 extern "C" bool telemetry_handleWarningPacketData(bool id, float value, uint8_t av_state);
 extern "C" bool telemetry_handleMotorPressureData(uint32_t pressure);
 extern "C" bool telemetry_handleABData();
-bool telemetry_handleOrderPacket(uint8_t* rxPacketBuffer);
-bool telemetry_handleIgnitionPacket(uint8_t* rxPacketBuffer);
+extern "C" bool telemetry_handleOrderPacket(uint8_t* rxPacketBuffer);
+extern "C" bool telemetry_handleIgnitionPacket(uint8_t* rxPacketBuffer);
 
 extern osMessageQId xBeeQueueHandle;
 

@@ -5,14 +5,16 @@
  *      Author: Clement Nussbaumer
  */
 
-#include "stm32f4xx_hal.h"
-#include "FreeRTOS.h"
-
-#include <misc/Common.h>
-#include <telemetry/telemetry_handling.h>
-#include <telemetry/xbee.h>
 #include <debug/led.h>
+#include <misc/datastructs.h>
+#include <portable.h>
+#include <queue.h>
+#include <stddef.h>
+#include <stm32f4xx_hal_uart.h>
+#include <sys/_stdint.h>
+#include <telemetry/telemetry_handling.h>
 #include <telemetry/telemetry_protocol.h>
+#include <telemetry/xbee.h>
 
 osMessageQId xBeeQueueHandle;
 osSemaphoreId xBeeTxBufferSemHandle;
@@ -80,7 +82,7 @@ void xbee_freertos_init(UART_HandleTypeDef *huart) {
 	xBee_huart = huart;
 }
 
-void TK_xBeeTelemetry (const void* args)
+void TK_xBeeTransmit (const void* args)
 {
 	/*while(true) {
 		uint8_t command[] = {0x7E,
@@ -110,6 +112,8 @@ void TK_xBeeTelemetry (const void* args)
 
   initXbee ();
   uint32_t packetStartTime = HAL_GetTick();
+
+
 
   for (;;)
     {
@@ -268,7 +272,7 @@ inline uint8_t escapedCharacter (uint8_t byte)
     }
 }
 
-void TK_xBee_receive (const void* args)
+void TK_xBeeReceive (const void* args)
 {
   HAL_UART_Receive_DMA (xBee_huart, rxBuffer, XBEE_RX_BUFFER_SIZE);
 
