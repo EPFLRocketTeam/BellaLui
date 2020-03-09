@@ -3,10 +3,16 @@
   * File Name          : sensor_board.c
   * Description        : This file provides code for the configuration
   *                      of the sensor board.
-  * Redundancy         : Quentin Delfosse
+  * Author 			   : Delfosse Quentin
   * Date    		   : Feb 2020
+
+  * Notes : The code below was developed to implement a redundancy on the 4 sensors
+  * 		used by this board, but can still work with the previous versions of the
+  * 		sensor boards.
+
   ******************************************************************************
   */
+
 
 #include "../../../HostBoard/Inc/Sensors/sensor_board.h"
 
@@ -29,9 +35,10 @@
 #define normal_coef 3.000   // coefficient for a 99 % confidence interval
 #define MAX_SENSOR_NUMBER 4
 
-/* sensor_id is the index of the sensor, which is different form the dev_id (bme)
- * or dev_addr (bno) representing its address for the I2C protocol
+/* sensor_id is the index of the sensor, which is different form the dev_id ( defined in bme280_dev)
+ * or dev_addr ( defined in bno055_t) representing its address for the I2C protocol
  */
+
 int8_t init_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER]);
 int8_t init_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER]);
 int8_t fetch_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER]);
@@ -95,6 +102,14 @@ uint8_t set_sensor_led(uint8_t id, uint8_t flag) {
 	return flag;
 }
 
+
+/*
+ * Main function used to initialize and fetch the sensors.
+ *
+ * If at least one BME or BNO has been initialized, the redundancy
+ * algorithm is called.
+ */
+
 void TK_sensor_board(void const * argument) {
 
 	uint8_t imu_init[MAX_SENSOR_NUMBER] = {0}, baro_init[MAX_SENSOR_NUMBER]= {0};
@@ -111,7 +126,7 @@ void TK_sensor_board(void const * argument) {
 		} else {
 			imu_init[0] = set_sensor_led(led_sensor_id_imu, init_bno(0, rslt_bno) == BNO055_SUCCESS);
 		}
-		/*if (imu_init[1]) {
+		if (imu_init[1]) {
 			set_sensor_led(led_sensor_id_imu, fetch_bno(1, rslt_bno) == BNO055_SUCCESS);
 		} else {
 			imu_init[1] = set_sensor_led(led_sensor_id_imu, init_bno(1, rslt_bno) == BNO055_SUCCESS);
@@ -125,13 +140,13 @@ void TK_sensor_board(void const * argument) {
 			set_sensor_led(led_sensor_id_imu, fetch_bno(3, rslt_bno) == BNO055_SUCCESS);
 		} else {
 			imu_init[3] = set_sensor_led(led_sensor_id_imu, init_bno(3, rslt_bno) == BNO055_SUCCESS);
-		}*/
+		}
 		if (baro_init[0]) { //BME
 			set_sensor_led(led_sensor_id_baro, fetch_bme(0, rslt_bme) == BME280_OK); //BME280_OK = 0
 		} else {
 			baro_init[0] = set_sensor_led(led_sensor_id_baro, init_bme(0, rslt_bme) == BME280_OK);
 		}
-		/*if (baro_init[1]) {
+		if (baro_init[1]) {
 			set_sensor_led(led_sensor_id_baro, fetch_bme(1, rslt_bme) == BME280_OK);
 		} else {
 			baro_init[1] = set_sensor_led(led_sensor_id_baro, init_bme(1, rslt_bme) == BME280_OK);
@@ -145,7 +160,7 @@ void TK_sensor_board(void const * argument) {
 			set_sensor_led(led_sensor_id_baro, fetch_bme(3, rslt_bme) == BME280_OK);
 		} else {
 			baro_init[3] = set_sensor_led(led_sensor_id_baro, init_bme(3, rslt_bme) == BME280_OK);
-		}*/
+		}
 
 		osDelay(10);
 
@@ -163,6 +178,19 @@ void TK_sensor_board(void const * argument) {
 		cntr = ++cntr < 30 ? cntr : 2;
 	}
 }
+
+/*
+ * Initialization functions :
+ *
+ * Used to initialize the sensors
+ * Returns an array ( rslt_bme, rslt_bno ) of size MAX_SENSOR_NUMBER
+ * stating if the initialization was completed or not
+ *
+ * - rslt_XXX = 1 => failed to initialize
+ * - rslt_XXX = 0 => initialization complete
+ *
+ */
+
 
 int8_t init_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER])
 {
@@ -233,6 +261,18 @@ int8_t init_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
 
 	return rslt_bno[sensor_id];
 }
+
+/*
+ * Fetch functions :
+ *
+ * Used to fetch the sensors
+ * Returns an array ( rslt_bme, rslt_bno ) of size MAX_SENSOR_NUMBER
+ * stating if the fetch was completed or not
+ *
+ * - rslt_XXX = 1 => failed to fetch
+ * - rslt_XXX = 0 => fetch complete
+ *
+ */
 
 int8_t fetch_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER])
 {
@@ -307,6 +347,14 @@ int8_t fetch_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
 	return rslt_bno[sensor_id];
 }
 
+/*
+ * stm32_i2c functions :
+ *
+ * I2C3 : Sensor 0 and Sensor 1
+ * FMPI2C1 : Sensor 2 and Sensor 3
+ *
+ */
+
 int8_t stm32_i2c_read (uint8_t sensor_id, uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len)
 {
 	vTaskSuspendAll();
@@ -339,6 +387,24 @@ void stm32_delay_ms (uint32_t delay)
 {
 	osDelay(delay);
 }
+
+/*
+ * sensor_elimination :
+ *
+ * Used to compare the data from the different sensors
+ *
+ * Input Arguments :
+ *  - values from the different sensors
+ *  - correct value determined by the algorithm
+ *  - array of size MAX_SENSOR_NUMBER to know if there was an initialization or
+ *    fetch error
+ *
+ * If sensor_elimination_4 finds an erroneous sensor, its values are not taken into
+ * account and sensor_elimination_3 takes over. Indeed, the intervals of confidence
+ * calculated by sensor_elimination _4 might have been corrupted by the erroneous sensor,
+ * therefore new intervals have to be calculated.
+ *
+ */
 
 void sensor_elimination_4(float value_0, float value_1, float value_2, float value_3, float *correct_value, bool erroneous_sensor[MAX_SENSOR_NUMBER]) {
 	float value[MAX_SENSOR_NUMBER] = {value_0, value_1, value_2, value_3};
@@ -433,6 +499,17 @@ void sensor_elimination_2(float value[MAX_SENSOR_NUMBER], uint8_t index_0, uint8
 	}
 }
 
+/*
+ * within_conf_interval
+ *
+ * Checks if the FIRST GIVEN ARGUMENT is included inside [-3*sigma;+3*sigma]
+ * of the normal distribution for a 99% confidence interval
+ * The normal distribution is baised on the values of the two or three other
+ * sensors
+ *
+ */
+
+
 bool within_conf_interval_4(float data_0, float data_1, float data_2, float data_3) {
 	if (data_1 != data_2 && data_1 != data_3 && data_2 != data_3) {
 		float mean = (data_1 + data_2 + data_3)/(MAX_SENSOR_NUMBER-1);
@@ -452,6 +529,13 @@ bool within_conf_interval_3(float data_0, float data_1, float data_2) {
 	}
 	else { return false; }
 }
+
+/*
+ * XXX_redundancy
+ *
+ * Calls the redundancy algorithm for each kind of data given by the sensors
+ *
+ */
 
 void bno_redundancy(int8_t rslt_bno[MAX_SENSOR_NUMBER]) {
 	bool erroneous_bno[MAX_SENSOR_NUMBER] = {false};
@@ -474,6 +558,15 @@ void bme_redundancy(int8_t rslt_bme[MAX_SENSOR_NUMBER]) {
 	sensor_elimination_4(bme_data_float[0].pressure, bme_data_float[1].pressure, bme_data_float[2].pressure, bme_data_float[3].pressure, &correct_bme_data.pressure, erroneous_bme);
 	sensor_elimination_4(bme_data_float[0].temperature, bme_data_float[1].temperature, bme_data_float[2].temperature, bme_data_float[3].temperature, &correct_bme_data.temperature,erroneous_bme);
 }
+
+/*
+ * XXX_data_process
+ *
+ * Used to send the sensors data through the can, whether there was a redundancy or not.
+ * No redundancy means that only one sensor has been initialized/fetched, its values are then sent.
+ *
+ */
+
 
 void bme_data_process(uint8_t baro_init[MAX_SENSOR_NUMBER], int8_t rslt_bme[MAX_SENSOR_NUMBER], uint8_t cntr)
 {

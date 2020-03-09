@@ -15,9 +15,10 @@ bool telemetry_handleGPSData(GPS_data data);
 bool telemetry_handleIMUData(IMU_data data);
 bool telemetry_handleBaroData(BARO_data data);
 bool telemetry_handleMotorPressureData(uint32_t pressure);
-bool telemetry_handleWarningPacketData(bool id, uint32_t value);
+bool telemetry_handleWarningPacketData(bool id, float value, uint8_t av_state);
 bool telemetry_handleABData();
-//bool telemetry_handleTelemetryRaw(float32_t euler, float32_t accelerometer, float32_t temp, float32_t pressure);
+bool telemetry_handleIgnitionPacket(uint8_t* rxPacketBuffer);
+bool telemetry_handleOrderPacket(uint8_t* rxPacketBuffer);
 
 
 

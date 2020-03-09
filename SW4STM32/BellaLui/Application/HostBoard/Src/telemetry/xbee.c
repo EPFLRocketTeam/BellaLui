@@ -12,6 +12,7 @@
 #include <telemetry/telemetry_handling.h>
 #include <telemetry/xbee.h>
 #include <debug/led.h>
+#include <telemetry/telemetry_protocol.h>
 
 osMessageQId xBeeQueueHandle;
 osSemaphoreId xBeeTxBufferSemHandle;
@@ -27,10 +28,29 @@ UART_HandleTypeDef* xBee_huart;
 #define XBEE_ESCAPE 0x7d
 #define XBEE_TX_FRAME_TYPE 0x10 // Transmit request frame
 #define XBEE_FRAME_BEGINNING_SIZE 3 // Start delimiter (0x7E) + uint16_t length of the frame
-#define XBEE_FRAME_OPTIONS_SIZE 14
 #define XBEE_CHECKSUM_SIZE 1 // checksum size of the XBee packet
 
-static uint8_t XBEE_FRAME_OPTIONS[XBEE_FRAME_OPTIONS_SIZE] =
+#include "stm32f4xx_hal.h"
+#include "Misc/Common.h"
+
+// XBee receiving mode
+#define XBEE_RECEIVED_FRAME_OPTIONS_SIZE 12
+#define XBEE_RX_BUFFER_SIZE 512
+#define RX_PACKET_SIZE 24 // 8
+
+uint8_t rxPacketBuffer[RX_PACKET_SIZE];
+uint32_t lastDmaStreamIndex = 0, endDmaStreamIndex = 0;
+uint8_t rxBuffer[XBEE_RX_BUFFER_SIZE];
+uint32_t preambleCnt, packetCnt, currentChecksum;
+
+enum DECODING_STATE
+{
+  PARSING_PREAMBLE, PARSING_PACKET, PARSING_CHECKSUM
+};
+
+uint8_t currentRxState = PARSING_PREAMBLE;
+
+static uint8_t XBEE_FRAME_OPTIONS[XBEE_OPTIONS_SIZE] =
   {
   XBEE_TX_FRAME_TYPE,  // Frame type
       0x00,           // Frame ID
@@ -171,7 +191,7 @@ void sendXbeeFrame ()
       return;
     }
 
-  uint16_t payloadAndConfigSize = XBEE_FRAME_OPTIONS_SIZE + currentXbeeTxBufPos;
+  uint16_t payloadAndConfigSize = XBEE_OPTIONS_SIZE + currentXbeeTxBufPos;
 
   uint16_t pos = 0;
   txDmaBuffer[pos++] = XBEE_START;
@@ -245,5 +265,102 @@ inline uint8_t escapedCharacter (uint8_t byte)
       return 0x33;
     default:
       return 0x00;
+    }
+}
+
+void TK_xBee_receive (const void* args)
+{
+  HAL_UART_Receive_DMA (xBee_huart, rxBuffer, XBEE_RX_BUFFER_SIZE);
+
+  for (;;)
+    {
+      endDmaStreamIndex = XBEE_RX_BUFFER_SIZE - xBee_huart->hdmarx->Instance->NDTR;
+      while (lastDmaStreamIndex < endDmaStreamIndex)
+        {
+          processReceivedByte (rxBuffer[lastDmaStreamIndex++]);
+        }
+
+      osDelay (10);
+    }
+}
+
+void xBee_rxCpltCallback ()
+{
+  while (lastDmaStreamIndex < XBEE_RX_BUFFER_SIZE)
+    {
+      processReceivedByte (rxBuffer[lastDmaStreamIndex++]);
+    }
+
+  endDmaStreamIndex = 0;
+  lastDmaStreamIndex = 0;
+}
+
+void resetStateMachine ()
+{
+  currentRxState = PARSING_PREAMBLE;
+  preambleCnt = 0;
+  packetCnt = 0;
+  currentChecksum = 0;
+}
+
+void processReceivedPacket ()
+{
+	switch (rxPacketBuffer[XBEE_RECEIVED_FRAME_OPTIONS_SIZE])
+	{
+		case 0x07:
+		{
+			telemetry_handleOrderPacket(rxPacketBuffer);
+			break;
+		}
+		case 0x09:
+		{
+			telemetry_handleIgnitionPacket(rxPacketBuffer);
+			break;
+		}
+		default :
+		{
+			break;
+		}
+	}
+}
+
+inline void processReceivedByte (uint8_t rxByte)
+{
+  switch (currentRxState)
+    {
+    case PARSING_PREAMBLE:
+      {
+        if (rxByte == HEADER_PREAMBLE_FLAG)
+          {
+            if (++preambleCnt == 4)
+              {
+                currentRxState = PARSING_PACKET;
+              }
+          }
+        else
+          {
+            resetStateMachine ();
+          }
+        break;
+      }
+    case PARSING_PACKET:
+      {
+        rxPacketBuffer[packetCnt++] = rxByte;
+        currentChecksum += rxByte;
+        if (packetCnt == RX_PACKET_SIZE)
+          {
+            currentRxState = PARSING_CHECKSUM;
+          }
+        break;
+      }
+    case PARSING_CHECKSUM:
+      {
+        if (currentChecksum == rxByte)
+          {
+            processReceivedPacket ();
+          }
+        resetStateMachine ();
+        break;
+      }
     }
 }

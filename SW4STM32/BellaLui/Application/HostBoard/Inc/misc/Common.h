@@ -28,6 +28,11 @@ enum states
   STATE_SLEEP, STATE_CALIBRATION, STATE_IDLE, STATE_FILLING, STATE_LIFTOFF, STATE_COAST, STATE_PRIMARY, STATE_SECONDARY, STATE_TOUCHDOWN
 };
 
+enum warning
+{
+	EVENT, WARNING_MOTOR_PRESSURE
+};
+
 volatile uint32_t flight_status;
 volatile float32_t airbrakes_angle;
 extern volatile float air_speed_state_estimate, altitude_estimate;

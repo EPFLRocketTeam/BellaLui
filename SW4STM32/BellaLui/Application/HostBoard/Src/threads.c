@@ -50,7 +50,7 @@ void create_threads() {
 	canReaderHandle = osThreadCreate(osThread(heavy_io), NULL);
 
 
-	#ifdef GPS
+	#ifdef GPS_THREAD
 	  osThreadDef(task_GPSHandle, TK_GPS_board, osPriorityNormal, 0, 256);
 	  task_GPSHandle = osThreadCreate(osThread(task_GPSHandle), NULL);
 	  gps_init(&huart6);

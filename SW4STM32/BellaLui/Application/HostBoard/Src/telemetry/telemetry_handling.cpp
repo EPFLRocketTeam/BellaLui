@@ -34,9 +34,11 @@ volatile static uint32_t Packet_Number = 0;
 extern "C" bool telemetry_handleGPSData(GPS_data data);
 extern "C" bool telemetry_handleIMUData(IMU_data data);
 extern "C" bool telemetry_handleBaroData(BARO_data data);
-extern "C" bool telemetry_handleWarningPacketData(bool id, uint8_t value);
+extern "C" bool telemetry_handleWarningPacketData(bool id, float value, uint8_t av_state);
 extern "C" bool telemetry_handleMotorPressureData(uint32_t pressure);
 extern "C" bool telemetry_handleABData();
+bool telemetry_handleOrderPacket(uint8_t* rxPacketBuffer);
+bool telemetry_handleIgnitionPacket(uint8_t* rxPacketBuffer);
 
 extern osMessageQId xBeeQueueHandle;
 
@@ -66,7 +68,7 @@ Telemetry_Message createTelemetryDatagram (IMU_data* imu_data, BARO_data* baro_d
 {
 
 	//here, the Datagram is created
-	DatagramBuilder builder = DatagramBuilder (SENSOR_DATAGRAM_PAYLOAD_SIZE, TELEMETRY, telemetrySeqNumber);
+	DatagramBuilder builder = DatagramBuilder (SENSOR_DATAGRAM_PAYLOAD_SIZE, TELEMETRY_PACKET, telemetrySeqNumber);
 
 	// ## Beginning of datagram Payload ##
 	// time stamp
@@ -94,7 +96,7 @@ Telemetry_Message createTelemetryDatagram (IMU_data* imu_data, BARO_data* baro_d
 
 Telemetry_Message createAirbrakesDatagram (uint32_t time_stamp, uint32_t telemetrySeqNumber)
 {
-	DatagramBuilder builder = DatagramBuilder (AB_DATAGRAM_PAYLOAD_SIZE, AIRBRAKES, telemetrySeqNumber++);
+	DatagramBuilder builder = DatagramBuilder (AB_DATAGRAM_PAYLOAD_SIZE, AIRBRAKES_PACKET, telemetrySeqNumber++);
 	builder.write32<uint32_t> (time_stamp);
 	builder.write32<uint32_t> (Packet_Number++);
 	builder.write32<float32_t> (can_getABangle()); // AB_angle
@@ -105,7 +107,7 @@ Telemetry_Message createAirbrakesDatagram (uint32_t time_stamp, uint32_t telemet
 //same structure for the other createXXXDatagrams
 Telemetry_Message createGPSDatagram (uint32_t seqNumber, GPS_data gpsData)
 {
-	DatagramBuilder builder = DatagramBuilder (GPS_DATAGRAM_PAYLOAD_SIZE, GPS, seqNumber++);
+	DatagramBuilder builder = DatagramBuilder (GPS_DATAGRAM_PAYLOAD_SIZE, GPS_PACKET, seqNumber++);
 
 	builder.write32<uint32_t> (HAL_GetTick ());
 	builder.write32<uint32_t> (Packet_Number++);
@@ -120,7 +122,7 @@ Telemetry_Message createGPSDatagram (uint32_t seqNumber, GPS_data gpsData)
 
 Telemetry_Message createMotorPressurePacketDatagram(uint32_t time_stamp, float32_t pressure, uint32_t seqNumber)
 {
-	DatagramBuilder builder = DatagramBuilder (MOTORPRESSURE_DATAGRAM_PAYLOAD_SIZE, MOTOR, seqNumber++);
+	DatagramBuilder builder = DatagramBuilder (MOTORPRESSURE_DATAGRAM_PAYLOAD_SIZE, MOTOR_PACKET, seqNumber++);
 
 	builder.write32<uint32_t> (time_stamp);
 	builder.write32<uint32_t> (Packet_Number++);
@@ -129,15 +131,15 @@ Telemetry_Message createMotorPressurePacketDatagram(uint32_t time_stamp, float32
 	return builder.finalizeDatagram();
 }
 //new
-Telemetry_Message createWarningPacketDatagram(uint32_t time_stamp, uint8_t id, uint8_t value, uint32_t seqNumber)
+Telemetry_Message createWarningPacketDatagram(uint32_t time_stamp, uint8_t id, float value, uint8_t av_state, uint32_t seqNumber)
 {
-	DatagramBuilder builder = DatagramBuilder (WARNING_DATAGRAM_PAYLOAD_SIZE, STATUS, seqNumber++);
+	DatagramBuilder builder = DatagramBuilder (WARNING_DATAGRAM_PAYLOAD_SIZE, STATUS_PACKET, seqNumber++);
 
 	builder.write32<uint32_t> (time_stamp);
 	builder.write32<uint32_t> (Packet_Number++);
 	builder.write8 (id);
-	builder.write32<float32_t> (42.0f);
-	builder.write8(value); // flight status
+	builder.write32 (value);
+	builder.write8(av_state); // flight status
 
 	return builder.finalizeDatagram();
 }
@@ -163,16 +165,6 @@ Telemetry_Message createTelemetryRawDatagram(uint32_t time_stamp, float32_t eule
 }
 */
 
-/*
-Telemetry_Message createEventDatagram(uint32_t time_stamp, uint32_t state)
-{
-	DatagramBuilder builder = DatagramBuilder (EVENT_DATAGRAM_PAYLOAD_SIZE,time_stamp);
-
-	builder.write32<uint32_t> (state);
-
-	return builder.finalizeDatagram();
-}
-*/
 
 // New Packets
 /*
@@ -185,8 +177,7 @@ Telemetry_Message createEventDatagram(uint32_t time_stamp, uint32_t state)
 
 	Receive:
 	order Packet (fill tank, abort)
-	ignition (ouvrir la vanne, etc) (go)
-	eventState(FSM)
+	ignition  (go)
 */
 
 //New methods to implement :
@@ -260,13 +251,13 @@ bool telemetry_handleMotorPressureData(uint32_t pressure)
 	return handled;
 }
 
-bool telemetry_handleWarningPacketData(bool id, uint8_t value)
+bool telemetry_handleWarningPacketData(bool id, float value, uint8_t av_state)
 {
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
 
 	if (now - last_warning_update > WARNING_TIMEMIN) {
-		m5 = createWarningPacketDatagram (now, id, value, telemetrySeqNumber++);
+		m5 = createWarningPacketDatagram (now, id, value, av_state, telemetrySeqNumber++);
 		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m5, 10) != osOK) {
 			vPortFree(m5.ptr); // free the datagram if we couldn't queue it
 		}
@@ -291,39 +282,14 @@ bool telemetry_handleABData() {
 	return handled;
 }
 
-/*
-bool telemetry_handleTelemetryRaw(float32_t euler, float32_t accelerometer, float32_t temp, float32_t pressure)
-{
-	uint32_t now = HAL_GetTick();
-	bool handled = false;
+// Received Packet Handling
 
-	if (now - last_sensor_raw_update > TELE_RAW_TIMEMIN) {
-		m7 = createTelemetryRawDatagram(now, euler, accelerometer, temp, pressure, telemetrySeqNumber++);
-		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m7, 10) != osOK) {
-			vPortFree(m7.ptr); // free the datagram if we couldn't queue it
-		}
-		last_sensor_raw_update = now;
-		handled = true;
-	}
-	return handled;
+bool telemetry_handleOrderPacket(uint8_t* rxPacketBuffer) {
+	return 0;
 }
-*/
 
-/*
-bool telemetry_handleEventData(uint32_t state)
-{
-	uint32_t now = HAL_GetTick();
-	bool handled = false;
-
-	if (now - last_event_update > EVENT_TIMEMIN) {
-		m8 = createEventDatagram (now, state, telemetrySeqNumber++);
-		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m8, 10) != osOK) {
-			vPortFree(m8.ptr); // free the datagram if we couldn't queue it
-		}
-		last_event_update = now;
-		handled = true;
-	}
-	return handled;
+bool telemetry_handleIgnitionPacket(uint8_t* rxPacketBuffer) {
+	return 0;
 }
-*/
+
 

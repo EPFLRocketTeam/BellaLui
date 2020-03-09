@@ -228,7 +228,7 @@ void TK_can_reader() {
 				break;
 			case DATA_ID_STATE:
 #ifndef ROCKET_FSM // to avoid self loop on board with FSM
-				telemetry_handleWarningPacketData(0, currentState = msg.data);
+				telemetry_handleWarningPacketData(EVENT, 0, currentState = msg.data);
 #endif
 				break;
 			case DATA_ID_KALMAN_Z:
@@ -243,7 +243,7 @@ void TK_can_reader() {
 				break;
 			/*
 			case DATA_ID_MOTOR_PRESSURE:
-				motor_pressure = (int32_t) msg.data;
+				motor_pressure = (float) msg.data;
 				new_motor_pressure = true;
 			 */
 			}
@@ -285,7 +285,10 @@ void TK_can_reader() {
 			new_ab = !handleABData(ab_angle);
 		} /*
 		if (new_motorpressure) {
-			new_motor_pressure = !handleMotorData(motor_pressure);
+			new_motor_pressure = !handleMotorPressureData(motor_pressure);
+			if (motor_pressure>XXX) {
+				telemetry_handleWarningPacketData(WARNING_MOTOR_PRESSURE, motor_pressure, currentState);
+			}
 		}
 		 */
 

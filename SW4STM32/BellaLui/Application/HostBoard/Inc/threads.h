@@ -8,14 +8,14 @@
 #ifndef APPLICATION_HOSTBOARD_INC_THREADS_H_
 #define APPLICATION_HOSTBOARD_INC_THREADS_H_
 
+#define OS_STKCHECK
+#define CAN_LED
+#define LED
 
 
 #define DEBUG
-#define SENSOR_BOARD
-#define DEBUG_BOARD
-#define OS_STKCHECK
-#define LED
-#define CAN_LED
+#define TELEMETRY_BOARD
+// #define DEBUG_BOARD
 
 
 #ifdef GPS_BOARD
