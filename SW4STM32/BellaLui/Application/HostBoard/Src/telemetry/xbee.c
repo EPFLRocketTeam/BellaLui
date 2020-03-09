@@ -38,7 +38,7 @@ UART_HandleTypeDef* xBee_huart;
 // XBee receiving mode
 #define XBEE_RECEIVED_FRAME_OPTIONS_SIZE 12
 #define XBEE_RX_BUFFER_SIZE 512
-#define RX_PACKET_SIZE 24 // 8
+#define RX_PACKET_SIZE 14 // 8
 
 uint8_t rxPacketBuffer[RX_PACKET_SIZE];
 uint32_t lastDmaStreamIndex = 0, endDmaStreamIndex = 0;
@@ -281,7 +281,7 @@ void TK_xBeeReceive (const void* args)
       endDmaStreamIndex = XBEE_RX_BUFFER_SIZE - xBee_huart->hdmarx->Instance->NDTR;
       while (lastDmaStreamIndex < endDmaStreamIndex)
         {
-          processReceivedByte (rxBuffer[lastDmaStreamIndex++]);
+    	  processReceivedByte (rxBuffer[lastDmaStreamIndex++]);
         }
 
       osDelay (10);
@@ -313,12 +313,14 @@ void processReceivedPacket ()
 	{
 		case 0x07:
 		{
-			telemetry_handleOrderPacket(rxPacketBuffer);
+			uint8_t* RX_Order_Packet = rxPacketBuffer + PAYLOAD_ID_SIZE + PREFIXE_EPFL_SIZE;
+			telemetry_handleOrderPacket(RX_Order_Packet);
 			break;
 		}
 		case 0x09:
 		{
-			telemetry_handleIgnitionPacket(rxPacketBuffer);
+			uint8_t* RX_Ignition_Packet = rxPacketBuffer + PAYLOAD_ID_SIZE + PREFIXE_EPFL_SIZE;
+			telemetry_handleIgnitionPacket(RX_Ignition_Packet);
 			break;
 		}
 		default :
