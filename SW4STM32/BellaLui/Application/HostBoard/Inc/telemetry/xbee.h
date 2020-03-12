@@ -36,8 +36,10 @@ void xBee_rxCpltCallback ();
 
 void processReceivedPacket ();
 
-void processReceivedByte (uint8_t rxByte);
+inline void processReceivedByte (uint8_t rxByte);
 
 void resetStateMachine ();
+
+void set_packet_size(uint8_t datagram_id);
 
 #endif /* TELEMETRY_XBEE_XBEE_H_ */

@@ -6,6 +6,7 @@
  *      Alexandre Devienne
  */
 
+#include "../../../HostBoard/Inc/debug/led.h"
 #include <misc/Common.h>
 #include <misc/data_handling.h>
 #include <misc/datagram_builder.h>
@@ -285,10 +286,12 @@ bool telemetry_handleABData() {
 // Received Packet Handling
 
 bool telemetry_handleOrderPacket(uint8_t* rxPacketBuffer) {
+	led_set_rgb(238,130,238);
 	return 0;
 }
 
 bool telemetry_handleIgnitionPacket(uint8_t* rxPacketBuffer) {
+	//led_set_rgb(238,130,238);
 	return 0;
 }
 

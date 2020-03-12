@@ -36,21 +36,24 @@ UART_HandleTypeDef* xBee_huart;
 #include "Misc/Common.h"
 
 // XBee receiving mode
-#define XBEE_RECEIVED_FRAME_OPTIONS_SIZE 12
+#define XBEE_RECEIVED_DATAGRAM_ID_INDEX 16
 #define XBEE_RX_BUFFER_SIZE 512
-#define RX_PACKET_SIZE 14 // 8
+#define RX_PACKET_SIZE 64
+#define XBEE_RECEIVED_DATA_LENGTH_INDEX 2
 
-uint8_t rxPacketBuffer[RX_PACKET_SIZE];
+uint8_t packetSize = 64; // Size of the datagram received
+uint8_t rxPacketBuffer[RX_PACKET_SIZE];  // Buffer with one datagram to process only
 uint32_t lastDmaStreamIndex = 0, endDmaStreamIndex = 0;
-uint8_t rxBuffer[XBEE_RX_BUFFER_SIZE];
+uint8_t rxBuffer[XBEE_RX_BUFFER_SIZE];  // Buffer with all data received
 uint32_t preambleCnt, packetCnt, currentChecksum;
+
 
 enum DECODING_STATE
 {
   PARSING_PREAMBLE, PARSING_PACKET, PARSING_CHECKSUM
 };
 
-uint8_t currentRxState = PARSING_PREAMBLE;
+uint8_t currentRxState = PARSING_PACKET;
 
 static uint8_t XBEE_FRAME_OPTIONS[XBEE_OPTIONS_SIZE] =
   {
@@ -274,18 +277,18 @@ inline uint8_t escapedCharacter (uint8_t byte)
 
 void TK_xBeeReceive (const void* args)
 {
-  HAL_UART_Receive_DMA (xBee_huart, rxBuffer, XBEE_RX_BUFFER_SIZE);
+	HAL_UART_Receive_DMA (xBee_huart, rxBuffer, XBEE_RX_BUFFER_SIZE);
 
-  for (;;)
-    {
-      endDmaStreamIndex = XBEE_RX_BUFFER_SIZE - xBee_huart->hdmarx->Instance->NDTR;
-      while (lastDmaStreamIndex < endDmaStreamIndex)
-        {
-    	  processReceivedByte (rxBuffer[lastDmaStreamIndex++]);
-        }
+	for (;;)
+	{
+		endDmaStreamIndex = XBEE_RX_BUFFER_SIZE - xBee_huart->hdmarx->Instance->NDTR;
+		while (lastDmaStreamIndex < endDmaStreamIndex)
+		{
+			processReceivedByte (rxBuffer[lastDmaStreamIndex++]);
+		}
 
-      osDelay (10);
-    }
+	osDelay (10);
+	}
 }
 
 void xBee_rxCpltCallback ()
@@ -302,24 +305,23 @@ void xBee_rxCpltCallback ()
 void resetStateMachine ()
 {
   currentRxState = PARSING_PREAMBLE;
-  preambleCnt = 0;
   packetCnt = 0;
   currentChecksum = 0;
 }
 
 void processReceivedPacket ()
 {
-	switch (rxPacketBuffer[XBEE_RECEIVED_FRAME_OPTIONS_SIZE])
+	switch (rxPacketBuffer[XBEE_RECEIVED_DATAGRAM_ID_INDEX])
 	{
-		case 0x07:
+		case ORDER_PACKET:
 		{
-			uint8_t* RX_Order_Packet = rxPacketBuffer + PAYLOAD_ID_SIZE + PREFIXE_EPFL_SIZE;
+			uint8_t* RX_Order_Packet = rxPacketBuffer + START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE + XBEE_RECEIVED_OPTIONS_SIZE + DATAGRAM_ID_SIZE + PREFIXE_EPFL_SIZE;
 			telemetry_handleOrderPacket(RX_Order_Packet);
 			break;
 		}
-		case 0x09:
+		case IGNITION_PACKET:
 		{
-			uint8_t* RX_Ignition_Packet = rxPacketBuffer + PAYLOAD_ID_SIZE + PREFIXE_EPFL_SIZE;
+			uint8_t* RX_Ignition_Packet = rxPacketBuffer + START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE + XBEE_RECEIVED_OPTIONS_SIZE + DATAGRAM_ID_SIZE + PREFIXE_EPFL_SIZE;
 			telemetry_handleIgnitionPacket(RX_Ignition_Packet);
 			break;
 		}
@@ -334,26 +336,16 @@ inline void processReceivedByte (uint8_t rxByte)
 {
   switch (currentRxState)
     {
-    case PARSING_PREAMBLE:
-      {
-        if (rxByte == HEADER_PREAMBLE_FLAG)
-          {
-            if (++preambleCnt == 4)
-              {
-                currentRxState = PARSING_PACKET;
-              }
-          }
-        else
-          {
-            resetStateMachine ();
-          }
-        break;
-      }
     case PARSING_PACKET:
       {
-        rxPacketBuffer[packetCnt++] = rxByte;
-        currentChecksum += rxByte;
-        if (packetCnt == RX_PACKET_SIZE)
+    	rxPacketBuffer[packetCnt++] = rxByte;
+        if (packetCnt > 2) {
+        	currentChecksum += rxByte;
+        }
+        if (packetCnt == XBEE_RECEIVED_DATAGRAM_ID_INDEX) {
+        	set_packet_size(rxPacketBuffer[packetCnt]);
+        }
+        if ( packetCnt == (packetSize-CHECKSUM_SIZE) )
           {
             currentRxState = PARSING_CHECKSUM;
           }
@@ -370,3 +362,37 @@ inline void processReceivedByte (uint8_t rxByte)
       }
     }
 }
+
+/* set_packet_size(uint8_t datagram_id)
+ *
+ * Sets the size of the data received depending on the datagram_id received
+ *
+ * The size is calculated as follow :
+ * START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE + XBEE_RECEIVED_OPTIONS_SIZE + DATAGRAM_ID_SIZE + PREFIXE_EPFL_SIZE
+ * + PREFIXE_EPFL_SIZE + TIMESTAMP_SIZE + PACKET_NUMBER_SIZE + XXX_DATAGRAM_PAYLOAD_SIZE
+ *
+ * Add the new packets size if news packets are needed
+ */
+
+
+void set_packet_size(uint8_t datagram_id) {
+	switch (datagram_id)
+	{
+		case ORDER_PACKET:
+	    {
+	    	packetSize = ORDER_PACKET_SIZE;
+	    	break;
+	    }
+		case IGNITION_PACKET:
+		{
+			packetSize = IGNITION_PACKET_SIZE;
+	    	break;
+		}
+		default :
+		{
+	    	break;
+		}
+	}
+}
+
+
