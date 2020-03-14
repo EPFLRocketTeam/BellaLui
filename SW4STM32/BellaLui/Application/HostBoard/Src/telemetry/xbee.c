@@ -50,7 +50,7 @@ uint32_t preambleCnt, packetCnt, currentChecksum;
 
 enum DECODING_STATE
 {
-  PARSING_PREAMBLE, PARSING_PACKET, PARSING_CHECKSUM
+  PARSING_PACKET, PARSING_CHECKSUM
 };
 
 uint8_t currentRxState = PARSING_PACKET;
@@ -304,7 +304,7 @@ void xBee_rxCpltCallback ()
 
 void resetStateMachine ()
 {
-  currentRxState = PARSING_PREAMBLE;
+  currentRxState = PARSING_PACKET;
   packetCnt = 0;
   currentChecksum = 0;
 }
@@ -387,6 +387,11 @@ void set_packet_size(uint8_t datagram_id) {
 		{
 			packetSize = IGNITION_PACKET_SIZE;
 	    	break;
+		}
+		case TELEMETRY_PACKET:
+		{
+			packetSize = TELEMETRY_PACKET_SIZE;
+			break;
 		}
 		default :
 		{
