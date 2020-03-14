@@ -232,13 +232,13 @@ void TK_can_reader() {
 #endif
 				break;
 			case DATA_ID_KALMAN_Z:
-				kalman_z = ((float32_t) ((int32_t) msg.data))/1e3;
+				kalman_z = ((float32_t) ((int32_t) msg.data))/1e3; // from mm to m
 				break;
 			case DATA_ID_KALMAN_VZ:
-				kalman_vz = ((float32_t) ((int32_t) msg.data))/1e3;
+				kalman_vz = ((float32_t) ((int32_t) msg.data))/1e3; // from mm/s to m/s
 				break;
 			case DATA_ID_AB_INC:
-				ab_angle = (int32_t) msg.data;
+				ab_angle = ((int32_t) msg.data) / h1; // keep in deg
 				// new_ab = true;
 				break;
 			/*
