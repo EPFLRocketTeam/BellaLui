@@ -54,7 +54,7 @@ int board2Idx(uint32_t board) {
 
 bool handleGPSData(GPS_data data) {
 #ifdef XBEE
-	return telemetry_handleGPSData(data);
+	return telemetry_sendGPSData(data);
 #elif defined(KALMAN)
 	if (data.lat < 1e3) {
 		return kalman_handleGPSData(data);
@@ -238,7 +238,7 @@ void TK_can_reader() {
 				kalman_vz = ((float32_t) ((int32_t) msg.data))/1e3; // from mm/s to m/s
 				break;
 			case DATA_ID_AB_INC:
-				ab_angle = ((int32_t) msg.data) / h1; // keep in deg
+				ab_angle = ((int32_t) msg.data); // keep in deg
 				// new_ab = true;
 				break;
 			/*

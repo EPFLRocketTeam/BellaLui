@@ -32,14 +32,15 @@ extern "C" {
 volatile static uint32_t Packet_Number = 0;
 
 // for import in C code
-extern "C" bool telemetry_handleGPSData(GPS_data data);
-extern "C" bool telemetry_handleIMUData(IMU_data data);
-extern "C" bool telemetry_handleBaroData(BARO_data data);
-extern "C" bool telemetry_handleWarningPacketData(bool id, float value, uint8_t av_state);
-extern "C" bool telemetry_handleMotorPressureData(uint32_t pressure);
-extern "C" bool telemetry_handleABData();
-extern "C" bool telemetry_handleOrderPacket(uint8_t* rxPacketBuffer);
-extern "C" bool telemetry_handleIgnitionPacket(uint8_t* rxPacketBuffer);
+extern "C" bool telemetry_sendGPSData(GPS_data data);
+extern "C" bool telemetry_sendIMUData(IMU_data data);
+extern "C" bool telemetry_sendBaroData(BARO_data data);
+extern "C" bool telemetry_sendWarningPacketData(bool id, float value, uint8_t av_state);
+extern "C" bool telemetry_sendMotorPressureData(uint32_t pressure);
+extern "C" bool telemetry_sendABData();
+
+extern "C" bool telemetry_receiveOrderPacket(uint8_t* rxPacketBuffer);
+extern "C" bool telemetry_receiveIgnitionPacket(uint8_t* rxPacketBuffer);
 
 extern osMessageQId xBeeQueueHandle;
 
@@ -186,7 +187,7 @@ Telemetry_Message createTelemetryRawDatagram(uint32_t time_stamp, float32_t eule
 //createIgnitionDatagram
 
 
-bool telemetry_handleGPSData(GPS_data data) {
+bool telemetry_sendGPSData(GPS_data data) {
 	static uint32_t last_update = 0;
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
@@ -202,7 +203,7 @@ bool telemetry_handleGPSData(GPS_data data) {
 	return handled;
 }
 
-bool telemetry_handleIMUData(IMU_data data) {
+bool telemetry_sendIMUData(IMU_data data) {
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
 
@@ -219,7 +220,7 @@ bool telemetry_handleIMUData(IMU_data data) {
 	return handled;
 }
 
-bool telemetry_handleBaroData(BARO_data data) {
+bool telemetry_sendBaroData(BARO_data data) {
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
 
@@ -236,7 +237,7 @@ bool telemetry_handleBaroData(BARO_data data) {
 	return handled;
 }
 
-bool telemetry_handleMotorPressureData(uint32_t pressure)
+bool telemetry_sendMotorPressureData(uint32_t pressure)
 {
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
@@ -252,7 +253,7 @@ bool telemetry_handleMotorPressureData(uint32_t pressure)
 	return handled;
 }
 
-bool telemetry_handleWarningPacketData(bool id, float value, uint8_t av_state)
+bool telemetry_sendWarningPacketData(bool id, float value, uint8_t av_state)
 {
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
@@ -268,7 +269,7 @@ bool telemetry_handleWarningPacketData(bool id, float value, uint8_t av_state)
 	return handled;
 }
 
-bool telemetry_handleABData() {
+bool telemetry_sendABData() {
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
 
@@ -285,12 +286,12 @@ bool telemetry_handleABData() {
 
 // Received Packet Handling
 
-bool telemetry_handleOrderPacket(uint8_t* rxPacketBuffer) {
+bool telemetry_receiveOrderPacket(uint8_t* rxPacketBuffer) {
 	led_set_rgb(238,130,238);
 	return 0;
 }
 
-bool telemetry_handleIgnitionPacket(uint8_t* rxPacketBuffer) {
+bool telemetry_receiveIgnitionPacket(uint8_t* rxPacketBuffer) {
 	//led_set_rgb(238,130,238);
 	return 0;
 }

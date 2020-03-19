@@ -14,7 +14,7 @@
 
 
 #define DEBUG
-#define TELEMETRY_BOARD
+#define SENSOR_BOARD
 // #define DEBUG_BOARD
 
 
