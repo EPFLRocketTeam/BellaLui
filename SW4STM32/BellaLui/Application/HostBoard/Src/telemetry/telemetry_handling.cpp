@@ -45,7 +45,7 @@ extern "C" bool telemetry_receiveIgnitionPacket(uint8_t* RX_Ignition_Packet);
 extern osMessageQId xBeeQueueHandle;
 
 uint32_t telemetrySeqNumber = 0;
-uint8_t current_state;
+uint8_t current_state = STATE_IDLE;
 
 IMU_data  imu  = {{0,0,0},{0,0,0}, 0};
 BARO_data baro = {0,0,0};
