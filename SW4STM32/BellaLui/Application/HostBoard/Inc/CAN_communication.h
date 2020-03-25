@@ -57,7 +57,8 @@ typedef struct
 
 #define DATA_ID_STATE 50 // enum
 
-
+#define DATA_ID_ORDER 51
+#define DATA_ID_IGNITION 51
 
 // Define all the board ID's (lower means higher priority for CAN protocol)
 #define CAN_ID_MAIN_BOARD 0

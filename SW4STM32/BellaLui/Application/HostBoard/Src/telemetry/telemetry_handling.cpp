@@ -39,12 +39,13 @@ extern "C" bool telemetry_sendWarningPacketData(bool id, float value, uint8_t av
 extern "C" bool telemetry_sendMotorPressureData(uint32_t pressure);
 extern "C" bool telemetry_sendABData();
 
-extern "C" bool telemetry_receiveOrderPacket(uint8_t* rxPacketBuffer);
-extern "C" bool telemetry_receiveIgnitionPacket(uint8_t* rxPacketBuffer);
+extern "C" bool telemetry_receiveOrderPacket(uint8_t* RX_Order_Packet);
+extern "C" bool telemetry_receiveIgnitionPacket(uint8_t* RX_Ignition_Packet);
 
 extern osMessageQId xBeeQueueHandle;
 
 uint32_t telemetrySeqNumber = 0;
+uint8_t current_state;
 
 IMU_data  imu  = {{0,0,0},{0,0,0}, 0};
 BARO_data baro = {0,0,0};
@@ -286,13 +287,43 @@ bool telemetry_sendABData() {
 
 // Received Packet Handling
 
-bool telemetry_receiveOrderPacket(uint8_t* rxPacketBuffer) {
-	led_set_rgb(238,130,238);
+bool telemetry_receiveOrderPacket(uint8_t* RX_Order_Packet) {
+
+	uint32_t ts = RX_Order_Packet[3] | (RX_Order_Packet[2] << 8) | (RX_Order_Packet[1] << 16) | (RX_Order_Packet[0] << 24);
+	uint32_t packet_nbr = RX_Order_Packet[7] | (RX_Order_Packet[6] << 8) | (RX_Order_Packet[5] << 16) | (RX_Order_Packet[4] << 24);
+	switch (RX_Order_Packet[8])
+	{
+		case STATE_OPEN_FILL_VALVE:
+		{
+			current_state = STATE_OPEN_FILL_VALVE;
+			break;
+		}
+		case STATE_CLOSE_FILL_VALVE:
+		{
+		current_state = STATE_OPEN_PURGE_VALVE;
+			break;
+		}
+		case STATE_OPEN_FILL_VALVE:
+		{
+			current_state = STATE_OPEN_PURGE_VALVE;
+			break;
+		}
+		case STATE_DISCONNECT_HOSE:
+		{
+			current_state = STATE_DISCONNECT_HOSE;
+			break;
+		}
+	}
+	can_setFrame((int32_t) current_state, DATA_ID_ORDER, ts);
 	return 0;
 }
 
-bool telemetry_receiveIgnitionPacket(uint8_t* rxPacketBuffer) {
-	//led_set_rgb(238,130,238);
+bool telemetry_receiveIgnitionPacket(uint8_t* RX_Ignition_Packet) {
+	uint32_t ts = RX_Ignition_Packet[3] | (RX_Ignition_Packet[2] << 8) | (RX_Ignition_Packet[1] << 16) | (RX_Ignition_Packet[0] << 24);
+	uint32_t packet_nbr = RX_Ignition_Packet[7] | (RX_Ignition_Packet[6] << 8) | (RX_Ignition_Packet[5] << 16) | (RX_Ignition_Packet[4] << 24);
+	if( RX_Ignition_Packet[8] == 0x22) {
+		can_setFrame((int32_t) 0x22, DATA_ID_IGNITION, ts);
+	}
 	return 0;
 }
 
