@@ -33,6 +33,7 @@ osThreadId canReaderHandle;
 osThreadId kalmanHandle;
 osThreadId rocketfsmHandle;
 osThreadId state_estimatorHandle;
+osThreadId presureMonitorHandle;
 
 
 void create_semaphores() {
@@ -98,4 +99,11 @@ void create_threads() {
 	  osThreadDef(rocket_fsm, TK_state_machine, osPriorityNormal, 0, 256);
 	  rocketfsmHandle = osThreadCreate(osThread(rocket_fsm), NULL);
 	#endif
+
+	#ifdef PRESSURE_MONITORING
+	  osThreadDef(pressure_monitor, TK_pressure_monitor, osPriorityNormal, 0, 256);
+	  presureMonitorHandle = osThreadCreate(osThread(pressure_monitor), NULL);
+	#endif
+
+
 }

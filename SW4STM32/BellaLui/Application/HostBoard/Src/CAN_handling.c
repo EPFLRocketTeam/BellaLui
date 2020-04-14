@@ -241,11 +241,11 @@ void TK_can_reader() {
 				ab_angle = ((int32_t) msg.data); // keep in deg
 				// new_ab = true;
 				break;
-			/*
+
 			case DATA_ID_MOTOR_PRESSURE:
 				motor_pressure = (float) msg.data;
 				new_motor_pressure = true;
-			 */
+
 			}
 		}
 

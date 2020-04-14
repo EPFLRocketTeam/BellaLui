@@ -70,6 +70,14 @@
 //#define SDCARD
 #endif
 
+#ifdef PROPULSION_BOARD
+#define BOARD_LED_R (50)
+#define BOARD_LED_G (50)
+#define BOARD_LED_B (50)
+#define CAN_ID CAN_ID_PROPULSION_BOARD
+#define PRESSURE_MONITORING
+//todo #define MOTOR_VALVE_CONTROL
+#endif
 
 #ifdef XBEE
 #include <telemetry/xbee.h>
@@ -94,6 +102,12 @@
 #ifdef ROCKET_FSM
 #include <misc/state_machine.h>
 #endif
+
+#ifdef PRESSURE_MONITORING
+#include <propulsion/pressure_monitor.h>
+#endif
+
+
 
 void create_semaphores();
 void create_threads();

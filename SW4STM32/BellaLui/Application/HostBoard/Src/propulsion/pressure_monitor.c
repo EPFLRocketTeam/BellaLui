@@ -16,7 +16,6 @@
 
 #define PRESSURE_MONITOR_PERIOD_MS (50)
 
-#define DATA_ID_PP_MOTOR_PRESSURE 55 // TODO move to CAN-handling.h
 
 //Should be launched as a thread in thread.c only on the propulsion board
 void TK_pressure_monitor (void const * argument)
@@ -42,10 +41,17 @@ void TK_pressure_monitor (void const * argument)
 }
 float read_pressure_data ()
 {
-	// TODO Analog read data from port D0
+	// TODO Check if right ADC is chosen, and configuration is right
 	float data = 0;
+	float obtained_value = 0;
 
-	//HAL_ADC_
+	//obtained_value =  HAL_ADC_getValue()
+	 LL_ADC_REG_StartConversion(ADC1);
+	 while(LL_ADC_IsActiveFlag_EOC(ADC1) == 0);
+	 if( LL_ADC_IsActiveFlag_EOC(ADC1) ) LL_ADC_ClearFlag_EOC(ADC1);
+	 obtained_value = LL_ADC_REG_ReadConversionData12(ADC1);
+
+	data = ((float)obtained_value/4095.0)*3.3;
 
 	return data;
 }

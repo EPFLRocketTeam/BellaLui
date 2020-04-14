@@ -59,6 +59,7 @@ typedef struct
 
 #define DATA_ID_ORDER 51
 #define DATA_ID_IGNITION 51
+#define DATA_ID_MOTOR_PRESSURE 55
 
 // Define all the board ID's (lower means higher priority for CAN protocol)
 #define CAN_ID_MAIN_BOARD 0
@@ -67,6 +68,7 @@ typedef struct
 #define CAN_ID_AIBRAKE_BOARD 3
 #define CAN_ID_DEBUG_BOARD 6
 #define CAN_ID_DEFAULT 7
+#define CAN_ID_PROPULSION_BOARD 5
 
 #define MAX_BOARD_ID 7 // used to implement redundant info in CAN_handling
 #define MAX_BOARD_NUMBER (MAX_BOARD_ID+1)
