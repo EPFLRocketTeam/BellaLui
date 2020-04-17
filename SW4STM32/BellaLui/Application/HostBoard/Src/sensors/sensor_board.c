@@ -81,11 +81,11 @@ struct bme280_dev bme[MAX_SENSOR_NUMBER];
 struct bme280_data bme_data[MAX_SENSOR_NUMBER];
 struct bme280_data_float bme_data_float[MAX_SENSOR_NUMBER];
 struct bme280_data_float correct_bme_data;
-float correct_bme_basepressure;
+//float correct_bme_basepressure;
 uint32_t bme_calib_counter[MAX_SENSOR_NUMBER] = {0};
-uint32_t correct_bme_calib_counter = 0;
+//uint32_t correct_bme_calib_counter = 0;
 bool bme_calibrated[MAX_SENSOR_NUMBER] = {false};
-bool correct_bme_calibrated = {false};
+//bool correct_bme_calibrated = {false};
 
 //## BNO055 ## IMU
 struct bno055_t bno[MAX_SENSOR_NUMBER];
@@ -297,8 +297,8 @@ int8_t fetch_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER])
 			can_setFrame(bme_data_float[sensor_id].basepressure, DATA_ID_CALIB_PRESSURE, HAL_GetTick());
 		}
 
-		can_setFrame(bme_data_float[sensor_id].temperature, DATA_ID_TEMPERATURE, HAL_GetTick());
-		can_setFrame(bme_data_float[sensor_id].pressure/100, DATA_ID_PRESSURE, HAL_GetTick());
+		/*can_setFrame(bme_data_float[sensor_id].temperature, DATA_ID_TEMPERATURE, HAL_GetTick());
+		can_setFrame(bme_data_float[sensor_id].pressure/100, DATA_ID_PRESSURE, HAL_GetTick());*/
 
 		if(!cntr)
 		{
@@ -325,12 +325,12 @@ int8_t fetch_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
 
 	if(!rslt_bno[sensor_id])
 	{
-		can_setFrame((int32_t) bno_data[sensor_id].accel.x, DATA_ID_ACCELERATION_X, HAL_GetTick());
+		/*can_setFrame((int32_t) bno_data[sensor_id].accel.x, DATA_ID_ACCELERATION_X, HAL_GetTick());
 		can_setFrame((int32_t) bno_data[sensor_id].accel.y, DATA_ID_ACCELERATION_Y, HAL_GetTick());
 		can_setFrame((int32_t) bno_data[sensor_id].accel.z, DATA_ID_ACCELERATION_Z, HAL_GetTick());
 		can_setFrame((int32_t)(1000*bno_data[sensor_id].gyro.x), DATA_ID_GYRO_X, HAL_GetTick());
 		can_setFrame((int32_t)(1000*bno_data[sensor_id].gyro.y), DATA_ID_GYRO_Y, HAL_GetTick());
-		can_setFrame((int32_t)(1000*bno_data[sensor_id].gyro.z), DATA_ID_GYRO_Z, HAL_GetTick());
+		can_setFrame((int32_t)(1000*bno_data[sensor_id].gyro.z), DATA_ID_GYRO_Z, HAL_GetTick());*/
 		if(!cntr)
 		{
 			sprintf(buf, "Accel: [%f, %f, %f]\n", bno_data[sensor_id].accel.x, bno_data[sensor_id].accel.y, bno_data[sensor_id].accel.z);
@@ -579,7 +579,7 @@ void bme_data_process(uint8_t baro_init[MAX_SENSOR_NUMBER], int8_t rslt_bme[MAX_
 			{ // Checks if at least two barometers have correctly been fetched
 
 				bme_redundancy(rslt_bme);
-				if (!correct_bme_calibrated)
+				/*if (!correct_bme_calibrated)
 				{
 					correct_bme_basepressure += correct_bme_data.pressure/100;
 					correct_bme_calib_counter++;
@@ -592,7 +592,7 @@ void bme_data_process(uint8_t baro_init[MAX_SENSOR_NUMBER], int8_t rslt_bme[MAX_
 				if (cntr==1)
 				{
 						can_setFrame(correct_bme_basepressure, DATA_ID_CALIB_PRESSURE, HAL_GetTick());
-				}
+				}*/
 				can_setFrame(correct_bme_data.temperature, DATA_ID_TEMPERATURE, HAL_GetTick());
 				can_setFrame(correct_bme_data.pressure/100, DATA_ID_PRESSURE, HAL_GetTick());
 			}
@@ -601,7 +601,7 @@ void bme_data_process(uint8_t baro_init[MAX_SENSOR_NUMBER], int8_t rslt_bme[MAX_
 				for (uint8_t i = 0; i<3; i++) {
 					if (!rslt_bme[i])
 					{
-						if (!correct_bme_calibrated)
+						/*if (!correct_bme_calibrated)
 						{
 							correct_bme_basepressure += bme_data_float[i].pressure/100;
 							correct_bme_calib_counter++;
@@ -614,7 +614,7 @@ void bme_data_process(uint8_t baro_init[MAX_SENSOR_NUMBER], int8_t rslt_bme[MAX_
 						if (cntr==1)
 						{
 							can_setFrame(correct_bme_basepressure, DATA_ID_CALIB_PRESSURE, HAL_GetTick()); // Still needs the ID of the correct data for the CanBus to recognize it
-						}
+						}*/
 						can_setFrame(bme_data_float[i].temperature, DATA_ID_TEMPERATURE, HAL_GetTick());
 						can_setFrame(bme_data_float[i].pressure/100, DATA_ID_PRESSURE, HAL_GetTick());
 					}

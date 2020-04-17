@@ -300,10 +300,10 @@ bool telemetry_receiveOrderPacket(uint8_t* RX_Order_Packet) {
 		}
 		case STATE_CLOSE_FILL_VALVE:
 		{
-		current_state = STATE_OPEN_PURGE_VALVE;
+		current_state = STATE_CLOSE_FILL_VALVE;
 			break;
 		}
-		case STATE_OPEN_FILL_VALVE:
+		case STATE_OPEN_PURGE_VALVE:
 		{
 			current_state = STATE_OPEN_PURGE_VALVE;
 			break;
