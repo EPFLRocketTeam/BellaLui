@@ -268,7 +268,7 @@ int8_t init_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
  * Used to fetch the sensors
  * Returns an array ( rslt_bme, rslt_bno ) of size MAX_SENSOR_NUMBER
  * stating if the fetch was completed or not
- *
+ *s
  * - rslt_XXX = 1 => failed to fetch
  * - rslt_XXX = 0 => fetch complete
  *
@@ -302,8 +302,8 @@ int8_t fetch_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER])
 
 		if(!cntr)
 		{
-			sprintf(buf, "Pres: %"PRIu32"\nTemp: %"PRIu32"\nHum: %"PRIu32"\n",
-					bme_data_float[sensor_id].pressure, bme_data_float[sensor_id].temperature, bme_data[sensor_id].humidity);
+			/*sprintf(buf, "Pres: %"PRIu32"\nTemp: %"PRIu32"\nHum: %"PRIu32"\n",
+					bme_data_float[sensor_id].pressure, bme_data_float[sensor_id].temperature, bme_data[sensor_id].humidity);*/
 			//INFO(buf);
 		}
 	}
@@ -333,11 +333,11 @@ int8_t fetch_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
 		can_setFrame((int32_t)(1000*bno_data[sensor_id].gyro.z), DATA_ID_GYRO_Z, HAL_GetTick());*/
 		if(!cntr)
 		{
-			sprintf(buf, "Accel: [%f, %f, %f]\n", bno_data[sensor_id].accel.x, bno_data[sensor_id].accel.y, bno_data[sensor_id].accel.z);
+			//sprintf(buf, "Accel: [%f, %f, %f]\n", bno_data[sensor_id].accel.x, bno_data[sensor_id].accel.y, bno_data[sensor_id].accel.z);
 			//INFO(buf);
-			sprintf(buf, "Gyro: [%f, %f, %f]\n", bno_data[sensor_id].gyro.x, bno_data[sensor_id].gyro.y, bno_data[sensor_id].gyro.z);
+			//sprintf(buf, "Gyro: [%f, %f, %f]\n", bno_data[sensor_id].gyro.x, bno_data[sensor_id].gyro.y, bno_data[sensor_id].gyro.z);
 			//INFO(buf);
-			sprintf(buf, "Mag: [%f, %f, %f]\n\n\n", bno_data[sensor_id].mag.x, bno_data[sensor_id].mag.y, bno_data[sensor_id].mag.z);
+			//sprintf(buf, "Mag: [%f, %f, %f]\n\n\n", bno_data[sensor_id].mag.x, bno_data[sensor_id].mag.y, bno_data[sensor_id].mag.z);
 			//INFO(buf);
 		}
 	}
