@@ -228,7 +228,7 @@ void TK_can_reader() {
 				break;
 			case DATA_ID_STATE:
 #ifndef ROCKET_FSM // to avoid self loop on board with FSM
-				telemetry_handleWarningPacketData(EVENT, 0, currentState = msg.data);
+				//telemetry_handleWarningPacketData(EVENT, 0, currentState = msg.data);
 #endif
 				break;
 			case DATA_ID_KALMAN_Z:

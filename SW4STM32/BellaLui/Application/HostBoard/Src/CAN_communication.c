@@ -30,8 +30,6 @@ CAN_msg can_buffer[CAN_BUFFER_DEPTH];
 volatile int32_t can_buffer_pointer_rx = 0;
 volatile int32_t can_buffer_pointer_tx = 0;
 
-int can_id_led = -1;
-
 uint32_t can_readFrame(void);
 
 uint32_t pointer_inc(uint32_t val, uint32_t size) {
@@ -44,7 +42,6 @@ void can_addMsg(CAN_msg msg) {
 
 	if (can_buffer_pointer_tx == can_buffer_pointer_rx) { // indicates overflow
 		can_buffer_pointer_rx = pointer_inc(can_buffer_pointer_rx, CAN_BUFFER_DEPTH); // skip one msg in the rx buffer
-		led_set_TK_rgb(can_id_led, 50, 0 , 50); // signal on the LED something went wrong
 	}
 }
 
@@ -97,11 +94,6 @@ void CAN_Config(uint32_t id)
     TxHeader.IDE = CAN_ID_STD;
     TxHeader.DLC = 8;
     TxHeader.TransmitGlobalTime = DISABLE;
-
-	#ifdef CAN_LED
-    can_id_led = led_register_TK(); // register a LED for the CAN bus
-	#endif
-    led_set_TK_rgb(can_id_led, 0, 10, 0);
 }
 
 /*
@@ -143,10 +135,6 @@ uint32_t can_msgPending() {
 	int32_t diff = can_buffer_pointer_tx - can_buffer_pointer_rx;
 	if (diff < 0) {
 		diff += CAN_BUFFER_DEPTH;
-	}
-
-	if (diff == 0) { // signal on the LED all is well
-		led_set_TK_rgb(can_id_led, 0, 10, 0);
 	}
 
 	return diff;

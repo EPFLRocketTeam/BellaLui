@@ -12,11 +12,22 @@
 
 #include <threads.h>
 
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #ifdef DEBUG
 #define rocket_log printf
-int rocket_log(const char *format, ...);
 extern void initialise_monitor_handles(void);
+#endif
+
+int rocket_log(const char *format, ...);
 void rocket_log_init();
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* APPLICATION_HOSTBOARD_INC_DEBUG_CONSOLE_H_ */
