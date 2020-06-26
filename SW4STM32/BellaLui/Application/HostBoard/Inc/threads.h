@@ -11,8 +11,7 @@
 #define OS_STKCHECK
 #define LED
 
-#define SENSOR_BOARD
-#define GPS_BOARD
+#define AIRBRAKES_BOARD
 
 #ifdef GPS_BOARD
 #define CAN_ID CAN_ID_GPS_BOARD
@@ -45,7 +44,7 @@
 #define BOARD_LED_B (0)
 #endif
 
-#ifdef AIRBRAKE_BOARD
+#ifdef AIRBRAKES_BOARD
 #define BOARD_LED_R (100)
 #define BOARD_LED_G (0)
 #define BOARD_LED_B (100)
