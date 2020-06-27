@@ -66,7 +66,7 @@ bool handleGPSData(GPS_data data) {
 bool handleIMUData(IMU_data data) {
 	IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
 #ifdef XBEE
-	return telemetry_handleIMUData(data);
+	return telemetry_sendIMUData(data);
 #elif defined(KALMAN)
 	return kalman_handleIMUData(data);
 #endif
@@ -88,7 +88,7 @@ bool handleBaroData(BARO_data data) {
 	currentBaroTimestamp = HAL_GetTick();
 
 #ifdef XBEE
-	return telemetry_handleBaroData(data);
+	return telemetry_sendBaroData(data);
 #elif defined(KALMAN)
 	return kalman_handleBaroData(data);
 #endif

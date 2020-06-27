@@ -10,6 +10,10 @@
 #include <debug/led.h>
 #include <debug/console.h>
 
+extern "C" {
+	#include <storage/flash_logging.h>
+}
+
 UART_HandleTypeDef* gps_huart;
 int led_gps_id;
 
@@ -62,6 +66,8 @@ void send_gps_data() {
 
 void TK_GPS_board(void const * argument)
 {
+	start_logging();
+
 	  uint32_t measurement_time = HAL_GetTick ();
 	  led_set_TK_rgb(led_gps_id, 50, 0, 150);
 	  HAL_UART_Receive_DMA (gps_huart, gpsRxBuffer, GPS_RX_BUFFER_SIZE);
