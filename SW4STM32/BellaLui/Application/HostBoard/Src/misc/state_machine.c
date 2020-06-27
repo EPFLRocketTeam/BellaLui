@@ -9,6 +9,8 @@
 #include <misc/Common.h>
 #include <misc/rocket_constants.h>
 #include <stm32f4xx_hal.h>
+#include <storage/flash_logging.h>
+#include <debug/console.h>
 
 #include <sync.h>
 
@@ -44,6 +46,9 @@ void TK_state_machine (void const * argument)
   // State Machine initialization
   // Hyp: rocket is on rail waiting for lift-off
   currentState = STATE_CALIBRATION;
+
+  rocket_log("Calibration!\n");
+
 
   // State Machine main task loop
   for (;;)
@@ -91,6 +96,7 @@ void TK_state_machine (void const * argument)
                 if (baro_data->base_pressure != 0)
                   {
                     currentState = STATE_IDLE;
+                    rocket_log("Idle!\n");
                   }
                 currentState = STATE_IDLE;
               }
@@ -110,6 +116,7 @@ void TK_state_machine (void const * argument)
                     //already detected the acceleration trigger. now we need the trigger for at least 1000ms before trigerring the liftoff.
                     if (liftoffAccelTrig && HAL_GetTick () - LIFTOFF_TIME > LIFTOFF_DETECTION_DELAY)
                       {
+                    	rocket_log("Lift off!\n");
                         currentState = STATE_LIFTOFF; // Switch to lift-off state
                         break;
                       }
@@ -132,14 +139,18 @@ void TK_state_machine (void const * argument)
 
         case STATE_LIFTOFF:
           {
-            flight_status = 10;
-            uint32_t currentTime = HAL_GetTick ();
-            // determine motor burn-out based on lift-off detection
-            if ((currentTime - time_tmp) > ROCKET_CST_MOTOR_BURNTIME)
-              {
-                currentState = STATE_COAST; // switch to coast state
-              }
-            break;
+
+        	start_logging();
+
+			flight_status = 10;
+			uint32_t currentTime = HAL_GetTick ();
+			// determine motor burn-out based on lift-off detection
+			if ((currentTime - time_tmp) > ROCKET_CST_MOTOR_BURNTIME)
+			  {
+				currentState = STATE_COAST; // switch to coast state
+	        	  rocket_log("Coast!\n");
+			  }
+			break;
           }
 
         case STATE_COAST:
@@ -184,6 +195,7 @@ void TK_state_machine (void const * argument)
                     time_tmp = HAL_GetTick (); // save time to mute sensors while ejection occures
                     currentState = STATE_PRIMARY; // switch to primary descent phase
                     flight_status = 30;
+                	rocket_log("Primary!\n");
                   }
               }
             break;
@@ -229,6 +241,7 @@ void TK_state_machine (void const * argument)
 
         case STATE_SECONDARY:
           {
+        	rocket_log("Secondary!\n");
             uint8_t counterTdTrig = 0;
 
             // if a given time has passed since the last time the check was done, do the check
@@ -269,7 +282,9 @@ void TK_state_machine (void const * argument)
           }
 
         case STATE_TOUCHDOWN:
+        	rocket_log("Touchdown!\n");
         	osDelay(2000);
+        	on_dump_request();
             break;
         }
 

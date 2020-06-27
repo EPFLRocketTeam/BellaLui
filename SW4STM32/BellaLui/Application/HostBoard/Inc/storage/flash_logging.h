@@ -17,6 +17,7 @@
 #define LOGGING_BUFFER_SIZE (8 * 64)
 
 void init_logging();
+void start_logging();
 void flash_log(CAN_msg message);
 void TK_logging_thread(void const *pvArgs);
 

@@ -35,6 +35,8 @@ static volatile SemaphoreHandle_t master_io_semaphore;
 static volatile SemaphoreHandle_t slave_io_semaphore;
 static volatile bool flash_ignore_write = false;
 
+static volatile bool is_logging = false;
+
 void init_logging() {
    master_swap = xSemaphoreCreateBinary();
    slave_swap = xSemaphoreCreateBinary();
@@ -42,10 +44,18 @@ void init_logging() {
    slave_io_semaphore = xSemaphoreCreateBinary();
 }
 
+void start_logging() {
+	is_logging = true;
+}
+
 void flash_log(CAN_msg message) {
 	/*
 	 * Write the CAN message to the front buffer.
 	 */
+
+	if(!is_logging) {
+		return;
+	}
 
 	if(front_buffer_index <= LOGGING_BUFFER_SIZE - 8) {
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 24);
@@ -154,8 +164,6 @@ void TK_logging_thread(void const *pvArgs) {
 
 			led_set_TK_rgb(led_identifier, 0, 50, 50);
 		}
-
-		rocket_log("Wrote %ld bytes worth of CAN messages\n", can);
 
 		stream.close();
 
