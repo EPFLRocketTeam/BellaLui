@@ -137,8 +137,6 @@ int main(void) {
 	init_filesystem();
 
 
-	//while(1);
-
 	/* USER CODE END 2 */
 
 	/* Call init function for freertos objects (in freertos.c) */

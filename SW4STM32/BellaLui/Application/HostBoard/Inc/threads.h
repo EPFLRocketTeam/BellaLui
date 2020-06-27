@@ -9,14 +9,9 @@
 #define APPLICATION_HOSTBOARD_INC_THREADS_H_
 
 #define OS_STKCHECK
-#define CAN_LED
 #define LED
 
-
-#define DEBUG
-#define SENSOR_BOARD
-// #define DEBUG_BOARD
-
+#define AIRBRAKES_BOARD
 
 #ifdef GPS_BOARD
 #define CAN_ID CAN_ID_GPS_BOARD
@@ -35,7 +30,7 @@
 #define FLASH_LOGGING
 #define BOARD_LED_R (0)
 #define BOARD_LED_G (100)
-#define BOARD_LED_B (0)
+#define BOARD_LED_B (100)
 //#define CERNIER_LEGACY_DATA
 //#define SDCARD
 #endif
@@ -49,7 +44,7 @@
 #define BOARD_LED_B (0)
 #endif
 
-#ifdef AIRBRAKE_BOARD
+#ifdef AIRBRAKES_BOARD
 #define BOARD_LED_R (100)
 #define BOARD_LED_G (0)
 #define BOARD_LED_B (100)

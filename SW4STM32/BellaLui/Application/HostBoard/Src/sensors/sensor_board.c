@@ -24,6 +24,7 @@
 #include <stdbool.h>
 #include "../../../HostBoard/Inc/CAN_communication.h"
 #include "../../../HostBoard/Inc/debug/led.h"
+#include "../../../HostBoard/Inc/debug/console.h"
 #include "../../../HostBoard/Inc/Misc/Common.h"
 #include "../../../HostBoard/Inc/Misc/rocket_constants.h"
 #include "../../../HostBoard/Inc/Sensors/BME280/bme280.h"
@@ -110,6 +111,9 @@ uint8_t set_sensor_led(uint8_t id, uint8_t flag) {
  * algorithm is called.
  */
 
+uint32_t debug_counter = 0;
+
+
 void TK_sensor_board(void const * argument) {
 
 	uint8_t imu_init[MAX_SENSOR_NUMBER] = {0}, baro_init[MAX_SENSOR_NUMBER]= {0};
@@ -164,15 +168,24 @@ void TK_sensor_board(void const * argument) {
 
 		osDelay(10);
 
-		if(!baro_init[0] && !baro_init[1] && !baro_init[2] && !baro_init[3]
-		    && !imu_init[0] && !imu_init[1] && !imu_init[2] && !imu_init[3])
-		{ // If none of the sensors are initialized
-			osDelay(1000);
-		}
-		else
+		if(baro_init[0] || baro_init[1] || baro_init[2] || baro_init[3]
+		    || imu_init[0] || imu_init[1] || imu_init[2] || imu_init[3])
 		{ // Redundancy
 			bme_data_process(baro_init, rslt_bme, cntr);
 			bno_data_process(imu_init, rslt_bno, cntr);
+		}
+
+		if(debug_counter++ % 100 == 0) {
+			rocket_log("\nActive sensors\n");
+			if(baro_init[0]) rocket_log("Barometer 0\n");
+			if(baro_init[1]) rocket_log("Barometer 1\n");
+			if(baro_init[2]) rocket_log("Barometer 2\n");
+			if(baro_init[3]) rocket_log("Barometer 3\n");
+			if(imu_init[0]) rocket_log("IMU 0\n");
+			if(imu_init[1]) rocket_log("IMU 1\n");
+			if(imu_init[2]) rocket_log("IMU 2\n");
+			if(imu_init[3]) rocket_log("IMU 3\n");
+			rocket_log("\n");
 		}
 
 		cntr = ++cntr < 30 ? cntr : 2;
