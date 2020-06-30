@@ -84,7 +84,7 @@ void HAL_FMPI2C_MspInit(FMPI2C_HandleTypeDef* fmpi2cHandle)
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
     /* FMPI2C1 clock enable */
-    __HAL_RCC_FMPI2C1_IS_CLK_ENABLED();
+    __HAL_RCC_FMPI2C1_CLK_ENABLE();
 
 
     /* FMPI2C1 DMA Init */
