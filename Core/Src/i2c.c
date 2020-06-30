@@ -123,7 +123,6 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
     PB4     ------> I2C3_SDA 
     */
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8);
-
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_4);
 
     /* I2C3 DMA DeInit */

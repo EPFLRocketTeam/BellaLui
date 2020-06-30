@@ -35,6 +35,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <threads.h>
+
 #include <debug/led.h>
 #include <debug/console.h>
 
@@ -123,8 +125,17 @@ int main(void) {
 	MX_TIM8_Init();
 	MX_USART1_UART_Init();
 	MX_USART3_UART_Init();
-	MX_USART6_UART_Init();
+
 	/* USER CODE BEGIN 2 */
+
+	// NOTE : REMEMBER TO ERASE MX_USART6_UART_Init(); IN THE AUTOMATICALLY GENERATED CODE ABOVE
+	// WHEN YOU REGENERATE THE IOC
+
+#ifdef SENSOR_BOARD
+	MX_FMPI2C1_Init();
+#else
+	MX_USART6_UART_Init();
+#endif
 
 	led_init();
 	led_set_rgb(127, 255, 255);
@@ -134,7 +145,7 @@ int main(void) {
 
     // flash_erase_all();
 
-	init_filesystem();
+	//init_filesystem();
 
 
 	/* USER CODE END 2 */

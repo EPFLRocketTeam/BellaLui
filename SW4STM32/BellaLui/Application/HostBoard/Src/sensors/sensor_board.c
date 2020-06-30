@@ -45,8 +45,8 @@ int8_t init_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER]);
 int8_t fetch_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER]);
 int8_t fetch_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER]);
 
-int8_t stm32_i2c_read (uint8_t sensor_id, uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
-int8_t stm32_i2c_write (uint8_t sensor_id, uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
+int8_t stm32_i2c_read (uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
+int8_t stm32_i2c_write (uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
 void stm32_delay_ms (uint32_t delay);
 void sensor_elimination_4(float value_0, float value_1, float value_2, float value_3, float *correct_value, bool erroneous_sensor[MAX_SENSOR_NUMBER]);
 void sensor_elimination_3(float value[MAX_SENSOR_NUMBER], uint8_t index_0, uint8_t index_1, uint8_t index_2, float *correct_value, bool erroneous_sensor[MAX_SENSOR_NUMBER]);
@@ -62,6 +62,7 @@ extern I2C_HandleTypeDef hi2c3;
 extern FMPI2C_HandleTypeDef hfmpi2c1;
 
 char buf[300];
+uint8_t current_sensor = 0;
 
 struct bno055_data
 {
@@ -83,7 +84,7 @@ struct bme280_data bme_data[MAX_SENSOR_NUMBER];
 struct bme280_data_float bme_data_float[MAX_SENSOR_NUMBER];
 struct bme280_data_float correct_bme_data;
 //float correct_bme_basepressure;
-uint32_t bme_calib_counter[MAX_SENSOR_NUMBER] = {0};
+uint32_t bme_calib_counter[MAX_SENSOR_NUMBER] = {};
 //uint32_t correct_bme_calib_counter = 0;
 bool bme_calibrated[MAX_SENSOR_NUMBER] = {false};
 //bool correct_bme_calibrated = {false};
@@ -116,10 +117,10 @@ uint32_t debug_counter = 0;
 
 void TK_sensor_board(void const * argument) {
 
-	uint8_t imu_init[MAX_SENSOR_NUMBER] = {0}, baro_init[MAX_SENSOR_NUMBER]= {0};
+	uint8_t imu_init[MAX_SENSOR_NUMBER] = {}, baro_init[MAX_SENSOR_NUMBER]= {};
 	osDelay(500);
 	uint8_t cntr = 0;
-	int8_t rslt_bme[MAX_SENSOR_NUMBER] = {1}, rslt_bno[MAX_SENSOR_NUMBER] = {1}; // rslt_xxx = 0 if no problem, 1 otherwise
+	int8_t rslt_bme[MAX_SENSOR_NUMBER] = {1,1,1,1}, rslt_bno[MAX_SENSOR_NUMBER] = {1,1,1,1}; // rslt_xxx = 0 if no problem, 1 otherwise
 
 	led_sensor_id_imu  = led_register_TK();
 	led_sensor_id_baro = led_register_TK();
@@ -207,6 +208,7 @@ void TK_sensor_board(void const * argument) {
 
 int8_t init_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER])
 {
+	current_sensor = sensor_id;
 	if (sensor_id == 1 || sensor_id == 2) {
 		bme[sensor_id].dev_id = BME280_I2C_ADDR_PRIM;
 	}
@@ -248,6 +250,7 @@ int8_t init_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER])
 
 int8_t init_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
 {
+	current_sensor = sensor_id;
 	if (sensor_id == 1 || sensor_id == 2) {
 		bno[sensor_id].dev_addr = BNO055_I2C_ADDR1;
 	}
@@ -289,6 +292,7 @@ int8_t init_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
 
 int8_t fetch_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER])
 {
+	current_sensor = sensor_id;
 	static uint8_t cntr = 0;
 	bme[sensor_id].read = &stm32_i2c_read;
 	bme[sensor_id].write = &stm32_i2c_write;
@@ -328,6 +332,7 @@ int8_t fetch_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER])
 
 int8_t fetch_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
 {
+	current_sensor = sensor_id;
 	static uint8_t cntr = 0;
 	bno[sensor_id].bus_write = &stm32_i2c_write;
 	bno[sensor_id].bus_read = &stm32_i2c_read;
@@ -368,28 +373,28 @@ int8_t fetch_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
  *
  */
 
-int8_t stm32_i2c_read (uint8_t sensor_id, uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len)
+int8_t stm32_i2c_read (uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len)
 {
 	vTaskSuspendAll();
 	int8_t rslt = 0;
-	if (sensor_id == 0 || sensor_id == 1) {
+	if (current_sensor == 0 || current_sensor == 1) {
 		rslt = HAL_I2C_Mem_Read(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
 	}
-	else if (sensor_id == 2 || sensor_id == 3) {
+	else if (current_sensor == 2 || current_sensor == 3) {
 		rslt = HAL_FMPI2C_Mem_Read(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
 	}
 	xTaskResumeAll();
 	return rslt;
 }
 
-int8_t stm32_i2c_write (uint8_t sensor_id, uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len)
+int8_t stm32_i2c_write (uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len)
 {
 	vTaskSuspendAll();
 	int8_t rslt = 0;
-	if (sensor_id == 0 || sensor_id == 1) {
+	if (current_sensor == 0 || current_sensor == 1) {
 		rslt = HAL_I2C_Mem_Write(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
 	}
-	else if (sensor_id == 2 || sensor_id == 3) {
+	else if (current_sensor == 2 || current_sensor == 3) {
 		rslt = HAL_FMPI2C_Mem_Write(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
 	}
 	xTaskResumeAll();
