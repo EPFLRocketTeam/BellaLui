@@ -25,6 +25,8 @@
 /* USER CODE END 0 */
 
 FMPI2C_HandleTypeDef hfmpi2c1;
+DMA_HandleTypeDef hdma_fmpi2c1_rx;
+
 
 /* FMPI2C1 init function */
 void MX_FMPI2C1_Init(void)
@@ -88,20 +90,20 @@ void HAL_FMPI2C_MspInit(FMPI2C_HandleTypeDef* fmpi2cHandle)
     /* FMPI2C1 DMA Init */
     /* FMPI2C1_RX Init */
 
-    //hdma_fmpi2c1_rx.Instance = DMA1_Stream2;
-    //hdma_fmpi2c1_rx.Init.Channel = DMA_CHANNEL_3;
-    //hdma_fmpi2c1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    //hdma_fmpi2c1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-    //hdma_fmpi2c1_rx.Init.MemInc = DMA_MINC_ENABLE;
-    //hdma_fmpi2c1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    //hdma_fmpi2c1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    //hdma_fmpi2c1_rx.Init.Mode = DMA_NORMAL;
-    //hdma_fmpi2c1_rx.Init.Priority = DMA_PRIORITY_LOW;
-    //hdma_fmpi2c1_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    //if (HAL_DMA_Init(&hdma_fmpi2c1_rx) != HAL_OK)
-    //{
-    //  Error_Handler();
-    //}
+    hdma_fmpi2c1_rx.Instance = DMA1_Stream2;
+    hdma_fmpi2c1_rx.Init.Channel = DMA_CHANNEL_3;
+    hdma_fmpi2c1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_fmpi2c1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_fmpi2c1_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_fmpi2c1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_fmpi2c1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_fmpi2c1_rx.Init.Mode = DMA_NORMAL;
+    hdma_fmpi2c1_rx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_fmpi2c1_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_fmpi2c1_rx) != HAL_OK)
+    {
+      Error_Handler();
+    }
 
     //__HAL_LINKDMA(fmpi2cHandle,hdmarx,hdma_fmpi2c1_rx);
 
