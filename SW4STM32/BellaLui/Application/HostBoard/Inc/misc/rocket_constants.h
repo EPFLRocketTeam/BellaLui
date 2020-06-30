@@ -30,17 +30,11 @@
 #define ROCKET_CST_REC_SECONDARY_ALT 150 // altitude of secondary recovery event [m]
 #define LIFTOFF_DETECTION_DELAY 500 // delay to trigger the liftoff event [ms]
 
-/*
-#define ROCKET_CST_LIFTOFF_TRIG_ACCEL 1 // acceleration lift-off detection trigger [g]
-#define ROCKET_CST_MIN_TRIG_AGL 0 // min altitude above ground level to allow apogee detection [m]
-#define ROCKET_CST_MOTOR_BURNTIME 5600 // motor burn time [ms]
-#define ROCKET_CST_REC_SECONDARY_ALT 1 // altitude of secondary recovery event [m]
-#define LIFTOFF_DETECTION_DELAY 50 // delay to trigger the liftoff event [ms]
-*/
 
 /*
  * STATE MACHINE PARAMETERS
  */
+
 
 #define APOGEE_BUFFER_SIZE 100 // Number of descending altitude events before the apogee detection is triggered
 #define APOGEE_ALT_DIFF 1 // meters below the apogee that allow the state to be triggered
@@ -49,6 +43,23 @@
 #define TOUCHDOWN_DELAY_TIME 5000 // delay time in ms between two evaluations of the touch-down event
 #define TOUCHDOWN_ALT_DIFF 2 // touch-down altitude offset in which the rocket is considered as static
 #define TOUCHDOWN_BUFFER_SIZE 5 // Number of static altitude events before the touch-down detection is triggered
+
+
+/*
+#define ROCKET_CST_LIFTOFF_TRIG_ACCEL 1 // acceleration lift-off detection trigger [g]
+#define ROCKET_CST_MIN_TRIG_AGL 0 // min altitude above ground level to allow apogee detection [m]
+#define ROCKET_CST_MOTOR_BURNTIME 5600 // motor burn time [ms]
+#define ROCKET_CST_REC_SECONDARY_ALT 1 // altitude of secondary recovery event [m]
+#define LIFTOFF_DETECTION_DELAY 50 // delay to trigger the liftoff event [ms]
+
+#define APOGEE_BUFFER_SIZE 100 // Number of descending altitude events before the apogee detection is triggered
+#define APOGEE_ALT_DIFF 1 // meters below the apogee that allow the state to be triggered
+#define APOGEE_MUTE_TIME 5000 // sensor mute time in ms such that the over-pressure of ejection doesn't trigger a state by accident
+#define SECONDARY_BUFFER_SIZE 5 // Number of descending altitude events before the secondary recovery altitude detection is triggered
+#define TOUCHDOWN_DELAY_TIME 5000 // delay time in ms between two evaluations of the touch-down event
+#define TOUCHDOWN_ALT_DIFF 2 // touch-down altitude offset in which the rocket is considered as static
+#define TOUCHDOWN_BUFFER_SIZE 5 // Number of static altitude events before the touch-down detection is triggered
+*/
 
 /*
  * CALIBRATION DATA

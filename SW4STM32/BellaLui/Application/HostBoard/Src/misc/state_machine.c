@@ -93,12 +93,8 @@ void TK_state_machine (void const * argument)
           {
             if (baroIsReady)
               {
-                if (baro_data->base_pressure != 0)
-                  {
-                    currentState = STATE_IDLE;
-                    rocket_log("Idle!\n");
-                  }
                 currentState = STATE_IDLE;
+                rocket_log("Idle!\n");
               }
             break;
           }
@@ -233,7 +229,7 @@ void TK_state_machine (void const * argument)
                     currentState = STATE_SECONDARY; // switch to secondary recovery phase
                     td_last_alt = baro_data->altitude; // save altitude measurement for touchdown detection
                     flight_status = 35;
-
+                	rocket_log("Secondary!\n");
                   }
               }
             break;
@@ -241,7 +237,6 @@ void TK_state_machine (void const * argument)
 
         case STATE_SECONDARY:
           {
-        	rocket_log("Secondary!\n");
             uint8_t counterTdTrig = 0;
 
             // if a given time has passed since the last time the check was done, do the check
@@ -272,6 +267,9 @@ void TK_state_machine (void const * argument)
                     if (counterTdTrig)
                       {
                         currentState = STATE_TOUCHDOWN;
+                        rocket_log("Touchdown!\n");
+						osDelay(2000);
+                        on_dump_request();
                         flight_status = 40;
                         // TODO: Set telemetry data rate to low
                       }
@@ -282,9 +280,7 @@ void TK_state_machine (void const * argument)
           }
 
         case STATE_TOUCHDOWN:
-        	rocket_log("Touchdown!\n");
         	osDelay(2000);
-        	on_dump_request();
             break;
         }
 

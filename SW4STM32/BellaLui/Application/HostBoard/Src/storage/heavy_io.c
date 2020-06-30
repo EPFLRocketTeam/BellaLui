@@ -92,6 +92,8 @@ void TK_heavy_io_scheduler() {
 
 		printf("Launching task\n");
 
+		led_set_TK_rgb(led_identifier, 0xFF, 0xAA, 0);
+
 		struct Node* task = queue.first;
 		queue.first = task->next;
 
@@ -101,6 +103,8 @@ void TK_heavy_io_scheduler() {
 			queue.first = queue.last;
 		}
 
-		led_set_TK_rgb(led_identifier, 0xFF, 0xAA, 0);
+		printf("Task finished\n");
+
+		led_set_TK_rgb(led_identifier, 0, 0, 0);
 	}
 }

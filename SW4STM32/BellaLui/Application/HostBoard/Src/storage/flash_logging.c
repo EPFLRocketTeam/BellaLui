@@ -58,14 +58,14 @@ void flash_log(CAN_msg message) {
 	}
 
 	if(front_buffer_index <= LOGGING_BUFFER_SIZE - 8) {
-		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 24);
-		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 16);
-		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 8);
-		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 0);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.id);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.timestamp >> 16);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.timestamp >> 8);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.timestamp >> 0);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 24);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 16);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 8);
+		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 0);
 	}
 
 	// vTaskDelay(400 * portTICK_PERIOD_MS / 1000);  // Add delay to smoothen the thread blocking time due to flash synchronisation
@@ -168,6 +168,8 @@ void TK_logging_thread(void const *pvArgs) {
 		stream.close();
 
 		rocket_log("Entering passive rocket_logging mode\n");
+
+		led_set_TK_rgb(led_identifier, 0, 0, 50);
 
 		xSemaphoreGive(master_io_semaphore);
 		xSemaphoreTake(slave_io_semaphore, portMAX_DELAY);
