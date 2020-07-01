@@ -10,7 +10,7 @@
 
 #define OS_STKCHECK
 #define LED
-
+//#define DEBUG
 #define SENSOR_BOARD
 
 #ifdef GPS_BOARD
@@ -27,7 +27,7 @@
 #define SENSOR
 #define KALMAN
 #define ROCKET_FSM
-//#define FLASH_LOGGING
+#define FLASH_LOGGING
 #define BOARD_LED_R (0)
 #define BOARD_LED_G (100)
 #define BOARD_LED_B (100)

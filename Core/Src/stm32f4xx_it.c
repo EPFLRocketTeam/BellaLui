@@ -67,7 +67,9 @@ extern SD_HandleTypeDef hsd;
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart3_rx;
 extern DMA_HandleTypeDef hdma_usart3_tx;
+#ifndef TELEMETRY_BOARD
 extern DMA_HandleTypeDef hdma_usart6_rx;
+#endif
 extern UART_HandleTypeDef huart1;
 extern TIM_HandleTypeDef htim14;
 
@@ -277,7 +279,9 @@ void DMA2_Stream1_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
 
   /* USER CODE END DMA2_Stream1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart6_rx);
+#ifndef TELEMETRY_BOARD
+	HAL_DMA_IRQHandler(&hdma_usart6_rx);
+#endif
   /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
 
   /* USER CODE END DMA2_Stream1_IRQn 1 */
