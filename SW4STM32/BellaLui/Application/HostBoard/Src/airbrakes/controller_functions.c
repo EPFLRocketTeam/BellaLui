@@ -19,7 +19,7 @@
 
 #define MAX_OPENING_DEG 210 // deg
 #define MIN_OPENING_DEG 0
-#define ANGLE_HELLOWORLD 2
+#define ANGLE_HELLOWORLD 5
 
 #define AB_RX_BUFFER_SIZE 64
 #define FRAME_SIZE
@@ -165,6 +165,39 @@ void full_close (void)
   return;
 }
 
+
+void command_aerobrake_controller (float altitude, float speed)
+{
+  float opt_act_position_deg = bellalui_angle_tab(altitude, speed);
+
+  if((int) opt_act_position_deg != -190) {
+	 int command_inc = deg2inc(opt_act_position_deg);
+	 motor_goto_position_inc(command_inc);
+  }
+}
+
+float angle_final;
+
+void test_ab() {
+	for(int i = 1000; i < 2000; i++) {
+		for(int j = 0; j < 500; j++) {
+			float angle = bellalui_angle_tab((float) i, (float) j);
+
+			if((int) angle != -190) {
+				command_aerobrake_controller((float) i, (float) j);
+
+				for(int k = 0; k < 1; k++) {
+					angle += k;
+				}
+
+				angle_final = angle;
+
+				break;
+			}
+		}
+	}
+}
+
 void aerobrake_helloworld (void)
 {
 	for(int i=0; i<5;i++)
@@ -175,14 +208,6 @@ void aerobrake_helloworld (void)
 		full_close();
 		osDelay(300);
 	}
-}
 
-
-void command_aerobrake_controller (float altitude, float speed)
-{
-  float opt_act_position_deg = angle_tab (altitude, speed);
-
-  int command_inc = deg2inc (opt_act_position_deg);
-  motor_goto_position_inc(command_inc);
-  return;
+	// test_ab();
 }

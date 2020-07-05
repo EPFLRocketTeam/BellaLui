@@ -145,7 +145,7 @@ int main(void) {
 
     // flash_erase_all();
 
-	//init_filesystem();
+	init_filesystem();
 
 
 	/* USER CODE END 2 */

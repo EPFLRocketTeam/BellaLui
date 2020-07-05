@@ -10,30 +10,62 @@
 #include <math.h>
 
 
+const double interpolation_table[61][2] = { { 0.0009, 0.0048 }, { 0.0010, 0.0052 }, {
+					0.0010, 0.0054 }, { 0.0010, 0.0056 }, { 0.0011, 0.0057 }, {
+					0.0011, 0.0057 }, { 0.0011, 0.0058 }, { 0.0011, 0.0058 }, {
+					0.0011, 0.0059 }, { 0.0011, 0.0059 }, { 0.0011, 0.0060 }, {
+					0.0011, 0.0060 }, { 0.0011, 0.0060 }, { 0.0011, 0.0061 }, {
+					0.0011, 0.0061 }, { 0.0011, 0.0061 }, { 0.0011, 0.0061 }, {
+					0.0011, 0.0062 }, { 0.0012, 0.0062 }, { 0.0012, 0.0062 }, {
+					0.0012, 0.0063 }, { 0.0012, 0.0063 }, { 0.0012, 0.0063 }, {
+					0.0012, 0.0063 }, { 0.0012, 0.0064 }, { 0.0012, 0.0064 }, {
+					0.0012, 0.0064 }, { 0.0012, 0.0064 }, { 0.0012, 0.0064 }, {
+					0.0012, 0.0065 }, { 0.0012, 0.0065 }, { 0.0012, 0.0065 }, {
+					0.0012, 0.0065 }, { 0.0012, 0.0066 }, { 0.0012, 0.0066 }, {
+					0.0012, 0.0066 }, { 0.0012, 0.0066 }, { 0.0012, 0.0066 }, {
+					0.0012, 0.0067 }, { 0.0012, 0.0067 }, { 0.0012, 0.0067 }, {
+					0.0012, 0.0067 }, { 0.0012, 0.0067 }, { 0.0012, 0.0068 }, {
+					0.0012, 0.0068 }, { 0.0012, 0.0068 }, { 0.0012, 0.0068 }, {
+					0.0012, 0.0068 }, { 0.0012, 0.0068 }, { 0.0012, 0.0069 }, {
+					0.0012, 0.0069 }, { 0.0012, 0.0069 }, { 0.0012, 0.0069 }, {
+					0.0012, 0.0069 }, { 0.0012, 0.0069 }, { 0.0012, 0.0070 }, {
+					0.0012, 0.0070 }, { 0.0012, 0.0070 }, { 0.0012, 0.0070 }, {
+					0.0012, 0.0070 }, { 0.0012, 0.0070 } }; // DR E
+
+struct Rocket {
+	double abx; // DR
+	double abn; // DR
+	double Sm; // DR
+
+};
+
+const struct Rocket Eiger = { 2.05, 3, 0.0191 }; // DR
+
+const double angle_tab[15] = { 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55,
+		60, 65, 70 }; // DR
+
+const double surface_tab[15] = { 0, 0.00011, 0.000223, 0.000338, 0.000456,
+		0.000576, 0.000698, 0.000822, 0.000948, 0.001075, 0.001203,
+		0.001332, 0.001461, 0.00159, 0.001719 }; // DR
+
+const double h_tab[15] = { 0, 0.00376, 0.00745, 0.01104, 0.0145, 0.01781,
+		0.02095, 0.02388, 0.02658, 0.02903, 0.0312, 0.03309, 0.03464,
+		0.03587, 0.03676 }; // DR
+
+const double CD0 = 1.17;
+
+
+const double target_altitude = 1300; //altitude that we are targeting
+const double target_speed = 1; // speed we are targeting at that altitude
+const double upper_bound = -1.3090E-04; // DR E (0.5*ro*S*Cmax)/M (AB completely closed)// upper bound for the research algorithm function of CD/air density -
+const double lower_bound = -2.1194E-04; // DR E (0.5*ro*S*Cmax)/M (AB completely open) // lower bound for the research algorithm
+const double dry_mass = 38; //dry mass of rocket // DR
+const double acceleration = -9.81; //g // E :)
+
+
+
 int invdrag(double angle_of_attack, double velocity, double viscosity, double CD_target_drag) {
 	// CD target drag (Rocket+AB)
-
-	struct Rocket {
-		double abx; // DR
-		double abn; // DR
-		double Sm; // DR
-
-	};
-
-	struct Rocket Eiger = { 2.05, 3, 0.0189 }; // DR
-
-	double angle_tab[15] = { 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55,
-			60, 65, 70 }; // DR
-
-	double surface_tab[15] = { 0, 0.00011, 0.000223, 0.000338, 0.000456,
-			0.000576, 0.000698, 0.000822, 0.000948, 0.001075, 0.001203,
-			0.001332, 0.001461, 0.00159, 0.001719 }; // DR
-
-	double h_tab[15] = { 0, 0.00376, 0.00745, 0.01104, 0.0145, 0.01781,
-			0.02095, 0.02388, 0.02658, 0.02903, 0.0312, 0.03309, 0.03464,
-			0.03587, 0.03676 }; // DR
-
-	double CD0 = 1.17;
 
 	double U = abs(velocity * cos(angle_of_attack));
 	double Rex = Eiger.abx * U / viscosity;
@@ -103,35 +135,10 @@ int invdrag(double angle_of_attack, double velocity, double viscosity, double CD
 }
 
 float bellalui_angle_tab(float altitude, float speed) {
-	double interpolation_table[61][2] = { { 0.0009, 0.0048 }, { 0.0010, 0.0052 }, {
-						0.0010, 0.0054 }, { 0.0010, 0.0056 }, { 0.0011, 0.0057 }, {
-						0.0011, 0.0057 }, { 0.0011, 0.0058 }, { 0.0011, 0.0058 }, {
-						0.0011, 0.0059 }, { 0.0011, 0.0059 }, { 0.0011, 0.0060 }, {
-						0.0011, 0.0060 }, { 0.0011, 0.0060 }, { 0.0011, 0.0061 }, {
-						0.0011, 0.0061 }, { 0.0011, 0.0061 }, { 0.0011, 0.0061 }, {
-						0.0011, 0.0062 }, { 0.0012, 0.0062 }, { 0.0012, 0.0062 }, {
-						0.0012, 0.0063 }, { 0.0012, 0.0063 }, { 0.0012, 0.0063 }, {
-						0.0012, 0.0063 }, { 0.0012, 0.0064 }, { 0.0012, 0.0064 }, {
-						0.0012, 0.0064 }, { 0.0012, 0.0064 }, { 0.0012, 0.0064 }, {
-						0.0012, 0.0065 }, { 0.0012, 0.0065 }, { 0.0012, 0.0065 }, {
-						0.0012, 0.0065 }, { 0.0012, 0.0066 }, { 0.0012, 0.0066 }, {
-						0.0012, 0.0066 }, { 0.0012, 0.0066 }, { 0.0012, 0.0066 }, {
-						0.0012, 0.0067 }, { 0.0012, 0.0067 }, { 0.0012, 0.0067 }, {
-						0.0012, 0.0067 }, { 0.0012, 0.0067 }, { 0.0012, 0.0068 }, {
-						0.0012, 0.0068 }, { 0.0012, 0.0068 }, { 0.0012, 0.0068 }, {
-						0.0012, 0.0068 }, { 0.0012, 0.0068 }, { 0.0012, 0.0069 }, {
-						0.0012, 0.0069 }, { 0.0012, 0.0069 }, { 0.0012, 0.0069 }, {
-						0.0012, 0.0069 }, { 0.0012, 0.0069 }, { 0.0012, 0.0070 }, {
-						0.0012, 0.0070 }, { 0.0012, 0.0070 }, { 0.0012, 0.0070 }, {
-						0.0012, 0.0070 }, { 0.0012, 0.0070 } }; // DR E
-	
-	double target_altitude = 3048; //altitude that we are targeting
-	double target_speed = 1; // speed we are targeting at that altitude
+	//int16_t data1[10];
+
 	double upper_bound = -1.3090E-04; // DR E (0.5*ro*S*Cmax)/M (AB completely closed)// upper bound for the research algorithm function of CD/air density -
 	double lower_bound = -2.1194E-04; // DR E (0.5*ro*S*Cmax)/M (AB completely open) // lower bound for the research algorithm
-	double dry_mass = 26.13; //dry mass of rocket // DR
-	double acceleration = -9.81; //g // E :)
-	//int16_t data1[10];
 
 	double k = 0.5 / (target_altitude - altitude);
 	double target_speed_sq = target_speed * target_speed;
@@ -192,7 +199,12 @@ float bellalui_angle_tab(float altitude, float speed) {
 	//double consta=drM[j][1];
 	//double theta=-190.5-(1/consta)*((m*Mdry)/(0.5*rho*0.0189)-0.3225-consta);//interpline
 	//double thetainvdrag=
-	double test = invdrag(0, speed, 1.3850E-05, solution); //  invdrag  (angle d'attaque/vitesse/1.3850e-05=nu variable env,m solution drag)
+	// double test = invdrag(0, speed, 1.3850E-05, solution); //  invdrag  (angle d'attaque/vitesse/1.3850e-05=nu variable env,m solution drag)
 
-	return (float) test;
+	int j = floor(speed / 5);
+	double consta = interpolation_table[j][1];
+	//double theta = -190.5-(1/consta)*((solution*dry_mass)/(0.5*rho*0.0189)-0.3225-consta);//interpline
+	double theta = 12.4-(1/consta)*((solution*dry_mass)/(0.5*rho*0.0189)-0.3225-consta);//interpline
+
+	return (float) theta;
 }

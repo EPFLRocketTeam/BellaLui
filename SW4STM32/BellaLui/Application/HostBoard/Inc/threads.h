@@ -49,8 +49,8 @@
 #define BOARD_LED_G (0)
 #define BOARD_LED_B (100)
 #define AB_CONTROL
-#define ROCKET_FSM
-#define SENSOR
+#define GPS
+//#define FLASH_LOGGING
 //#define CAN_LED
 #define CAN_ID CAN_ID_AIBRAKE_BOARD
 //#define SDCARD
@@ -92,6 +92,7 @@
 
 #ifdef AB_CONTROL
 #include <airbrakes/airbrake.h>
+#include <misc/state_machine.h>
 #endif
 
 #ifdef ROCKET_FSM

@@ -32,22 +32,11 @@ void gps_init(UART_HandleTypeDef *gpsHuart) {
 void send_gps_data() {
 	uint8_t sats   = gpsParser.satellites.isValid () ? static_cast<uint8_t> (gpsParser.satellites.value ()) : 0;
 
-	rocket_log("\nGPS status\n");
-
 	if (gpsParser.location.isValid ()) {
 		float hdop = gpsParser.hdop.isValid () ? gpsParser.hdop.hdop () : 0xffffffff;
 		float lat  = gpsParser.location.isValid () ? gpsParser.location.lat () : 0xffffffff;
 		float lon  = gpsParser.location.isValid () ? gpsParser.location.lng () : 0xffffffff;
 		int32_t altitude = gpsParser.altitude.isValid () ? gpsParser.altitude.value () : 0;
-
-		// Cannot use formatting with sprintf or printf
-		if(sats >= 10) {
-			rocket_log("Rocket is connected to at least 10 satellites\n");
-		} else {
-			char buffer[] = "Rocket is connected to ? satellites\n";
-			buffer[23] = 0x30 + sats;
-			rocket_log(buffer);
-		}
 
 		can_setFrame((int32_t)((1e3)*hdop), DATA_ID_GPS_HDOP, HAL_GetTick());
 		can_setFrame((int32_t)((1e6)*lat), DATA_ID_GPS_LAT, HAL_GetTick());
@@ -56,10 +45,8 @@ void send_gps_data() {
 		led_set_TK_rgb(led_gps_id, 0, 150, 0);
 	} else if( gpsParser.satellites.isValid ()){
 		led_set_TK_rgb(led_gps_id, 0, 0, 150);
-  	  rocket_log("Unable to fetch GPS data\n");
 	}
 
-	rocket_log("\n");
 
 	can_setFrame((int32_t)sats, DATA_ID_GPS_SATS, HAL_GetTick());
 }

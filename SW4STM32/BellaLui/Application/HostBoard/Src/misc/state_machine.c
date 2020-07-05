@@ -82,7 +82,7 @@ void TK_state_machine (void const * argument)
           baroIsReady = 0; // set new data flag to false
         }
 
-      if (LIFTOFF_TIME != 0 && (HAL_GetTick() - LIFTOFF_TIME) > 4 * 60 * 1000) {
+      if (LIFTOFF_TIME != 0 && (HAL_GetTick() - LIFTOFF_TIME) > 5 * 60 * 1000) {
           currentState = STATE_TOUCHDOWN;
       }
 
@@ -113,6 +113,7 @@ void TK_state_machine (void const * argument)
                     if (liftoffAccelTrig && HAL_GetTick () - LIFTOFF_TIME > LIFTOFF_DETECTION_DELAY)
                       {
                     	rocket_log("Lift off!\n");
+                    	start_logging();
                         currentState = STATE_LIFTOFF; // Switch to lift-off state
                         break;
                       }
@@ -135,9 +136,6 @@ void TK_state_machine (void const * argument)
 
         case STATE_LIFTOFF:
           {
-
-        	start_logging();
-
 			flight_status = 10;
 			uint32_t currentTime = HAL_GetTick ();
 			// determine motor burn-out based on lift-off detection

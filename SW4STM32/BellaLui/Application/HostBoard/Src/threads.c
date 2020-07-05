@@ -64,10 +64,11 @@ void create_threads() {
 	#endif
 
 	#ifdef AB_CONTROL
+	  ab_init(&huart1);
+
 	  osThreadDef(task_AB, TK_ab_controller, osPriorityNormal, 0, 256);
 	  task_ABHandle = osThreadCreate(osThread(task_AB), NULL);
 	  rocket_log("Airbrakes thread started.\n");
-	  ab_init(&huart1);
 
 	  osThreadDef(state_estimator, TK_state_estimation, osPriorityNormal, 0, 256);
 	  state_estimatorHandle = osThreadCreate(osThread(state_estimator), NULL);
