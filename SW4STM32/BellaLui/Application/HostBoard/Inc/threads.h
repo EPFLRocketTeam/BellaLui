@@ -11,7 +11,7 @@
 #define OS_STKCHECK
 #define LED
 //#define DEBUG
-#define SENSOR_BOARD
+#define FLASH_DUMP_BOARD
 
 #ifdef GPS_BOARD
 #define CAN_ID CAN_ID_GPS_BOARD
@@ -63,6 +63,14 @@
 #define CAN_ID CAN_ID_DEBUG_BOARD
 #define FLASH_LOGGING
 //#define SDCARD
+#endif
+
+#ifdef FLASH_DUMP_BOARD
+#define BOARD_LED_R (50)
+#define BOARD_LED_G (50)
+#define BOARD_LED_B (50)
+#define CAN_ID CAN_ID_DEBUG_BOARD
+#define FLASH_LOGGING
 #endif
 
 #ifdef PROPULSION_BOARD

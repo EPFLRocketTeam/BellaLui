@@ -368,6 +368,8 @@ int32_t dump_everything_on_sd(void* arg) {
 
    acquire_flash_lock(); // Very important call
 
+   rocket_log("Dumping flash memory onto SD card...\n");
+
    /*
     * Stage 3: Transfer data from Flash to SD card.
     */
@@ -387,6 +389,7 @@ int32_t dump_everything_on_sd(void* arg) {
       }
    }
 
+   rocket_log("Dump finished!\n");
    rocket_log("Wrote %ld bytes to the sd card.\n", total_bytes_written);
 
    f_sync(&sd_file);

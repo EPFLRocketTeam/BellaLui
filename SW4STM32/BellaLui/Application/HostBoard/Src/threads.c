@@ -121,5 +121,7 @@ void create_threads() {
 	  rocket_log("Pressure monitoring thread started.\n");
 	#endif
 
-
+	#ifdef FLASH_DUMP_BOARD
+	  on_fullsd_dump_request();
+	#endif
 }
