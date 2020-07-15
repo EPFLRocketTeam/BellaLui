@@ -4,15 +4,18 @@
  *  Created on: 9 Apr 2018
  *      Author: Clement Nussbaumer
  */
-
+#include <FreeRTOS.h>
 #include <debug/led.h>
 #include <misc/datastructs.h>
+#include <portable.h>
+#include <queue.h>
 #include <stddef.h>
 #include <stm32f4xx_hal_uart.h>
 #include <sys/_stdint.h>
 #include <telemetry/telemetry_handling.h>
 #include <telemetry/telemetry_protocol.h>
 #include <telemetry/xbee.h>
+#include <debug/console.h>
 
 osMessageQId xBeeQueueHandle;
 osSemaphoreId xBeeTxBufferSemHandle;
@@ -31,7 +34,7 @@ UART_HandleTypeDef* xBee_huart;
 #define XBEE_CHECKSUM_SIZE 1 // checksum size of the XBee packet
 
 #include "stm32f4xx_hal.h"
-#include "Misc/Common.h"
+#include "misc/Common.h"
 
 // XBee receiving mode
 #define XBEE_RECEIVED_DATAGRAM_ID_INDEX 16
@@ -85,25 +88,25 @@ void xbee_freertos_init(UART_HandleTypeDef *huart) {
 
 void TK_xBeeTransmit (const void* args)
 {
-	/*while(true) {
-		uint8_t command[] = {0x7E,
-			                     0x00, 0x10, // length
-			                     0x10,  // Frame type // Transmit Request frame - 0x10
-			                     0x00,           // Frame ID - Setting it to '0' will disable response frame.
-			                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff,     // 64 bit dest address // broadcast
-			                     0xff, 0xfe,           // 16 bits dest address (0xff fe = broadcast) unknown address
-			                     0x00,           // Broadcast radius (0 = max) no hops
-			                     0x43,
-			                     0xff, //DATA
-			                     0xfe, //DATA
-			                     0xb4 // CRC
-		};
-		led_set_rgb(0,0,255);
-		HAL_UART_Transmit_DMA (xBee_huart, command, sizeof(command));
-		osDelay(1000);
-		led_set_rgb(255,0,0);
-		osDelay(1000);
-	}*/
+//	while(true) {
+//		uint8_t command[] = {0x7E,
+//			                     0x00, 0x10, // length
+//			                     0x10,  // Frame type // Transmit Request frame - 0x10
+//			                     0x00,           // Frame ID - Setting it to '0' will disable response frame.
+//			                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff,     // 64 bit dest address // broadcast
+//			                     0xff, 0xfe,           // 16 bits dest address (0xff fe = broadcast) unknown address
+//			                     0x00,           // Broadcast radius (0 = max) no hops
+//			                     0x43,
+//			                     0xff, //DATA
+//			                     0xfe, //DATA
+//			                     0xb4 // CRC
+//		};
+//		led_set_rgb(0,0,255);
+//		HAL_UART_Transmit_DMA (xBee_huart, command, sizeof(command));
+//		osDelay(1000);
+//		led_set_rgb(255,0,0);
+//		osDelay(1000);
+//	}
 
 
 
@@ -189,10 +192,12 @@ inline void addToBuffer (uint8_t* txData, uint16_t txDataSize)
 */
 void sendXbeeFrame ()
 {
+	rocket_log("Sending Xbee frame...\n");
   if (osSemaphoreWait (xBeeTxBufferSemHandle, XBEE_UART_TIMEOUT) != osOK)
     {
+	  rocket_log("AAAAH\n");
 	  //could not obtain free semaphore in given timeout delay, setting LED red
-	  led_set_TK_rgb(led_xbee_id, 50, 0, 0);
+	  led_set_TK_rgb(led_xbee_id, 0, 0, 100);
       return;
     }
 
@@ -227,6 +232,7 @@ void sendXbeeFrame ()
   currentCrc = 0xff - currentCrc;
   txDmaBuffer[pos++] = currentCrc;
   //send the data buffer to the xBee module
+  rocket_log("Sending frame to Xbee\n");
   HAL_UART_Transmit_DMA (xBee_huart, txDmaBuffer, pos);
 
   currentXbeeTxBufPos = 0;

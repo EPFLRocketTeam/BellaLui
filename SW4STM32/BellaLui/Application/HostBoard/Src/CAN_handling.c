@@ -1,3 +1,8 @@
+#include <stdio.h>
+#include <stm32f4xx_hal.h>
+#include <stm32f4xx_hal_uart.h>
+#include <string.h>
+#include <sys/_stdint.h>
 
 /*
  * CAN_communication.c
@@ -24,8 +29,9 @@ typedef float float32_t;
 #include <misc/datastructs.h>
 #include <misc/Common.h>
 #include <storage/sd_card.h>
+#include <CAN_handling.h>
 //#include <kalman/tiny_ekf.h>
-
+#include <debug/console.h>
 #include <storage/flash_logging.h>
 
 
@@ -39,6 +45,10 @@ BARO_data BARO_buffer[CIRC_BUFFER_SIZE];
 float kalman_z  = 0;
 float kalman_vz = 0;
 float motor_pressure = 0;
+uint8_t code = 0;
+uint32_t order = 0;
+uint32_t code_result = 0;
+uint32_t ignition_state = 0;
 int32_t ab_angle = 42;
 
 
@@ -97,7 +107,7 @@ bool handleBaroData(BARO_data data) {
 
 bool handleABData(int32_t new_angle) {
 #ifdef XBEE
-	return telemetry_handleABData();
+	return telemetry_sendABData();
 #else
 	ab_angle = can_getABangle();
 #endif
@@ -113,6 +123,12 @@ bool handleMotorData(IMU_data data) {
 	return true;
 }
 
+bool handleOrderData(uint32_t order) {
+#ifdef XBEE
+	return telemetry_sendOrderData(order);
+#endif
+	return true;
+}
 float can_getAltitude() {
 	//return altitude_estimate; // from TK_state_estimation
 	return kalman_z;
@@ -129,6 +145,18 @@ uint8_t can_getState() {
 
 int32_t can_getABangle() {
 	return ab_angle;
+}
+
+uint8_t can_getCode() {
+	return code;
+}
+
+uint32_t can_getOrder() {
+	return order;
+}
+
+uint32_t can_getIgnitionState() {
+	return ignition_state;
 }
 
 void sendSDcard(CAN_msg msg) {
@@ -161,6 +189,10 @@ void TK_can_reader() {
 	bool new_gps [MAX_BOARD_NUMBER] = {0};
 	bool new_ab = 0;
 	bool new_motor_pressure = 0;
+	bool new_code = 0;
+	bool new_order = 0;
+	bool new_ignition_state = 0;
+	bool new_code_result = 0;
 	int idx = 0;
 
 	osDelay (500); // Wait for the other threads to be ready
@@ -241,11 +273,24 @@ void TK_can_reader() {
 				ab_angle = ((int32_t) msg.data); // keep in deg
 				// new_ab = true;
 				break;
-
 			case DATA_ID_MOTOR_PRESSURE:
 				motor_pressure = (float) msg.data;
 				new_motor_pressure = true;
-
+				break;
+			case DATA_ID_SECURITY_CODE:
+				code = msg.data;
+				new_code = true;
+				break;
+			case DATA_ID_ORDER:
+				order = msg.data;
+				new_order = true;
+				break;
+			case DATA_ID_CODE:
+				code = msg.data;
+				new_code_result = true;
+			case DATA_ID_IGNITION:
+				ignition_state = msg.data;
+				new_ignition_state = true;
 			}
 		}
 
@@ -292,6 +337,19 @@ void TK_can_reader() {
 		}
 		 */
 
+		if(new_order) {
+			rocket_log("New order\n");
+			new_order = !handleOrderData(order);
+		}
+		if(new_code_result){
+			new_code_result = !handleOrderData(code_result);
+			rocket_log("New Code result\n");
+			//IMPLEMENT NEW STRUCTURE
+		}
+
+		if(new_ignition_state) {
+			//new_ignition_state 0 !handleIgnitionData(ignition_state)
+		}
 		osDelay (10);
 	}
 }

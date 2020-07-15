@@ -5,12 +5,14 @@
  *      Author: Cl�ment Nussbaumer
  */
 
+#include <misc/datastructs.h>
+#include <sys/_stdint.h>
+
 #ifndef MISC_DATAGRAM_BUILDER_H_
 #define MISC_DATAGRAM_BUILDER_H_
 
 #include <stdint.h>
 #include <stm32f4xx_hal.h>
-#include "../../../HostBoard/Inc/Misc/datastructs.h"
 
 #if defined __GNUC__
 #define bswap16(x) __builtin_bswap16(x)

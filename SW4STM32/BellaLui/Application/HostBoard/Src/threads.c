@@ -36,6 +36,11 @@ osThreadId kalmanHandle;
 osThreadId rocketfsmHandle;
 osThreadId state_estimatorHandle;
 osThreadId presureMonitorHandle;
+osThreadId GSEValveHandle;
+osThreadId GSEIgnitionHandle;
+osThreadId GSECodeHandle;
+osThreadId GSESensorHandle;
+osThreadId GSETelemetryHandle;
 
 
 void create_semaphores() {
@@ -121,7 +126,36 @@ void create_threads() {
 	  rocket_log("Pressure monitoring thread started.\n");
 	#endif
 
-	#ifdef FLASH_DUMP_BOARD
-	  on_fullsd_dump_request();
+	#ifdef VALVE
+	  valve_init();
+	  osThreadDef(GSE_valves, TK_GSE_valve_control, osPriorityNormal, 0, 128);
+	  GSEValveHandle = osThreadCreate(osThread(GSE_valves), NULL);
+	  rocket_log("Valve control thread started. \n");
+	#endif
+
+	#ifdef IGNITION
+	  ignition_sys_init();
+	  osThreadDef(ignition, TK_ignition_control, osPriorityNormal, 0, 128);
+	  	  GSEIgnitionHandle = osThreadCreate(osThread(ignition), NULL);
+	  rocket_log("Ignition control thread started.\n");
+	#endif
+
+	#ifdef SECURITY_CODE
+	  code_init();
+	  osThreadDef(security_code, TK_code_control, osPriorityNormal, 0, 128);
+	  	  GSECodeHandle = osThreadCreate(osThread(security_code), NULL);
+	  rocket_log("Security Code control thread started.\n");
+	#endif
+
+
+	#ifdef SENSOR_TELEMETRY
+//	  	telemetry_init();
+//	  	sensors_init();
+	  	osThreadDef(GSE_telemetry, TK_telemetry_control, osPriorityNormal, 0, 128);
+	  		  	  GSETelemetryHandle = osThreadCreate(osThread(GSE_telemetry), NULL);
+	  	rocket_log("GSE Telemetry thread started.\n");
+//		osThreadDef(GSE_sensor, TK_sensors_control, osPriorityNormal, 0, 128);
+//				  GSESensorHandle = osThreadCreate(osThread(GSE_sensor), NULL);
+//		rocket_log("GSE Sensors thread started.\n");
 	#endif
 }

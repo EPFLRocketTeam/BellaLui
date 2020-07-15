@@ -6,9 +6,10 @@
  * MIT License
  */
 
+#include <misc/datastructs.h>
+
 #ifndef TINY_EKF_H_
 #define TINY_EFK_H_
-#include "../../../HostBoard/Inc/Misc/datastructs.h"
 #include <stdbool.h>
 
 

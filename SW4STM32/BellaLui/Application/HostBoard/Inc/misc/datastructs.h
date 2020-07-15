@@ -53,7 +53,16 @@ typedef struct
   uint8_t sats;
 } GPS_data;
 
+typedef struct
+{
+	uint8_t code;
+	uint8_t host_disconnect_state;
+	uint8_t purge_valve_state;
+	uint8_t fill_valve_state;
+	uint8_t main_ignition_state;
+	uint8_t sec_ignition_state;
 
+}GSE_state;
 typedef struct
 {
   void* ptr;

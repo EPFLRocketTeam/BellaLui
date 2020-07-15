@@ -31,10 +31,10 @@ SOFTWARE.
 #ifndef ETL_LIMITS_INCLUDED
 #define ETL_LIMITS_INCLUDED
 
-#include "etl/platform.h"
-#include "etl/type_traits.h"
-#include "etl/char_traits.h"
-#include "etl/integral_limits.h"
+#include "ETL/platform.h"
+#include "ETL/type_traits.h"
+#include "ETL/char_traits.h"
+#include "ETL/integral_limits.h"
 
 #include <limits.h>
 #include <stdint.h>

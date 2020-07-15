@@ -19,6 +19,7 @@
 extern "C" {
 	#include <CAN_communication.h>
 	#include <storage/sd_card.h>
+	#include <debug/console.h>
 }
 
 
@@ -27,6 +28,7 @@ extern "C" {
 #define MOTOR_TIMEMIN 100
 #define WARNING_TIMEMIN 50
 #define AB_TIMEMIN 100
+#define ORDER_TIMEMIN 20
 //#define TELE_RAW_TIMEMIN 100
 
 volatile static uint32_t Packet_Number = 0;
@@ -38,6 +40,7 @@ extern "C" bool telemetry_sendBaroData(BARO_data data);
 extern "C" bool telemetry_sendWarningPacketData(bool id, float value, uint8_t av_state);
 extern "C" bool telemetry_sendMotorPressureData(uint32_t pressure);
 extern "C" bool telemetry_sendABData();
+extern "C" bool telemetry_sendOrderData(uint32_t order);
 
 extern "C" bool telemetry_receiveOrderPacket(uint8_t* RX_Order_Packet);
 extern "C" bool telemetry_receiveIgnitionPacket(uint8_t* RX_Ignition_Packet);
@@ -53,6 +56,7 @@ uint32_t last_sensor_update = 0;
 uint32_t last_motor_update = 0;
 uint32_t last_warning_update = 0;
 uint32_t last_airbrakes_update = 0;
+uint32_t last_order_update = 0;
 //uint32_t last_sensor_raw_update = 0;
 Telemetry_Message m1;
 Telemetry_Message m2;
@@ -60,7 +64,7 @@ Telemetry_Message m3;
 Telemetry_Message m4;
 Telemetry_Message m5;
 Telemetry_Message m6;
-//Telemetry_Message m7;
+Telemetry_Message m7;
 //Telemetry_Message m8;
 
 Telemetry_Message event;
@@ -147,12 +151,17 @@ Telemetry_Message createWarningPacketDatagram(uint32_t time_stamp, uint8_t id, f
 	return builder.finalizeDatagram();
 }
 
-/*
-Telemetry_Message createOrderPacketDatagram(uint32_t time_stamp)
+
+Telemetry_Message createOrderDatagram(uint32_t time_stamp, uint32_t seqNumber)
 {
-	DatagramBuilder builder = DatagramBuilder ();
+	DatagramBuilder builder = DatagramBuilder (ORDER_DATAGRAM_PAYLOAD_SIZE, ORDER_PACKET, seqNumber++);
+
+	builder.write32<uint32_t> (time_stamp);
+	builder.write32<uint32_t> (Packet_Number++);
+	builder.write32<uint32_t> (can_getOrder());
+
+	return builder.finalizeDatagram();
 }
-*/
 
 /*
 Telemetry_Message createTelemetryRawDatagram(uint32_t time_stamp, float32_t euler, float32_t accelerometer, float32_t temp, float32_t pressure, uint32_t seqNumber)
@@ -285,6 +294,23 @@ bool telemetry_sendABData() {
 	return handled;
 }
 
+bool telemetry_sendOrderData(uint32_t order)
+{
+	uint32_t now = HAL_GetTick();
+	bool handled = false;
+
+	if (now - last_order_update > ORDER_TIMEMIN) {
+		m7 = createOrderDatagram (now, telemetrySeqNumber++);
+		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m7, 10) != osOK) {
+			vPortFree(m7.ptr); // free the datagram if we couldn't queue it
+		}
+		last_order_update = now;
+		handled = true;
+
+	}
+	return handled;
+}
+
 // Received Packet Handling
 
 bool telemetry_receiveOrderPacket(uint8_t* RX_Order_Packet) {
@@ -308,13 +334,38 @@ bool telemetry_receiveOrderPacket(uint8_t* RX_Order_Packet) {
 			current_state = STATE_OPEN_PURGE_VALVE;
 			break;
 		}
+		case STATE_CLOSE_PURGE_VALVE:
+		{
+			current_state = STATE_CLOSE_PURGE_VALVE;
+			break;
+		}
+		case STATE_OPEN_FILL_VALVE_BACKUP:
+		{
+			current_state = STATE_OPEN_FILL_VALVE_BACKUP;
+			break;
+		}
+		case STATE_CLOSE_FILL_VALVE_BACKUP:
+		{
+			current_state = STATE_CLOSE_FILL_VALVE_BACKUP;
+			break;
+		}
+		case STATE_OPEN_PURGE_VALVE_BACKUP:
+		{
+			current_state = STATE_OPEN_PURGE_VALVE_BACKUP;
+			break;
+		}
+		case STATE_CLOSE_PURGE_VALVE_BACKUP:
+		{
+			current_state = STATE_CLOSE_PURGE_VALVE_BACKUP;
+			break;
+		}
 		case STATE_DISCONNECT_HOSE:
 		{
 			current_state = STATE_DISCONNECT_HOSE;
 			break;
 		}
 	}
-	can_setFrame((int32_t) current_state, DATA_ID_ORDER, ts);
+	can_setFrame((int32_t) current_state, DATA_ID_ORDER , ts);
 	return 0;
 }
 
@@ -324,6 +375,9 @@ bool telemetry_receiveIgnitionPacket(uint8_t* RX_Ignition_Packet) {
 	if( RX_Ignition_Packet[8] == 0x22) {
 		//TODO: define more robust ignition process in collaboration with GS
 		can_setFrame((int32_t) 0x22, DATA_ID_IGNITION, ts);
+	}
+	else if( RX_Ignition_Packet[8] == 0x44) {
+		can_setFrame((int32_t) 0x44, DATA_ID_IGNITION, ts);
 	}
 	return 0;
 }

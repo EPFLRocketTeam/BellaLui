@@ -29,7 +29,7 @@
 #include "cmsis_os.h"
 
 #include "../../../HostBoard/Inc/CAN_communication.h"
-#include "../../../HostBoard/Inc/Misc/datastructs.h"
+#include "../../../HostBoard/Inc/misc/datastructs.h"
 
 
 #define EKF_PERIOD_MS (100) // [ms] step period

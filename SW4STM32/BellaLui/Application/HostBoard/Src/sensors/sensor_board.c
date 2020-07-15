@@ -14,7 +14,7 @@
   */
 
 
-#include "../../../HostBoard/Inc/Sensors/sensor_board.h"
+#include "../../../HostBoard/Inc/sensors/sensor_board.h"
 
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
@@ -25,10 +25,10 @@
 #include "../../../HostBoard/Inc/CAN_communication.h"
 #include "../../../HostBoard/Inc/debug/led.h"
 #include "../../../HostBoard/Inc/debug/console.h"
-#include "../../../HostBoard/Inc/Misc/Common.h"
-#include "../../../HostBoard/Inc/Misc/rocket_constants.h"
-#include "../../../HostBoard/Inc/Sensors/BME280/bme280.h"
-#include "../../../HostBoard/Inc/Sensors/BNO055/bno055.h"
+#include "../../../HostBoard/Inc/misc/Common.h"
+#include "../../../HostBoard/Inc/misc/rocket_constants.h"
+#include "../../../HostBoard/Inc/sensors/BME280/bme280.h"
+#include "../../../HostBoard/Inc/sensors/BNO055/bno055.h"
 
 #define I2C_TIMEOUT 3
 #define FMPI2C_TIMEOUT 3

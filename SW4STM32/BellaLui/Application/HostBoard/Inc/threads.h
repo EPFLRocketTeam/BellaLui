@@ -82,6 +82,43 @@
 //todo #define MOTOR_VALVE_CONTROL
 #endif
 
+#ifdef VALVE_BOARD
+#define CAN_ID CAN_ID_VALVE_BOARD
+#define VALVE
+
+#define BOARD_LED_R (0)
+#define BOARD_LED_G (127)
+#define BOARD_LED_B (127)
+#endif
+
+#ifdef IGNITION_BOARD
+#define CAN_ID CAN_ID_IGNITION_BOARD
+#define IGNITION
+
+#define BOARD_LED_R (255)
+#define BOARD_LED_G (0)
+#define BOARD_LED_B (0)
+#endif
+
+#ifdef CODE_BOARD
+#define CAN_ID CAN_ID_CODE_BOARD
+#define SECURITY_CODE
+
+#define BOARD_LED_R (0)
+#define BOARD_LED_G (255)
+#define BOARD_LED_B (0)
+#endif
+
+#ifdef SENSOR_TELEMETRY_BOARD
+#define CAN_ID CAN_ID_SENSOR_TELEMETRY_BOARD
+#define SENSOR_TELEMETRY
+#define XBEE
+
+#define BOARD_LED_R (255)
+#define BOARD_LED_G (0)
+#define BOARD_LED_B (0)
+#endif
+
 #ifdef XBEE
 #include <telemetry/xbee.h>
 #endif
@@ -111,6 +148,21 @@
 #include <propulsion/pressure_monitor.h>
 #endif
 
+#ifdef VALVE
+#include <GSE_valve/valve.h>
+#endif
+
+#ifdef IGNTION
+#include <GSE_ignition/ignition.h>
+#endif
+
+#ifdef SECURITY_CODE
+#include <GSE_code/code.h>
+#endif
+
+#ifdef SENSOR_TELEMETRY
+#include <GSE_sensor_telemetry/sensor_telemetry.h>
+#endif
 
 
 void create_semaphores();
