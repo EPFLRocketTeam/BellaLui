@@ -11,14 +11,15 @@
 
 #include "../../../HostBoard/Inc/Misc/datastructs.h"
 
-bool telemetry_sendGPSData(GPS_data data);
-bool telemetry_sendIMUData(IMU_data data);
-bool telemetry_sendBaroData(BARO_data data);
-bool telemetry_sendMotorPressureData(uint32_t pressure);
-bool telemetry_sendWarningPacketData(bool id, float value, uint8_t av_state);
-bool telemetry_sendABData();
-bool telemetry_receiveIgnitionPacket(uint8_t* rxPacketBuffer);
-bool telemetry_receiveOrderPacket(uint8_t* rxPacketBuffer);
+bool telemetrySendGPS(uint32_t timestamp, GPS_data data);
+bool telemetrySendIMU(uint32_t timestamp, IMU_data data);
+bool telemetrySendBaro(uint32_t timestamp, BARO_data data);
+bool telemetrySendState(uint32_t timestamp, bool id, float value, uint8_t av_state);
+bool telemetrySendMotorPressure(uint32_t timestamp, uint32_t pressure);
+bool telemetrySendAirbrakesAngle(uint32_t timestamp, int32_t angle);
+
+bool telemetryReceiveOrder(uint8_t *RX_Order_Packet);
+bool telemetryReceiveIgnition(uint8_t *RX_Ignition_Packet);
 
 
 

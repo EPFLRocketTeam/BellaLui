@@ -23,7 +23,8 @@ typedef float float32_t;
 #include <sensors/sensor_board.h>
 #include <misc/datastructs.h>
 #include <misc/Common.h>
-#include <storage/sd_card.h>
+#include <storage/flash_logging.h>
+#include <debug/console.h>
 //#include <kalman/tiny_ekf.h>
 
 #include <storage/flash_logging.h>
@@ -52,9 +53,9 @@ int board2Idx(uint32_t board) {
 	}
 }
 
-bool handleGPSData(GPS_data data) {
+bool handleGPSData(uint32_t timestamp, GPS_data data) {
 #ifdef XBEE
-	return telemetry_sendGPSData(data);
+	return telemetrySendGPS(timestamp, data);
 #elif defined(KALMAN)
 	if (data.lat < 1e3) {
 		return kalman_handleGPSData(data);
@@ -63,17 +64,17 @@ bool handleGPSData(GPS_data data) {
 	return false;
 }
 
-bool handleIMUData(IMU_data data) {
+bool handleIMUData(uint32_t timestamp, IMU_data data) {
 	IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
 #ifdef XBEE
-	return telemetry_sendIMUData(data);
+	return telemetrySendIMU(timestamp, data);
 #elif defined(KALMAN)
 	return kalman_handleIMUData(data);
 #endif
 	return true;
 }
 
-bool handleBaroData(BARO_data data) {
+bool handleBaroData(uint32_t timestamp, BARO_data data) {
 	data.altitude = altitudeFromPressure(data.pressure);
 
 #ifdef CERNIER_LEGACY_DATA
@@ -88,25 +89,37 @@ bool handleBaroData(BARO_data data) {
 	currentBaroTimestamp = HAL_GetTick();
 
 #ifdef XBEE
-	return telemetry_sendBaroData(data);
+	return telemetrySendBaro(timestamp, data);
 #elif defined(KALMAN)
 	return kalman_handleBaroData(data);
 #endif
 	return false;
 }
 
-bool handleABData(int32_t new_angle) {
+bool handleABData(uint32_t timestamp, int32_t new_angle) {
 #ifdef XBEE
-	return telemetry_handleABData();
+	return telemetrySendAirbrakesAngle(timestamp, new_angle);
 #else
-	ab_angle = can_getABangle();
+	ab_angle = new_angle;
 #endif
 	return true;
 }
 
-bool handleMotorData(IMU_data data) {
+bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
+	if(state == STATE_LIFTOFF) {
+		rocket_log("Logging started.\n");
+    	start_logging();
+	} else if(state == STATE_TOUCHDOWN) {
+		rocket_log("Logging stopped.\n");
+        on_dump_request();
+	}
+
+	return true;
+}
+
+bool handleMotorData(uint32_t timestamp, IMU_data data) {
 #ifdef XBEE
-	//return telemetry_handleMotorPressureData(data);
+	//return telemetry_handleMotorPressureData(timestamp, data);
 #else
 	//IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
 #endif
@@ -161,6 +174,7 @@ void TK_can_reader() {
 	bool new_gps [MAX_BOARD_NUMBER] = {0};
 	bool new_ab = 0;
 	bool new_motor_pressure = 0;
+	bool new_state = 0;
 	int idx = 0;
 
 	osDelay (500); // Wait for the other threads to be ready
@@ -227,9 +241,14 @@ void TK_can_reader() {
 				new_gps[idx] = true;
 				break;
 			case DATA_ID_STATE:
-#ifndef ROCKET_FSM // to avoid self loop on board with FSM
-				//telemetry_handleWarningPacketData(EVENT, 0, currentState = msg.data);
-#endif
+				if(currentState != msg.data) {
+					new_state = true;
+				}
+
+				#ifndef ROCKET_FSM // to avoid self loop on board with FSM
+					telemetrySendState(msg.timestamp, EVENT, 0, currentState = msg.data);
+				#endif
+
 				break;
 			case DATA_ID_KALMAN_Z:
 				kalman_z = ((float32_t) ((int32_t) msg.data))/1e3; // from mm to m
@@ -262,7 +281,7 @@ void TK_can_reader() {
 
 				if (gps_fix[i] || total_gps_fixes<1) { // filter packets
 					// only allow packets without fix if there exist globally no gps fixes
-					if (handleGPSData(gps[i])) { // handle packet
+					if (handleGPSData(msg.timestamp, gps[i])) { // handle packet
 						// reset all the data
 						gps[i].hdop     = GPS_DEFAULT;
 						gps[i].lat      = GPS_DEFAULT;
@@ -274,16 +293,22 @@ void TK_can_reader() {
 				}
 			}
 			if (new_baro[i]) {
-				new_baro[i] = !handleBaroData(baro[i]);
+				new_baro[i] = !handleBaroData(msg.timestamp, baro[i]);
 			}
 			if (new_imu[i]) {
-				new_imu[i] = !handleIMUData(imu[i]);
+				new_imu[i] = !handleIMUData(msg.timestamp, imu[i]);
 			}
 		}
 
 		if (new_ab) {
-			new_ab = !handleABData(ab_angle);
-		} /*
+			new_ab = !handleABData(msg.timestamp, ab_angle);
+		}
+
+		if(new_state) {
+			new_state = !handleStateUpdate(msg.timestamp, currentState);
+		}
+
+		/*
 		if (new_motorpressure) {
 			new_motor_pressure = !handleMotorPressureData(motor_pressure);
 			if (motor_pressure>XXX) {

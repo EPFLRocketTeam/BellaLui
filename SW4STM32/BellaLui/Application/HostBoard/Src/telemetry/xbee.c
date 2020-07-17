@@ -127,7 +127,7 @@ void TK_xBeeTransmit (const void* args)
           packetStartTime = HAL_GetTick();
         } else if (currentXbeeTxBufPos==0 && elapsed > XBEE_SEND_FRAME_LONG_TIMEOUT_MS) {
         	// force dummy frame creation
-        	telemetry_sendIMUData((IMU_data) {{666.0f, 666.0f, 666.0f}, {666, 666, 666}, 666.0f});
+        	telemetrySendIMU(666, (IMU_data) {{666.0f, 666.0f, 666.0f}, {666, 666, 666}, 666.0f});
         }
       osEvent event;
       do {
@@ -314,13 +314,13 @@ void processReceivedPacket ()
 		case ORDER_PACKET:
 		{
 			uint8_t* RX_Order_Packet = rxPacketBuffer + START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE + XBEE_RECEIVED_OPTIONS_SIZE + DATAGRAM_ID_SIZE + PREFIXE_EPFL_SIZE;
-			telemetry_receiveOrderPacket(RX_Order_Packet);
+			telemetryReceiveOrder(RX_Order_Packet);
 			break;
 		}
 		case IGNITION_PACKET:
 		{
 			uint8_t* RX_Ignition_Packet = rxPacketBuffer + START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE + XBEE_RECEIVED_OPTIONS_SIZE + DATAGRAM_ID_SIZE + PREFIXE_EPFL_SIZE;
-			telemetry_receiveIgnitionPacket(RX_Ignition_Packet);
+			telemetryReceiveIgnition(RX_Ignition_Packet);
 			break;
 		}
 		default :

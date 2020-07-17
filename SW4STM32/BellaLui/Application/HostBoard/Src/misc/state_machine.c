@@ -9,8 +9,6 @@
 #include <misc/Common.h>
 #include <misc/rocket_constants.h>
 #include <stm32f4xx_hal.h>
-#include <storage/flash_logging.h>
-#include <debug/console.h>
 
 #include <sync.h>
 
@@ -84,6 +82,8 @@ void TK_state_machine (void const * argument)
 
       if (LIFTOFF_TIME != 0 && (HAL_GetTick() - LIFTOFF_TIME) > 5 * 60 * 1000) {
           currentState = STATE_TOUCHDOWN;
+          rocket_log("Touchdown!\n");
+          flight_status = 40;
       }
 
       // State Machine
@@ -113,7 +113,6 @@ void TK_state_machine (void const * argument)
                     if (liftoffAccelTrig && HAL_GetTick () - LIFTOFF_TIME > LIFTOFF_DETECTION_DELAY)
                       {
                     	rocket_log("Lift off!\n");
-                    	start_logging();
                         currentState = STATE_LIFTOFF; // Switch to lift-off state
                         break;
                       }
@@ -266,8 +265,6 @@ void TK_state_machine (void const * argument)
                       {
                         currentState = STATE_TOUCHDOWN;
                         rocket_log("Touchdown!\n");
-						osDelay(2000);
-                        on_dump_request();
                         flight_status = 40;
                         // TODO: Set telemetry data rate to low
                       }
