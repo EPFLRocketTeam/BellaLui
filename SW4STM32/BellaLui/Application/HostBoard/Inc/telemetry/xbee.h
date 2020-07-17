@@ -40,6 +40,6 @@ inline void processReceivedByte (uint8_t rxByte);
 
 void resetStateMachine ();
 
-void set_packet_size(uint8_t datagram_id);
+void setPacketSize(uint8_t datagram_id);
 
 #endif /* TELEMETRY_XBEE_XBEE_H_ */

@@ -313,14 +313,14 @@ void processReceivedPacket ()
 	{
 		case ORDER_PACKET:
 		{
-			uint8_t* RX_Order_Packet = rxPacketBuffer + START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE + XBEE_RECEIVED_OPTIONS_SIZE + DATAGRAM_ID_SIZE + PREFIXE_EPFL_SIZE;
-			telemetryReceiveOrder(RX_Order_Packet);
+			uint8_t* packet = rxPacketBuffer + START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE + XBEE_RECEIVED_OPTIONS_SIZE + DATAGRAM_ID_SIZE + PREFIXE_EPFL_SIZE;
+			telemetryReceiveOrder(packet);
 			break;
 		}
 		case IGNITION_PACKET:
 		{
-			uint8_t* RX_Ignition_Packet = rxPacketBuffer + START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE + XBEE_RECEIVED_OPTIONS_SIZE + DATAGRAM_ID_SIZE + PREFIXE_EPFL_SIZE;
-			telemetryReceiveIgnition(RX_Ignition_Packet);
+			uint8_t* packet = rxPacketBuffer + START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE + XBEE_RECEIVED_OPTIONS_SIZE + DATAGRAM_ID_SIZE + PREFIXE_EPFL_SIZE;
+			telemetryReceiveIgnition(packet);
 			break;
 		}
 		default :
@@ -341,7 +341,7 @@ inline void processReceivedByte (uint8_t rxByte)
         	currentChecksum += rxByte;
         }
         if (packetCnt == XBEE_RECEIVED_DATAGRAM_ID_INDEX) {
-        	set_packet_size(rxPacketBuffer[packetCnt]);
+        	setPacketSize(rxPacketBuffer[packetCnt]);
         }
         if ( packetCnt == (packetSize-CHECKSUM_SIZE) )
           {
@@ -373,7 +373,7 @@ inline void processReceivedByte (uint8_t rxByte)
  */
 
 
-void set_packet_size(uint8_t datagram_id) {
+void setPacketSize(uint8_t datagram_id) {
 	switch (datagram_id)
 	{
 		case ORDER_PACKET:

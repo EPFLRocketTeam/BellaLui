@@ -11,7 +11,7 @@
 #define OS_STKCHECK
 #define LED
 //#define DEBUG
-#define SENSOR_BOARD
+#define TELEMETRY_BOARD
 
 #ifdef GPS_BOARD
 #define CAN_ID CAN_ID_GPS_BOARD

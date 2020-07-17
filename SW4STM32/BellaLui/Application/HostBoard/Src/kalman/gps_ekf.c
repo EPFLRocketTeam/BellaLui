@@ -18,6 +18,7 @@
  * MIT License
  */
 
+#include <can_transmission.h>
 #include <kalman/tiny_ekf.h>
 #include <kalman/tinyekf_config.h>
 #include <string.h>
@@ -28,7 +29,6 @@
 
 #include "cmsis_os.h"
 
-#include "../../../HostBoard/Inc/CAN_communication.h"
 #include "../../../HostBoard/Inc/Misc/datastructs.h"
 
 
@@ -67,7 +67,7 @@ bool kalman_handleGPSData(GPS_data gps) {
 	return true;
 }
 
-bool kalman_handleIMUData(IMU_data imu) {
+bool kalmanProcessIMU(IMU_data imu) {
 	IMUb[0] = imu.acceleration.x * 9.81;
 	IMUb[1] = imu.acceleration.y * 9.81;
 	IMUb[2] = imu.acceleration.z * 9.81;
@@ -78,7 +78,7 @@ bool kalman_handleIMUData(IMU_data imu) {
 	return true;
 }
 
-bool kalman_handleBaroData(BARO_data data) {
+bool kalmanProcessBaro(BARO_data data) {
 	zdata[3] = data.altitude - data.base_altitude;
 	return true;
 }

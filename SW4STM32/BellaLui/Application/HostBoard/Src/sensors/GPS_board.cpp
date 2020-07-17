@@ -1,3 +1,4 @@
+#include <can_transmission.h>
 #include <sensors/GPS_board.h>
 
 #include "stm32f4xx_hal.h"
@@ -6,7 +7,6 @@
 #include "usart.h"
 #include <inttypes.h>
 #include <sensors/GPS/TinyGPS++.h>
-#include <CAN_communication.h>
 #include <debug/led.h>
 #include <debug/console.h>
 

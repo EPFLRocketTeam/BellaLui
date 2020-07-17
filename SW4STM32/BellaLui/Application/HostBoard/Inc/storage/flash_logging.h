@@ -9,7 +9,7 @@
 #define APPLICATION_HOSTBOARD_INC_FLASH_LOGGING_H_
 
 
-#include "CAN_communication.h"
+#include <can_transmission.h>
 
 
 

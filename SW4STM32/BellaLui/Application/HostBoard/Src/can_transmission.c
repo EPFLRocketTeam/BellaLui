@@ -9,7 +9,7 @@
  *      Author: Tim Lebailly
  */
 
-#include <CAN_communication.h>
+#include <can_transmission.h>
 #include <debug/led.h>
 #include <storage/flash_logging.h>
 #include <sync.h>

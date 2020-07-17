@@ -5,13 +5,13 @@
  *      Author: Robin
  */
 
+#include <can_reception.h>
+#include <can_transmission.h>
 #include "stm32f4xx_hal.h"
 #include <cmsis_os.h>
 
 #include <propulsion/pressure_monitor.h>
 #include <misc/Common.h>
-#include <CAN_communication.h>
-#include <CAN_handling.h>
 #include <debug/led.h>
 
 #define PRESSURE_MONITOR_PERIOD_MS (50)

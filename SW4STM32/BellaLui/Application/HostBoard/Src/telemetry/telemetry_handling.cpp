@@ -17,7 +17,7 @@
 #include <telemetry/telemetry_protocol.h>
 
 extern "C" {
-#include <CAN_communication.h>
+#include <can_transmission.h>
 #include <storage/sd_card.h>
 }
 
@@ -36,8 +36,8 @@ extern "C" bool telemetrySendState(uint32_t timestamp, bool id, float value, uin
 extern "C" bool telemetrySendMotorPressure(uint32_t timestamp, uint32_t pressure);
 extern "C" bool telemetrySendAirbrakesAngle(uint32_t timestamp, float angle);
 
-extern "C" bool telemetryReceiveOrder(uint8_t *RX_Order_Packet);
-extern "C" bool telemetryReceiveIgnition(uint8_t *RX_Ignition_Packet);
+extern "C" bool telemetryReceiveOrder(uint8_t *packet);
+extern "C" bool telemetryReceiveIgnition(uint8_t *packet);
 
 extern osMessageQId xBeeQueueHandle;
 
@@ -248,11 +248,11 @@ bool telemetrySendAirbrakesAngle(uint32_t timestamp, float angle) {
 
 // Received Packet Handling
 
-bool telemetryReceiveOrder(uint8_t *RX_Order_Packet) {
+bool telemetryReceiveOrder(uint8_t *packet) {
+	uint32_t timestamp = packet[3] | (packet[2] << 8) | (packet[1] << 16) | (packet[0] << 24);
+	uint32_t seq_number = packet[7] | (packet[6] << 8) | (packet[5] << 16) | (packet[4] << 24);
 
-	uint32_t ts = RX_Order_Packet[3] | (RX_Order_Packet[2] << 8) | (RX_Order_Packet[1] << 16) | (RX_Order_Packet[0] << 24);
-	uint32_t packet_nbr = RX_Order_Packet[7] | (RX_Order_Packet[6] << 8) | (RX_Order_Packet[5] << 16) | (RX_Order_Packet[4] << 24);
-	switch (RX_Order_Packet[8]) {
+	switch (packet[8]) {
 	case STATE_OPEN_FILL_VALVE: {
 		current_state = STATE_OPEN_FILL_VALVE;
 		break;
@@ -270,18 +270,21 @@ bool telemetryReceiveOrder(uint8_t *RX_Order_Packet) {
 		break;
 	}
 	}
-	can_setFrame((int32_t) current_state, DATA_ID_ORDER, ts);
+
+	can_setFrame((int32_t) current_state, DATA_ID_ORDER, timestamp);
+
 	return 0;
 }
 
-bool telemetryReceiveIgnition(uint8_t *RX_Ignition_Packet) {
-	uint32_t ts = RX_Ignition_Packet[3] | (RX_Ignition_Packet[2] << 8) | (RX_Ignition_Packet[1] << 16) | (RX_Ignition_Packet[0] << 24);
-	uint32_t packet_nbr = RX_Ignition_Packet[7] | (RX_Ignition_Packet[6] << 8) | (RX_Ignition_Packet[5] << 16) | (RX_Ignition_Packet[4] << 24);
+bool telemetryReceiveIgnition(uint8_t *packet) {
+	uint32_t timestamp = packet[3] | (packet[2] << 8) | (packet[1] << 16) | (packet[0] << 24);
+	uint32_t seq_number = packet[7] | (packet[6] << 8) | (packet[5] << 16) | (packet[4] << 24);
 	
-	if (RX_Ignition_Packet[8] == 0x22) {
+	if (packet[8] == 0x22) {
 		//TODO: define more robust ignition process in collaboration with GS
-		can_setFrame((int32_t) 0x22, DATA_ID_IGNITION, ts);
+		can_setFrame((int32_t) 0x22, DATA_ID_IGNITION, timestamp);
 	}
+
 	return 0;
 }
 

@@ -5,6 +5,7 @@
  *      Author: ebrunner
  */
 
+#include <can_transmission.h>
 #include <cmsis_os.h>
 #include <misc/Common.h>
 #include <misc/rocket_constants.h>
@@ -12,7 +13,6 @@
 
 #include <sync.h>
 
-#include "../../../HostBoard/Inc/CAN_communication.h"
 
 void TK_state_machine (void const * argument)
 {

@@ -9,9 +9,9 @@
 #include <cmsis_os.h>
 
 #include <airbrakes/airbrake.h>
+#include <can_reception.h>
+#include <can_transmission.h>
 #include <misc/Common.h>
-#include <CAN_communication.h>
-#include <CAN_handling.h>
 #include <debug/led.h>
 
 #define AB_PERIOD_MS (50)

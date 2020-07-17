@@ -11,9 +11,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include <CAN_communication.h>
-
 #include <airbrakes/ab_algorithm.h>
+#include <can_transmission.h>
 
 
 

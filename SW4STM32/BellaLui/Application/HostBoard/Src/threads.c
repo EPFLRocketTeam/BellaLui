@@ -5,11 +5,11 @@
  *      Author: Arion
  */
 
+#include <can_reception.h>
 #include <stddef.h>
 #include <usart.h>
 #include <threads.h>
 
-#include <CAN_handling.h>
 #include <sync.h>
 #include <debug/led.h>
 #include <storage/flash_logging.h>

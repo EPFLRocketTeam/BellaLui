@@ -8,10 +8,10 @@
 #ifndef CAN_COMMUNICATION_H_
 #define CAN_COMMUNICATION_H_
 
+#include <can_reception.h>
 #include "stm32f4xx_hal.h"
 #include <string.h>
 
-#include "../../HostBoard/Inc/CAN_handling.h"
 
 typedef struct
 {

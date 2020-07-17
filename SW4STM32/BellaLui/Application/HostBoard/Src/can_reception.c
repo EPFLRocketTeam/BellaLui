@@ -15,7 +15,7 @@ typedef float float32_t;
 #include <threads.h>
 #include <cmsis_os.h>
 
-#include <CAN_communication.h>
+#include <can_transmission.h>
 #include <debug/led.h>
 #include <telemetry/telemetry_handling.h>
 #include <airbrakes/airbrake.h>
@@ -31,8 +31,8 @@ typedef float float32_t;
 
 
 #define BUFFER_SIZE 128
-
 #define GPS_DEFAULT (-1.0)
+#define MAX_MOTOR_PRESSURE 10000.0f // TO BE CONFIGURED
 
 IMU_data IMU_buffer[CIRC_BUFFER_SIZE];
 BARO_data BARO_buffer[CIRC_BUFFER_SIZE];
@@ -54,32 +54,32 @@ int board2Idx(uint32_t board) {
 }
 
 bool handleGPSData(uint32_t timestamp, GPS_data data) {
-#ifdef XBEE
+	#ifdef XBEE
 	return telemetrySendGPS(timestamp, data);
-#elif defined(KALMAN)
+	#elif defined(KALMAN)
 	if (data.lat < 1e3) {
 		return kalman_handleGPSData(data);
 	}
-#endif
+	#endif
 	return false;
 }
 
 bool handleIMUData(uint32_t timestamp, IMU_data data) {
 	IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
-#ifdef XBEE
+	#ifdef XBEE
 	return telemetrySendIMU(timestamp, data);
-#elif defined(KALMAN)
-	return kalman_handleIMUData(data);
-#endif
+	#elif defined(KALMAN)
+	return kalmanProcessIMU(data);
+	#endif
 	return true;
 }
 
 bool handleBaroData(uint32_t timestamp, BARO_data data) {
 	data.altitude = altitudeFromPressure(data.pressure);
 
-#ifdef CERNIER_LEGACY_DATA
+	#ifdef CERNIER_LEGACY_DATA
 	data.base_pressure = 938.86;
-#endif
+	#endif
 
 	if (data.base_pressure > 0) {
 		data.base_altitude = altitudeFromPressure(data.base_pressure);
@@ -88,20 +88,21 @@ bool handleBaroData(uint32_t timestamp, BARO_data data) {
 	BARO_buffer[(++currentBaroSeqNumber) % CIRC_BUFFER_SIZE] = data;
 	currentBaroTimestamp = HAL_GetTick();
 
-#ifdef XBEE
+	#ifdef XBEE
 	return telemetrySendBaro(timestamp, data);
-#elif defined(KALMAN)
-	return kalman_handleBaroData(data);
-#endif
+	#elif defined(KALMAN)
+	return kalmanProcessBaro(data);
+	#endif
 	return false;
 }
 
 bool handleABData(uint32_t timestamp, int32_t new_angle) {
-#ifdef XBEE
+	#ifdef XBEE
 	return telemetrySendAirbrakesAngle(timestamp, new_angle);
-#else
+	#else
 	ab_angle = new_angle;
-#endif
+	#endif
+
 	return true;
 }
 
@@ -117,12 +118,13 @@ bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
 	return true;
 }
 
-bool handleMotorData(uint32_t timestamp, IMU_data data) {
-#ifdef XBEE
-	//return telemetry_handleMotorPressureData(timestamp, data);
-#else
-	//IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
-#endif
+bool handleMotorPressureData(uint32_t timestamp, float pressure) {
+	#ifdef XBEE
+	if (motor_pressure > MAX_MOTOR_PRESSURE) {
+		telemetrySendState(timestamp, WARNING_MOTOR_PRESSURE, motor_pressure, currentState);
+	}
+	#endif
+
 	return true;
 }
 
@@ -263,9 +265,8 @@ void TK_can_reader() {
 				break;
 
 			case DATA_ID_MOTOR_PRESSURE:
-				motor_pressure = (float) msg.data;
+				motor_pressure = (float32_t) msg.data;
 				new_motor_pressure = true;
-
 			}
 		}
 
@@ -309,14 +310,9 @@ void TK_can_reader() {
 			new_state = !handleStateUpdate(msg.timestamp, currentState);
 		}
 
-		/*
-		if (new_motorpressure) {
+		if (new_motor_pressure) {
 			new_motor_pressure = !handleMotorPressureData(motor_pressure);
-			if (motor_pressure>XXX) {
-				telemetry_handleWarningPacketData(WARNING_MOTOR_PRESSURE, motor_pressure, currentState);
-			}
 		}
-		 */
 
 		osDelay (10);
 	}

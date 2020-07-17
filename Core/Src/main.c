@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include <can_transmission.h>
 #include "main.h"
 #include "cmsis_os.h"
 #include "adc.h"
@@ -41,7 +42,6 @@
 #include <debug/console.h>
 
 #include <storage/flash_runtime.h>
-#include <CAN_communication.h>
 
 
 /* USER CODE END Includes */

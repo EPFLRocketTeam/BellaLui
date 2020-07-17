@@ -14,6 +14,7 @@
   */
 
 
+#include <can_transmission.h>
 #include "../../../HostBoard/Inc/Sensors/sensor_board.h"
 
 #include "stm32f4xx_hal.h"
@@ -22,7 +23,6 @@
 #include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
-#include "../../../HostBoard/Inc/CAN_communication.h"
 #include "../../../HostBoard/Inc/debug/led.h"
 #include "../../../HostBoard/Inc/debug/console.h"
 #include "../../../HostBoard/Inc/Misc/Common.h"
