@@ -144,6 +144,7 @@ int32_t can_getABangle() {
 	return ab_angle;
 }
 
+/*
 void sendSDcard(CAN_msg msg) {
    static char buffer[BUFFER_SIZE] = {0};
    static uint32_t sdSeqNumber = 0;
@@ -158,7 +159,7 @@ void sendSDcard(CAN_msg msg) {
 		   sdSeqNumber, HAL_GetTick(), id, (int32_t) data);
 
    sd_write(buffer, strlen(buffer));
-}
+}*/
 
 void TK_can_reader() {
 	// init
