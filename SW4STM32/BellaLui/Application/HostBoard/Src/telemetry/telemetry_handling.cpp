@@ -277,7 +277,9 @@ bool telemetryReceiveOrder(uint8_t *RX_Order_Packet) {
 bool telemetryReceiveIgnition(uint8_t *RX_Ignition_Packet) {
 	uint32_t ts = RX_Ignition_Packet[3] | (RX_Ignition_Packet[2] << 8) | (RX_Ignition_Packet[1] << 16) | (RX_Ignition_Packet[0] << 24);
 	uint32_t packet_nbr = RX_Ignition_Packet[7] | (RX_Ignition_Packet[6] << 8) | (RX_Ignition_Packet[5] << 16) | (RX_Ignition_Packet[4] << 24);
+	
 	if (RX_Ignition_Packet[8] == 0x22) {
+		//TODO: define more robust ignition process in collaboration with GS
 		can_setFrame((int32_t) 0x22, DATA_ID_IGNITION, ts);
 	}
 	return 0;
