@@ -9,6 +9,7 @@
 #include <cmsis_os.h>
 #include <misc/Common.h>
 #include <misc/rocket_constants.h>
+#include "../../../HostBoard/Inc/debug/console.h"
 #include <stm32f4xx_hal.h>
 
 #include <sync.h>

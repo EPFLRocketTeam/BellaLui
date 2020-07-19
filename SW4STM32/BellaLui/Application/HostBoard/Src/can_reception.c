@@ -311,7 +311,7 @@ void TK_can_reader() {
 		}
 
 		if (new_motor_pressure) {
-			new_motor_pressure = !handleMotorPressureData(motor_pressure);
+			new_motor_pressure = !handleMotorPressureData(msg.timestamp, motor_pressure);
 		}
 
 		osDelay (10);
