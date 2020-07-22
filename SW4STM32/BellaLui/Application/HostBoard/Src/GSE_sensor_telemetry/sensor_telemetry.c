@@ -29,15 +29,8 @@ void sensors_init(void)
 void TK_telemetry_control(void const * argument)
 {
 	//Order status, check each state and send appropriate data
-//	uint32_t order = 54;
-
 	for(;;)
 	{
-//		can_setFrame(order, DATA_ID_ORDER ,HAL_GetTick());
-//		order = can_getIgnitionState();
-//		if(order == 0x22)
-//			rocket_log("IGNITION\n");
-//		rocket_log("New loop\n");
 		osDelay(1000);
 	}
 }

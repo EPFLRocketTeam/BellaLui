@@ -10,6 +10,7 @@
 #include "stm32f4xx_hal.h"
 #include <cmsis_os.h>
 #include <misc/Common.h>
+#include <misc/datastructs.h>
 #include <debug/console.h>
 #include <CAN_communication.h>
 #include <CAN_handling.h>
@@ -39,36 +40,43 @@ void TK_ignition_control(void const * argument)
 	//if xbee code = ignition sec (D1)
 
 	uint32_t ignition_order = 0;
+	uint8_t disconnect_order = 0;
+	GSE_state GSE = {0};
 	uint32_t current_ignition_state = 0;
+
+	//TODO Add sensor confirmation for main ignition and disconnect
+	//TODO Add delay after ignition to shut it down automatically
 
 	 for(;;)
 	 {
-		 ignition_order = can_getIgnitionState();
+		 ignition_order = can_getGSEIgnitionState();
 		 switch (ignition_order)
 		 {
-			case 0x22:
+			case 0x22: //Main Ignition
 			{
 				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
 				if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
-					current_ignition_state = STATE_IGNITION_ACTIVE;
+					can_setFrame(GPIO_PIN_SET, DATA_ID_MAIN_IGNITION_STATE, HAL_GetTick());
 				break;
 			}
-			case 0x44:
+			case 0x44: //Secondary Ignition
 			{
 				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);
 				if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1) == GPIO_PIN_SET)
-					current_ignition_state = STATE_IGNITION_SEC_ACTIVE;
-				break;
-			}
-			case STATE_DISCONNECT_HOSE:
-			{
-				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);
-					current_ignition_state = STATE_DISCONNECT_HOSE;
+					can_setFrame(GPIO_PIN_SET, DATA_ID_SEC_IGNITION_STATE, HAL_GetTick());
 				break;
 			}
 		 }
-		 can_setFrame(current_ignition_state, DATA_ID_IGNITION, HAL_GetTick());
+		 disconnect_order = can_getOrderState();
+		 if(disconnect_order == STATE_DISCONNECT_HOSE)
+		 {
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);
+			if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) &&
+			   (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1) == GPIO_PIN_SET))
+				can_setFrame(GPIO_PIN_SET, DATA_ID_HOSE_DISCONNECT_STATE, HAL_GetTick());
+		 }
+
 		 osDelay(1000);
 	 }
 }

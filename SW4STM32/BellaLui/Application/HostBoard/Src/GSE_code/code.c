@@ -22,17 +22,24 @@
 void code_init(void)
 {
 	//Initialise all GPIO inputs on S2 socket
+//	GPIO_InitTypeDef GPIO_InitStruct;
+//	GPIO_InitStruct.Pin = GPIO_PIN_15;
+//	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//	GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+//	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+//	GPIO_InitStruct.Pin = GPIO_PIN_9 | GPIO_PIN_7;
+//	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+//	GPIO_InitStruct.Pin = GPIO_PIN_13;
+//	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	//Initialise S1 Socket GPIOs
 	GPIO_InitTypeDef GPIO_InitStruct;
-	GPIO_InitStruct.Pin = GPIO_PIN_15;
+	GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_11;
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-	GPIO_InitStruct.Pin = GPIO_PIN_9;
+	GPIO_InitStruct.Pin = GPIO_PIN_12;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-	GPIO_InitStruct.Pin = GPIO_PIN_7;
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-	GPIO_InitStruct.Pin = GPIO_PIN_13;
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 	rocket_log("Security code initialised.\n");
 }
@@ -46,19 +53,23 @@ void TK_code_control(void const * argument)
 
 	for(;;)
 	{
-		code[0] = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15); //Read D0
-		code[1] = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9); //Read D1
-		code[2] = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7); //Read D2
-		code[3] = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13); //Read D3
+		//S2
+//		code[0] = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15); //Read D0
+//		code[1] = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9); //Read D1
+//		code[2] = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7); //Read D2
+//		code[3] = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13); //Read D3
+
+		//S1
+		code[0] = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0); //Read D0
+		code[1] = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1); //Read D1
+		code[2] = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11); //Read D2
+		code[3] = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12); //Read D3
 		//Convert into single int
 		code_int = 0;
 		for (int i = 0; i < CODE_SIZE; i++)
 		    code_int = 10 * code_int + code[i];
 
-		GST_code = can_getCode();
-		if(GST_code == code_int)
-			can_setFrame(code_int, DATA_ID_ORDER, HAL_GetTick());
-		rocket_log("New Code sent over CAN \n");
+		can_setFrame(code_int, DATA_ID_GSE_CODE, HAL_GetTick());
 		osDelay(50);
 	}
 }

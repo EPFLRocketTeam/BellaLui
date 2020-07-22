@@ -195,7 +195,6 @@ void sendXbeeFrame ()
 	rocket_log("Sending Xbee frame...\n");
   if (osSemaphoreWait (xBeeTxBufferSemHandle, XBEE_UART_TIMEOUT) != osOK)
     {
-	  rocket_log("AAAAH\n");
 	  //could not obtain free semaphore in given timeout delay, setting LED red
 	  led_set_TK_rgb(led_xbee_id, 0, 0, 100);
       return;
@@ -282,12 +281,12 @@ inline uint8_t escapedCharacter (uint8_t byte)
 void TK_xBeeReceive (const void* args)
 {
 	HAL_UART_Receive_DMA (xBee_huart, rxBuffer, XBEE_RX_BUFFER_SIZE);
-
 	for (;;)
 	{
 		endDmaStreamIndex = XBEE_RX_BUFFER_SIZE - xBee_huart->hdmarx->Instance->NDTR;
 		while (lastDmaStreamIndex < endDmaStreamIndex)
 		{
+			rocket_log("Processing received byte...\n");
 			processReceivedByte (rxBuffer[lastDmaStreamIndex++]);
 		}
 
@@ -315,6 +314,7 @@ void resetStateMachine ()
 
 void processReceivedPacket ()
 {
+	rocket_log("Received packet!\n");
 	switch (rxPacketBuffer[XBEE_RECEIVED_DATAGRAM_ID_INDEX])
 	{
 		case ORDER_PACKET:

@@ -45,10 +45,9 @@ BARO_data BARO_buffer[CIRC_BUFFER_SIZE];
 float kalman_z  = 0;
 float kalman_vz = 0;
 float motor_pressure = 0;
-uint8_t code = 0;
-uint32_t order = 0;
-uint32_t code_result = 0;
-uint32_t ignition_state = 0;
+GSE_state GSE = {0};
+uint8_t order = 0;
+uint32_t GSE_ignition_state = 0;
 int32_t ab_angle = 42;
 
 
@@ -123,12 +122,27 @@ bool handleMotorData(IMU_data data) {
 	return true;
 }
 
-bool handleOrderData(uint32_t order) {
+bool handleGSEStateData(GSE_state data) {
+#ifdef XBEE
+	return telemetry_sendGSEStateData(data);
+#endif
+	return true;
+}
+
+bool handleOrderData(uint8_t order) {
 #ifdef XBEE
 	return telemetry_sendOrderData(order);
 #endif
 	return true;
 }
+
+bool handleIgnitionData(uint8_t GSE_ignition) {
+#ifdef XBEE
+	return telemetry_sendIgnitionData(GSE_ignition);
+#endif
+	return true;
+}
+
 float can_getAltitude() {
 	//return altitude_estimate; // from TK_state_estimation
 	return kalman_z;
@@ -147,16 +161,16 @@ int32_t can_getABangle() {
 	return ab_angle;
 }
 
-uint8_t can_getCode() {
-	return code;
-}
-
 uint32_t can_getOrder() {
 	return order;
 }
 
-uint32_t can_getIgnitionState() {
-	return ignition_state;
+uint32_t can_getGSEIgnitionState() {
+	return GSE_ignition_state;
+}
+
+GSE_state can_getGSEState() {
+	return GSE;
 }
 
 void sendSDcard(CAN_msg msg) {
@@ -191,8 +205,9 @@ void TK_can_reader() {
 	bool new_motor_pressure = 0;
 	bool new_code = 0;
 	bool new_order = 0;
+	bool new_GSE_state = 0;
+	bool new_GSE_ignition_state = 0;
 	bool new_ignition_state = 0;
-	bool new_code_result = 0;
 	int idx = 0;
 
 	osDelay (500); // Wait for the other threads to be ready
@@ -277,20 +292,38 @@ void TK_can_reader() {
 				motor_pressure = (float) msg.data;
 				new_motor_pressure = true;
 				break;
-			case DATA_ID_SECURITY_CODE:
-				code = msg.data;
-				new_code = true;
-				break;
 			case DATA_ID_ORDER:
 				order = msg.data;
 				new_order = true;
 				break;
-			case DATA_ID_CODE:
-				code = msg.data;
-				new_code_result = true;
 			case DATA_ID_IGNITION:
-				ignition_state = msg.data;
+				GSE_ignition_state = msg.data;
 				new_ignition_state = true;
+				break;
+			case DATA_ID_GSE_CODE:
+				GSE.code = msg.data;
+				new_GSE_state = true;
+				break;
+			case DATA_ID_FILL_VALVE_STATE:
+				GSE.fill_valve_state = msg.data;
+				new_GSE_state = true;
+				break;
+			case DATA_ID_PURGE_VALVE_STATE:
+				GSE.purge_valve_state = msg.data;
+				new_GSE_state = true;
+				break;
+			case DATA_ID_HOSE_DISCONNECT_STATE:
+				GSE.host_disconnect_state = msg.data;
+				new_GSE_state = true;
+				break;
+			case DATA_ID_MAIN_IGNITION_STATE:
+				GSE.main_ignition_state = msg.data;
+				new_GSE_state = true;
+				break;
+			case DATA_ID_SEC_IGNITION_STATE:
+				GSE.sec_ignition_state = msg.data;
+				new_GSE_state = true;
+				break;
 			}
 		}
 
@@ -337,19 +370,19 @@ void TK_can_reader() {
 		}
 		 */
 
+		//Handle Rx packets, send back to GST as ACK
 		if(new_order) {
-			rocket_log("New order\n");
 			new_order = !handleOrderData(order);
 		}
-		if(new_code_result){
-			new_code_result = !handleOrderData(code_result);
-			rocket_log("New Code result\n");
-			//IMPLEMENT NEW STRUCTURE
+		if(new_GSE_ignition_state) {
+			new_GSE_ignition_state = !handleIgnitionData(GSE_ignition_state);
+		}
+		//Handle new GSE states
+		if(new_GSE_state){
+			new_GSE_state = !handleGSEStateData(GSE);
 		}
 
-		if(new_ignition_state) {
-			//new_ignition_state 0 !handleIgnitionData(ignition_state)
-		}
+
 		osDelay (10);
 	}
 }

@@ -58,12 +58,22 @@ typedef struct
 #define DATA_ID_STATE 50 // enum
 
 //TODO which DATA_ID is the correct one for the ignition?
-#define DATA_ID_ORDER 51
-#define DATA_ID_IGNITION 52
-#define DATA_ID_CODE 53
+
+//GSE Rx Data
+#define DATA_ID_IGNITION 51
+#define DATA_ID_ORDER 52
+
+//GSE Tx Data
+#define DATA_ID_GSE_CODE 53
+#define DATA_ID_FILL_VALVE_STATE 54
+#define DATA_ID_PURGE_VALVE_STATE 56
+#define DATA_ID_HOSE_DISCONNECT_STATE 57
+#define DATA_ID_MAIN_IGNITION_STATE 58
+#define DATA_ID_SEC_IGNITION_STATE 59
+
+//Propulsion Data
 #define DATA_ID_MOTOR_PRESSURE 55
 
-#define DATA_ID_SECURITY_CODE 60
 
 // Define all the board ID's (lower means higher priority for CAN protocol)
 #define CAN_ID_MAIN_BOARD 0

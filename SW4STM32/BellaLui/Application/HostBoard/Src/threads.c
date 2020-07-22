@@ -103,9 +103,9 @@ void create_threads() {
 	  osThreadDef(xBeeTransmission, TK_xBeeTransmit, osPriorityNormal, 0, 128);
 	  telemetryTransmissionHandle = osThreadCreate(osThread(xBeeTransmission), NULL);
 	  rocket_log("Telemetry transmission thread started.\n");
-	  /*osThreadDef(xBeeReception, TK_xBeeReceive, osPriorityNormal, 0, 128);
+	  osThreadDef(xBeeReception, TK_xBeeReceive, osPriorityNormal, 0, 128);
 	  telemetryReceptionHandle = osThreadCreate(osThread(xBeeReception), NULL);
-	  rocket_log("Telemetry reception thread started.\n");*/
+	  rocket_log("Telemetry reception thread started.\n");
 	#endif
 
 	#ifdef KALMAN
