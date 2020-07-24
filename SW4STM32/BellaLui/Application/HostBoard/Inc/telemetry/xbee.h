@@ -42,4 +42,7 @@ void resetStateMachine ();
 
 void set_packet_size(uint8_t datagram_id);
 
+UART_HandleTypeDef* xbee_gethuart();
+
+
 #endif /* TELEMETRY_XBEE_XBEE_H_ */

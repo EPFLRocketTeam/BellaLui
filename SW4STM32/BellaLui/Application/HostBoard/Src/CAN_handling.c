@@ -394,5 +394,8 @@ void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart)
 		GPS_RxCpltCallback ();
 	} else if (huart == ab_gethuart()) {
 		AB_RxCpltCallback();
+	} else if (huart == xbee_gethuart()){
+		xBee_rxCpltCallback();
 	}
+
 }

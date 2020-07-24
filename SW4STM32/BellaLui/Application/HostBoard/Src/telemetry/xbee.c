@@ -286,7 +286,6 @@ void TK_xBeeReceive (const void* args)
 		endDmaStreamIndex = XBEE_RX_BUFFER_SIZE - xBee_huart->hdmarx->Instance->NDTR;
 		while (lastDmaStreamIndex < endDmaStreamIndex)
 		{
-			rocket_log("Processing received byte...\n");
 			processReceivedByte (rxBuffer[lastDmaStreamIndex++]);
 		}
 
@@ -300,7 +299,6 @@ void xBee_rxCpltCallback ()
     {
       processReceivedByte (rxBuffer[lastDmaStreamIndex++]);
     }
-
   endDmaStreamIndex = 0;
   lastDmaStreamIndex = 0;
 }
@@ -315,7 +313,7 @@ void resetStateMachine ()
 void processReceivedPacket ()
 {
 	rocket_log("Received packet!\n");
-	switch (rxPacketBuffer[XBEE_RECEIVED_DATAGRAM_ID_INDEX])
+	switch (rxPacketBuffer[XBEE_RECEIVED_DATAGRAM_ID_INDEX-1])
 	{
 		case ORDER_PACKET:
 		{
@@ -347,17 +345,19 @@ inline void processReceivedByte (uint8_t rxByte)
         	currentChecksum += rxByte;
         }
         if (packetCnt == XBEE_RECEIVED_DATAGRAM_ID_INDEX) {
-        	set_packet_size(rxPacketBuffer[packetCnt]);
+        	set_packet_size(rxPacketBuffer[packetCnt-1]);
         }
-        if ( packetCnt == (packetSize-CHECKSUM_SIZE) )
-          {
+        if (packetCnt == (packetSize-CHECKSUM_SIZE) )
+        {
             currentRxState = PARSING_CHECKSUM;
-          }
+        }
         break;
       }
     case PARSING_CHECKSUM:
       {
-        if (currentChecksum == rxByte)
+    	  rocket_log("Parsing checksum\n");
+    	  //TODO Review packet protocol AV/GS
+        //if (currentChecksum == rxByte)
           {
             processReceivedPacket ();
           }
@@ -385,23 +385,31 @@ void set_packet_size(uint8_t datagram_id) {
 		case ORDER_PACKET:
 	    {
 	    	packetSize = ORDER_PACKET_SIZE;
+			rocket_log("ORDER\n");
 	    	break;
 	    }
 		case IGNITION_PACKET:
 		{
 			packetSize = IGNITION_PACKET_SIZE;
+			rocket_log("IGNITION\n");
 	    	break;
 		}
 		case TELEMETRY_PACKET:
 		{
 			packetSize = TELEMETRY_PACKET_SIZE;
+			rocket_log("TELEMETRY\n");
+
 			break;
 		}
 		default :
 		{
+			rocket_log("Unknown packet\n");
 	    	break;
 		}
 	}
 }
 
+UART_HandleTypeDef* xbee_gethuart() {
+	return xBee_huart;
+}
 
