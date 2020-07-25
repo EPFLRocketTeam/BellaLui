@@ -62,14 +62,15 @@ typedef struct
 //GSE Rx Data
 #define DATA_ID_IGNITION 51
 #define DATA_ID_ORDER 52
+#define DATA_ID_GST_CODE 53
 
 //GSE Tx Data
-#define DATA_ID_GSE_CODE 53
-#define DATA_ID_FILL_VALVE_STATE 54
-#define DATA_ID_PURGE_VALVE_STATE 56
-#define DATA_ID_HOSE_DISCONNECT_STATE 57
-#define DATA_ID_MAIN_IGNITION_STATE 58
-#define DATA_ID_SEC_IGNITION_STATE 59
+#define DATA_ID_GSE_CODE 54
+#define DATA_ID_FILL_VALVE_STATE 56
+#define DATA_ID_PURGE_VALVE_STATE 57
+#define DATA_ID_HOSE_DISCONNECT_STATE 58
+#define DATA_ID_MAIN_IGNITION_STATE 59
+#define DATA_ID_SEC_IGNITION_STATE 60
 
 //Propulsion Data
 #define DATA_ID_MOTOR_PRESSURE 55
@@ -84,11 +85,10 @@ typedef struct
 #define CAN_ID_DEFAULT 7
 #define CAN_ID_PROPULSION_BOARD 5
 #define CAN_ID_VALVE_BOARD 8
-#define CAN_ID_IGNITION_BOARD 4
 #define CAN_ID_CODE_BOARD 10
 #define CAN_ID_SENSOR_TELEMETRY_BOARD 9
 
-#define MAX_BOARD_ID 10 // used to implement redundant info in CAN_handling
+#define MAX_BOARD_ID 9 // used to implement redundant info in CAN_handling
 #define MAX_BOARD_NUMBER (MAX_BOARD_ID+1)
 
 void CAN_Config(uint32_t id);

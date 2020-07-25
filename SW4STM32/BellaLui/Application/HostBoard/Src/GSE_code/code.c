@@ -36,6 +36,7 @@ void code_init(void)
 	GPIO_InitTypeDef GPIO_InitStruct;
 	GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_11;
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	//GPIO_InitStruct.Pull = GPIO_PULLUP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	GPIO_InitStruct.Pin = GPIO_PIN_12;
@@ -49,7 +50,6 @@ void TK_code_control(void const * argument)
 {
 	int code[CODE_SIZE];
 	uint32_t code_int;
-	uint32_t GST_code;
 
 	for(;;)
 	{
@@ -70,6 +70,16 @@ void TK_code_control(void const * argument)
 		    code_int = 10 * code_int + code[i];
 
 		can_setFrame(code_int, DATA_ID_GSE_CODE, HAL_GetTick());
-		osDelay(50);
+		osDelay(100);
 	}
+}
+
+uint8_t verify_security_code(uint8_t GST_code)
+{
+	GSE_state GSE = {0};
+	GSE = can_getGSEState();
+	if (GSE.code == GST_code)
+		return 1;
+	else
+		return 0;
 }

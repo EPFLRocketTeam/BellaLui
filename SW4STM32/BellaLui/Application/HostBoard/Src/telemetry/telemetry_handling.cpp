@@ -31,6 +31,7 @@ extern "C" {
 #define GSE_STATE_TIMEMIN 20
 #define ORDER_TIMEMIN 20
 #define GSE_IGNITION_TIMEMIN 20
+#define GST_CODE_TIMEMIN 20
 //#define TELE_RAW_TIMEMIN 100
 
 volatile static uint32_t Packet_Number = 0;
@@ -45,6 +46,7 @@ extern "C" bool telemetry_sendABData();
 extern "C" bool telemetry_sendGSEStateData(GSE_state data);
 extern "C" bool telemetry_sendOrderData(uint8_t order);
 extern "C" bool telemetry_sendIgnitionData(uint8_t GSE_ignition);
+extern "C" bool telemetry_sendGSTCodeData(uint8_t GST_code_result);
 
 extern "C" bool telemetry_receiveOrderPacket(uint8_t* RX_Order_Packet);
 extern "C" bool telemetry_receiveIgnitionPacket(uint8_t* RX_Ignition_Packet);
@@ -64,6 +66,7 @@ uint32_t last_airbrakes_update = 0;
 uint32_t last_GSE_state_update = 0;
 uint32_t last_order_update = 0;
 uint32_t last_GSE_ignition_update = 0;
+uint32_t last_GST_code_update = 0;
 //uint32_t last_sensor_raw_update = 0;
 Telemetry_Message m1;
 Telemetry_Message m2;
@@ -74,6 +77,7 @@ Telemetry_Message m6;
 Telemetry_Message m7;
 Telemetry_Message m8;
 Telemetry_Message m9;
+Telemetry_Message m10;
 
 Telemetry_Message event;
 
@@ -166,7 +170,7 @@ Telemetry_Message createGSEStateDatagram(GSE_state* GSE, uint32_t time_stamp, ui
 
 	builder.write32<uint32_t> (time_stamp);
 	builder.write32<uint32_t> (Packet_Number++);
-	builder.write8 (GSE->code);
+	builder.write32<uint32_t> (GSE->code);
 	builder.write8 (GSE->fill_valve_state);
 	builder.write8 (GSE->purge_valve_state);
 	builder.write8 (GSE->main_ignition_state);
@@ -196,6 +200,16 @@ Telemetry_Message createIgnitionDatagram(uint8_t GSE_ignition, uint32_t time_sta
 	builder.write8 (GSE_ignition);
 	return builder.finalizeDatagram();
 
+}
+
+Telemetry_Message createGSTCodeDatagram(uint8_t GST_code_result, uint32_t time_stamp, uint32_t seqNumber)
+{
+	DatagramBuilder builder = DatagramBuilder (GST_CODE_DATAGRAM_PAYLOAD_SIZE, IGNITION_PACKET, seqNumber++);
+
+	builder.write32<uint32_t> (time_stamp);
+	builder.write32<uint32_t> (Packet_Number++);
+	builder.write8 (GST_code_result);
+	return builder.finalizeDatagram();
 }
 
 /*
@@ -375,7 +389,24 @@ bool telemetry_sendIgnitionData(uint8_t GSE_ignition)
 		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m9, 10) != osOK) {
 			vPortFree(m9.ptr); // free the datagram if we couldn't queue it
 		}
-		last_order_update = now;
+		last_GSE_ignition_update = now;
+		handled = true;
+
+	}
+	return handled;
+}
+
+bool telemetry_sendGSTCodeData(uint8_t GST_code_result)
+{
+	uint32_t now = HAL_GetTick();
+	bool handled = false;
+
+	if (now - last_GST_code_update > GST_CODE_TIMEMIN) {
+		m10 = createGSTCodeDatagram(GST_code_result, now, telemetrySeqNumber++);
+		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m10, 10) != osOK) {
+			vPortFree(m10.ptr); // free the datagram if we couldn't queue it
+		}
+		last_GST_code_update = now;
 		handled = true;
 
 	}

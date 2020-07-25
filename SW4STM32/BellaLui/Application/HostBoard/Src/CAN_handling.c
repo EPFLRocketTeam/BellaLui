@@ -26,6 +26,7 @@ typedef float float32_t;
 #include <airbrakes/airbrake.h>
 #include <sensors/GPS_board.h>
 #include <sensors/sensor_board.h>
+#include <GSE_code/code.h>
 #include <misc/datastructs.h>
 #include <misc/Common.h>
 #include <storage/sd_card.h>
@@ -45,10 +46,12 @@ BARO_data BARO_buffer[CIRC_BUFFER_SIZE];
 float kalman_z  = 0;
 float kalman_vz = 0;
 float motor_pressure = 0;
-GSE_state GSE = {0};
+GSE_state GSE = {1111,0,0,0,0};
 uint8_t order = 0;
-uint32_t GSE_ignition_state = 0;
+uint8_t ignition_order = 0;
+uint8_t GST_code = 0;
 int32_t ab_angle = 42;
+uint8_t GST_code_result = 0;
 
 
 // wrapper to avoid fatal crashes when implementing redundancy
@@ -143,6 +146,14 @@ bool handleIgnitionData(uint8_t GSE_ignition) {
 	return true;
 }
 
+bool handleGSTCodeData(uint8_t GST_code) {
+	GST_code_result = verify_security_code(GST_code);
+#ifdef XBEE
+	return telemetry_sendGSTCodeData(GST_code_result);
+#endif
+	return true;
+}
+
 float can_getAltitude() {
 	//return altitude_estimate; // from TK_state_estimation
 	return kalman_z;
@@ -161,12 +172,16 @@ int32_t can_getABangle() {
 	return ab_angle;
 }
 
-uint32_t can_getOrder() {
+uint8_t can_getOrder() {
 	return order;
 }
 
-uint32_t can_getGSEIgnitionState() {
-	return GSE_ignition_state;
+uint8_t can_getGSTCode() {
+	return GST_code;
+}
+
+uint8_t can_getIgnitionOrder() {
+	return ignition_order;
 }
 
 GSE_state can_getGSEState() {
@@ -206,7 +221,8 @@ void TK_can_reader() {
 	bool new_code = 0;
 	bool new_order = 0;
 	bool new_GSE_state = 0;
-	bool new_GSE_ignition_state = 0;
+	bool new_GST_code = 0;
+	bool new_GSE_ignition_order = 0;
 	bool new_ignition_state = 0;
 	int idx = 0;
 
@@ -297,12 +313,16 @@ void TK_can_reader() {
 				new_order = true;
 				break;
 			case DATA_ID_IGNITION:
-				GSE_ignition_state = msg.data;
-				new_ignition_state = true;
+				ignition_order = msg.data;
+				new_GSE_ignition_order = true;
 				break;
 			case DATA_ID_GSE_CODE:
 				GSE.code = msg.data;
 				new_GSE_state = true;
+				break;
+			case DATA_ID_GST_CODE:
+				GST_code = msg.data;
+				new_GST_code = true;
 				break;
 			case DATA_ID_FILL_VALVE_STATE:
 				GSE.fill_valve_state = msg.data;
@@ -374,8 +394,11 @@ void TK_can_reader() {
 		if(new_order) {
 			new_order = !handleOrderData(order);
 		}
-		if(new_GSE_ignition_state) {
-			new_GSE_ignition_state = !handleIgnitionData(GSE_ignition_state);
+		if(new_GSE_ignition_order) {
+			new_GSE_ignition_order = !handleIgnitionData(ignition_order);
+		}
+		if(new_GST_code) {
+			new_GST_code = !handleGSTCodeData(GST_code);
 		}
 		//Handle new GSE states
 		if(new_GSE_state){

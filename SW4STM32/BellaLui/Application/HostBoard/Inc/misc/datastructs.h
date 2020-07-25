@@ -55,7 +55,7 @@ typedef struct
 
 typedef struct
 {
-	uint8_t code;
+	uint32_t code;
 	uint8_t fill_valve_state;
 	uint8_t purge_valve_state;
 	uint8_t main_ignition_state;

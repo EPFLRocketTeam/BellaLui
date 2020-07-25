@@ -12,6 +12,8 @@
 void code_init(void);
 void TK_code_control(void const * argument);
 
+uint8_t verify_security_code(uint8_t GST_code);
+
 
 
 
