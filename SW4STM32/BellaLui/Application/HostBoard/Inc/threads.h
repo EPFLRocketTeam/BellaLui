@@ -13,6 +13,7 @@
 //#define DEBUG
 #define SENSOR_TELEMETRY_BOARD
 
+
 #ifdef GPS_BOARD
 #define CAN_ID CAN_ID_GPS_BOARD
 #define GPS
@@ -85,24 +86,17 @@
 #ifdef VALVE_BOARD
 #define CAN_ID CAN_ID_VALVE_BOARD
 #define VALVE
+#define IGNITION
 
 #define BOARD_LED_R (0)
 #define BOARD_LED_G (127)
 #define BOARD_LED_B (127)
 #endif
 
-#ifdef IGNITION_BOARD
-#define CAN_ID CAN_ID_IGNITION_BOARD
-#define IGNITION
-
-#define BOARD_LED_R (255)
-#define BOARD_LED_G (0)
-#define BOARD_LED_B (0)
-#endif
-
 #ifdef CODE_BOARD
 #define CAN_ID CAN_ID_CODE_BOARD
 #define SECURITY_CODE
+#define IGNITION
 
 #define BOARD_LED_R (0)
 #define BOARD_LED_G (255)
@@ -113,10 +107,11 @@
 #define CAN_ID CAN_ID_SENSOR_TELEMETRY_BOARD
 #define SENSOR_TELEMETRY
 #define XBEE
+#define IGNITION
 
 #define BOARD_LED_R (255)
 #define BOARD_LED_G (0)
-#define BOARD_LED_B (0)
+#define BOARD_LED_B (255)
 #endif
 
 #ifdef XBEE
@@ -152,7 +147,7 @@
 #include <GSE_valve/valve.h>
 #endif
 
-#ifdef IGNTION
+#ifdef IGNITION
 #include <GSE_ignition/ignition.h>
 #endif
 
