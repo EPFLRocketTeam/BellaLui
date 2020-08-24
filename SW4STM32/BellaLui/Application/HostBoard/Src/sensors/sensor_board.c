@@ -20,9 +20,12 @@
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
 
+
 #include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
+
+#include "debug/profiler.h"
 #include "../../../HostBoard/Inc/debug/led.h"
 #include "../../../HostBoard/Inc/debug/console.h"
 #include "../../../HostBoard/Inc/Misc/Common.h"
@@ -35,6 +38,8 @@
 #define BARO_CALIB_N 128
 #define normal_coef 3.000   // coefficient for a 99 % confidence interval
 #define MAX_SENSOR_NUMBER 4
+
+#define TICKS_BETWEEN_INIT_ATTEMPTS 512 // At 10 Hz, corresponds to 5 seconds
 
 /* sensor_id is the index of the sensor, which is different form the dev_id ( defined in bme280_dev)
  * or dev_addr ( defined in bno055_t) representing its address for the I2C protocol
@@ -112,7 +117,7 @@ uint8_t set_sensor_led(uint8_t id, uint8_t flag) {
  * algorithm is called.
  */
 
-uint32_t debug_counter = 0;
+uint16_t retry_counter = 0;
 
 
 void TK_sensor_board(void const * argument) {
@@ -126,48 +131,92 @@ void TK_sensor_board(void const * argument) {
 	led_sensor_id_baro = led_register_TK();
 
 	for(;;) {
+		start_profiler(1);
+
+		start_profiler(20); // BNO fetching (task ID higher than 20)
+
 		if (imu_init[0]) { //BNO
+			start_profiler(1);
 			set_sensor_led(led_sensor_id_imu, fetch_bno(0, rslt_bno) == BNO055_SUCCESS); //BNO055_SUCCESS = 0
-		} else {
+			end_profiler();
+		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
 			imu_init[0] = set_sensor_led(led_sensor_id_imu, init_bno(0, rslt_bno) == BNO055_SUCCESS);
-		}
-		if (imu_init[1]) {
-			set_sensor_led(led_sensor_id_imu, fetch_bno(1, rslt_bno) == BNO055_SUCCESS);
-		} else {
-			imu_init[1] = set_sensor_led(led_sensor_id_imu, init_bno(1, rslt_bno) == BNO055_SUCCESS);
-		}
-		if (imu_init[2]) {
-			set_sensor_led(led_sensor_id_imu, fetch_bno(2, rslt_bno) == BNO055_SUCCESS);
-		} else {
-			imu_init[2] = set_sensor_led(led_sensor_id_imu, init_bno(2, rslt_bno) == BNO055_SUCCESS);
-		}
-		if (imu_init[3]) {
-			set_sensor_led(led_sensor_id_imu, fetch_bno(3, rslt_bno) == BNO055_SUCCESS);
-		} else {
-			imu_init[3] = set_sensor_led(led_sensor_id_imu, init_bno(3, rslt_bno) == BNO055_SUCCESS);
-		}
-		if (baro_init[0]) { //BME
-			set_sensor_led(led_sensor_id_baro, fetch_bme(0, rslt_bme) == BME280_OK); //BME280_OK = 0
-		} else {
-			baro_init[0] = set_sensor_led(led_sensor_id_baro, init_bme(0, rslt_bme) == BME280_OK);
-		}
-		if (baro_init[1]) {
-			set_sensor_led(led_sensor_id_baro, fetch_bme(1, rslt_bme) == BME280_OK);
-		} else {
-			baro_init[1] = set_sensor_led(led_sensor_id_baro, init_bme(1, rslt_bme) == BME280_OK);
-		}
-		if (baro_init[2]) {
-			set_sensor_led(led_sensor_id_baro, fetch_bme(2, rslt_bme) == BME280_OK);
-		} else {
-			baro_init[2] = set_sensor_led(led_sensor_id_baro, init_bme(2, rslt_bme) == BME280_OK);
-		}
-		if (baro_init[3]) {
-			set_sensor_led(led_sensor_id_baro, fetch_bme(3, rslt_bme) == BME280_OK);
-		} else {
-			baro_init[3] = set_sensor_led(led_sensor_id_baro, init_bme(3, rslt_bme) == BME280_OK);
+			if(imu_init[0]) rocket_log("IMU 0 initialised\n");
 		}
 
+		if (imu_init[1]) {
+			start_profiler(1);
+			set_sensor_led(led_sensor_id_imu, fetch_bno(1, rslt_bno) == BNO055_SUCCESS);
+			end_profiler();
+		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+			imu_init[1] = set_sensor_led(led_sensor_id_imu, init_bno(1, rslt_bno) == BNO055_SUCCESS);
+			if(imu_init[1]) rocket_log("IMU 1 initialised\n");
+		}
+
+		if (imu_init[2]) {
+			start_profiler(1);
+			set_sensor_led(led_sensor_id_imu, fetch_bno(2, rslt_bno) == BNO055_SUCCESS);
+			end_profiler();
+		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+			imu_init[2] = set_sensor_led(led_sensor_id_imu, init_bno(2, rslt_bno) == BNO055_SUCCESS);
+			if(imu_init[2]) rocket_log("IMU 2 initialised\n");
+		}
+
+		if (imu_init[3]) {
+			start_profiler(1);
+			set_sensor_led(led_sensor_id_imu, fetch_bno(3, rslt_bno) == BNO055_SUCCESS);
+			end_profiler();
+		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+			imu_init[3] = set_sensor_led(led_sensor_id_imu, init_bno(3, rslt_bno) == BNO055_SUCCESS);
+			if(imu_init[3]) rocket_log("IMU 3 initialised\n");
+		}
+
+		end_profiler();
+
+		start_profiler(20); // BME fetching (task ID higher than 40)
+
+		if (baro_init[0]) { //BME
+			start_profiler(1);
+			set_sensor_led(led_sensor_id_baro, fetch_bme(0, rslt_bme) == BME280_OK); //BME280_OK = 0
+			end_profiler();
+		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+			baro_init[0] = set_sensor_led(led_sensor_id_baro, init_bme(0, rslt_bme) == BME280_OK);
+			if(baro_init[0]) rocket_log("Barometer 0 initialised\n");
+		}
+
+		if (baro_init[1]) {
+			start_profiler(1);
+			set_sensor_led(led_sensor_id_baro, fetch_bme(1, rslt_bme) == BME280_OK);
+			end_profiler();
+		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+			baro_init[1] = set_sensor_led(led_sensor_id_baro, init_bme(1, rslt_bme) == BME280_OK);
+			if(baro_init[1]) rocket_log("Barometer 1 initialised\n");
+		}
+
+		if (baro_init[2]) {
+			start_profiler(1);
+			set_sensor_led(led_sensor_id_baro, fetch_bme(2, rslt_bme) == BME280_OK);
+			end_profiler();
+		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+			baro_init[2] = set_sensor_led(led_sensor_id_baro, init_bme(2, rslt_bme) == BME280_OK);
+			if(baro_init[2]) rocket_log("Barometer 2 initialised\n");
+		}
+
+		if (baro_init[3]) {
+			start_profiler(1);
+			set_sensor_led(led_sensor_id_baro, fetch_bme(3, rslt_bme) == BME280_OK);
+			end_profiler();
+		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+			baro_init[3] = set_sensor_led(led_sensor_id_baro, init_bme(3, rslt_bme) == BME280_OK);
+			if(baro_init[3]) rocket_log("Barometer 3 initialised\n");
+		}
+
+		end_profiler();
+
+		retry_counter++;
 		osDelay(10);
+
+		start_profiler(20); // Redundancy and CAN transmission (task ID higher than 60)
 
 		if(baro_init[0] || baro_init[1] || baro_init[2] || baro_init[3]
 		    || imu_init[0] || imu_init[1] || imu_init[2] || imu_init[3])
@@ -176,20 +225,11 @@ void TK_sensor_board(void const * argument) {
 			bno_data_process(imu_init, rslt_bno, cntr);
 		}
 
-		if(debug_counter++ % 100 == 0) {
-			rocket_log("\nActive sensors\n");
-			if(baro_init[0]) rocket_log("Barometer 0\n");
-			if(baro_init[1]) rocket_log("Barometer 1\n");
-			if(baro_init[2]) rocket_log("Barometer 2\n");
-			if(baro_init[3]) rocket_log("Barometer 3\n");
-			if(imu_init[0]) rocket_log("IMU 0\n");
-			if(imu_init[1]) rocket_log("IMU 1\n");
-			if(imu_init[2]) rocket_log("IMU 2\n");
-			if(imu_init[3]) rocket_log("IMU 3\n");
-			rocket_log("\n");
-		}
+		end_profiler();
 
 		cntr = ++cntr < 30 ? cntr : 2;
+
+		end_profiler();
 	}
 }
 
@@ -596,7 +636,9 @@ void bme_data_process(uint8_t baro_init[MAX_SENSOR_NUMBER], int8_t rslt_bme[MAX_
 				 (!rslt_bme[0] && !rslt_bme[3]) || (!rslt_bme[1] && !rslt_bme[3]) || (!rslt_bme[2] && !rslt_bme[3]))
 			{ // Checks if at least two barometers have correctly been fetched
 
+				start_profiler(1);
 				bme_redundancy(rslt_bme);
+				end_profiler();
 				/*if (!correct_bme_calibrated)
 				{
 					correct_bme_basepressure += correct_bme_data.pressure/100;
@@ -652,7 +694,10 @@ void bno_data_process(uint8_t imu_init[MAX_SENSOR_NUMBER], int8_t rslt_bno[MAX_S
 				 (!rslt_bno[0] && !rslt_bno[3]) || (!rslt_bno[1] && !rslt_bno[3]) || (!rslt_bno[2] && !rslt_bno[3]))
 			{ // Checks if at least two IMU have correctly been fetched
 
+				start_profiler(1);
 				bno_redundancy(rslt_bno);
+				end_profiler();
+
 				can_setFrame((int32_t) correct_bno_data.accel.x, DATA_ID_ACCELERATION_X, HAL_GetTick());
 				can_setFrame((int32_t) correct_bno_data.accel.y, DATA_ID_ACCELERATION_Y, HAL_GetTick());
 				can_setFrame((int32_t) correct_bno_data.accel.z, DATA_ID_ACCELERATION_Z, HAL_GetTick());

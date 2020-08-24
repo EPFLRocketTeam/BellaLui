@@ -11,6 +11,7 @@
 // Semi hosting has to be enabled in eclipse, otherwise the program will sigtrap at the instruction initialise_monitor_handler() in main.c
 
 #include <threads.h>
+#include <stdio.h>
 
 
 #ifdef __cplusplus
@@ -18,7 +19,7 @@ extern "C"
 {
 #endif
 
-#ifdef DEBUG
+#ifdef DEBUG_MONITOR
 #define rocket_log printf
 extern void initialise_monitor_handles(void);
 #endif
