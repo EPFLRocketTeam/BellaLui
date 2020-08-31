@@ -22,7 +22,7 @@ static volatile bool ready = false;
 
 
 void __debug(const char *message) {
-	rocket_log("%s\n", message);
+	rocket_boot_log("%s\n", message);
 }
 
 void init_filesystem() {

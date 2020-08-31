@@ -13,8 +13,7 @@
 
 void TK_sensor_board(void const * argument);
 
-inline float altitudeFromPressure(float pressure_hPa)
-{
+inline float altitudeFromPressure(float pressure_hPa) {
 	return 44330 * (1.0 - pow (pressure_hPa / ADJUSTED_SEA_LEVEL_PRESSURE, 0.1903));
 }
 

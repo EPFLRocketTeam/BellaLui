@@ -1,0 +1,16 @@
+/*
+ * sensors.h
+ *
+ *  Created on: 25 Aug 2020
+ *      Author: Arion
+ */
+
+#ifndef APPLICATION_HOSTBOARD_INC_SENSORS_SENSORS_H_
+#define APPLICATION_HOSTBOARD_INC_SENSORS_SENSORS_H_
+
+
+#define MAX_ACCELEROMETERS 4
+#define MAX_BAROMETERS 4
+
+
+#endif /* APPLICATION_HOSTBOARD_INC_SENSORS_SENSORS_H_ */

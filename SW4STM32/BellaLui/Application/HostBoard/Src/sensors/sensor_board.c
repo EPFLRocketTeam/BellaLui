@@ -3,7 +3,7 @@
   * File Name          : sensor_board.c
   * Description        : This file provides code for the configuration
   *                      of the sensor board.
-  * Author 			   : Delfosse Quentin
+  * Author 			   : Clément Nussbaumer, Quentin Delfosse, Arion Zimmermann
   * Date    		   : Feb 2020
 
   * Notes : The code below was developed to implement a redundancy on the 4 sensors
@@ -14,101 +14,81 @@
   */
 
 
-#include <can_transmission.h>
-#include "../../../HostBoard/Inc/Sensors/sensor_board.h"
+#include "sensors/sensor_board.h"
+#include "sensors/sensors.h"
+#include "sensors/redundancy.h"
 
-#include "stm32f4xx_hal.h"
-#include "cmsis_os.h"
+#include "debug/profiler.h"
+#include "debug/led.h"
+#include "debug/console.h"
+#include "sensors/BME280/bme280.h"
+#include "sensors/BNO055/bno055.h"
+#include "can_transmission.h"
 
-
+#include <stm32f4xx_hal.h>
+#include <cmsis_os.h>
 #include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
 
-#include "debug/profiler.h"
-#include "../../../HostBoard/Inc/debug/led.h"
-#include "../../../HostBoard/Inc/debug/console.h"
-#include "../../../HostBoard/Inc/Misc/Common.h"
-#include "../../../HostBoard/Inc/Misc/rocket_constants.h"
-#include "../../../HostBoard/Inc/Sensors/BME280/bme280.h"
-#include "../../../HostBoard/Inc/Sensors/BNO055/bno055.h"
 
 #define I2C_TIMEOUT 3
 #define FMPI2C_TIMEOUT 3
 #define BARO_CALIB_N 128
-#define normal_coef 3.000   // coefficient for a 99 % confidence interval
-#define MAX_SENSOR_NUMBER 4
 
-#define TICKS_BETWEEN_INIT_ATTEMPTS 512 // At 10 Hz, corresponds to 5 seconds
+#define TICKS_BETWEEN_INIT_ATTEMPTS 64 // At 10 Hz, corresponds to ca. 5 seconds
+#define AVERAGE_SAMPLES 64
 
 /* sensor_id is the index of the sensor, which is different form the dev_id ( defined in bme280_dev)
  * or dev_addr ( defined in bno055_t) representing its address for the I2C protocol
  */
 
-int8_t init_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER]);
-int8_t init_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER]);
-int8_t fetch_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER]);
-int8_t fetch_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER]);
 
-int8_t stm32_i2c_read (uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
-int8_t stm32_i2c_write (uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
-void stm32_delay_ms (uint32_t delay);
-void sensor_elimination_4(float value_0, float value_1, float value_2, float value_3, float *correct_value, bool erroneous_sensor[MAX_SENSOR_NUMBER]);
-void sensor_elimination_3(float value[MAX_SENSOR_NUMBER], uint8_t index_0, uint8_t index_1, uint8_t index_2, float *correct_value, bool erroneous_sensor[MAX_SENSOR_NUMBER]);
-void sensor_elimination_2(float value[MAX_SENSOR_NUMBER], uint8_t index_0, uint8_t index_1, float *correct_value, bool erroneous_sensor[MAX_SENSOR_NUMBER]);
-bool within_conf_interval_4(float value_0, float data_1, float data_2, float data_3);
-bool within_conf_interval_3(float value_0, float data_1, float data_2);
-void bme_redundancy(int8_t rslt_bme[MAX_SENSOR_NUMBER]);
-void bno_redundancy(int8_t rslt_bno[MAX_SENSOR_NUMBER]);
-void bme_data_process(uint8_t bme_init[MAX_SENSOR_NUMBER], int8_t rslt_bme[MAX_SENSOR_NUMBER], uint8_t cntr);
-void bno_data_process(uint8_t imu_init[MAX_SENSOR_NUMBER], int8_t rslt_bno[MAX_SENSOR_NUMBER], uint8_t cntr);
-
-extern I2C_HandleTypeDef hi2c3;
-extern FMPI2C_HandleTypeDef hfmpi2c1;
-
-char buf[300];
-uint8_t current_sensor = 0;
-
-struct bno055_data
-{
+struct bno055_data {
 	struct bno055_accel_float_t accel;
 	struct bno055_gyro_float_t gyro;
 	struct bno055_mag_float_t mag;
 };
 
-struct bme280_data_float
-{
+struct bme280_data_float {
 	float temperature;
 	float pressure;
-	float basepressure;
+	float base_pressure;
 };
 
+
+static int8_t init_barometer(uint8_t sensor_id);
+static int8_t init_accelerometer(uint8_t sensor_id);
+static int8_t fetch_barometer(uint8_t sensor_id, struct bme280_data_float* data);
+static int8_t fetch_accelerometer(uint8_t sensor_id, struct bno055_data* data);
+
+
+static int8_t bno_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t* data, uint8_t len);
+static int8_t bno_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t* data, uint8_t len);
+static int8_t bme_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t* data, uint16_t len);
+static int8_t bme_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t* data, uint16_t len);
+static void delay_ms(uint32_t delay);
+
+static struct bme280_data_float barometer_redundancy(struct bme280_data_float* data, uint8_t count);
+static struct bno055_data accelerometer_redundancy(struct bno055_data* data, uint8_t count);
+
+
+extern I2C_HandleTypeDef hi2c3;
+extern FMPI2C_HandleTypeDef hfmpi2c1;
+
+uint8_t current_sensor = 0;
+
 //## BME280 ## Barometer
-struct bme280_dev bme[MAX_SENSOR_NUMBER];
-struct bme280_data bme_data[MAX_SENSOR_NUMBER];
-struct bme280_data_float bme_data_float[MAX_SENSOR_NUMBER];
-struct bme280_data_float correct_bme_data;
-//float correct_bme_basepressure;
-uint32_t bme_calib_counter[MAX_SENSOR_NUMBER] = {};
-//uint32_t correct_bme_calib_counter = 0;
-bool bme_calibrated[MAX_SENSOR_NUMBER] = {false};
-//bool correct_bme_calibrated = {false};
+struct bme280_dev barometers[MAX_BAROMETERS];
+struct bme280_data_float barometer_data;
+struct bme280_data_float average_barometer_data;
+bool available_barometers[MAX_BAROMETERS];
 
 //## BNO055 ## IMU
-struct bno055_t bno[MAX_SENSOR_NUMBER];
-struct bno055_data bno_data[MAX_SENSOR_NUMBER];
-struct bno055_data correct_bno_data;
-
-uint8_t led_sensor_id_imu, led_sensor_id_baro;
-uint8_t set_sensor_led(uint8_t id, uint8_t flag) {
-	if (flag) { // success
-		led_set_TK_rgb(id, 0, 50, 0);
-	} else { // fail
-		led_set_TK_rgb(id, 500, 0, 0);
-	}
-	return flag;
-}
-
+struct bno055_t accelerometers[MAX_ACCELEROMETERS];
+struct bno055_data accelerometer_data;
+struct bno055_data average_accelerometer_data;
+bool available_accelerometers[MAX_ACCELEROMETERS];
 
 /*
  * Main function used to initialize and fetch the sensors.
@@ -117,117 +97,149 @@ uint8_t set_sensor_led(uint8_t id, uint8_t flag) {
  * algorithm is called.
  */
 
-uint16_t retry_counter = 0;
-
 
 void TK_sensor_board(void const * argument) {
+	uint16_t retry_counter = 0;
+	uint16_t sample_counter = 0;
 
-	uint8_t imu_init[MAX_SENSOR_NUMBER] = {}, baro_init[MAX_SENSOR_NUMBER]= {};
+	uint8_t led_barometer = led_register_TK();
+	uint8_t led_accelerometer = led_register_TK();
+
+	struct bme280_data_float full_barometer_data[MAX_BAROMETERS];
+	struct bno055_data full_accelerometer_data[MAX_ACCELEROMETERS];
+
 	osDelay(500);
-	uint8_t cntr = 0;
-	int8_t rslt_bme[MAX_SENSOR_NUMBER] = {1,1,1,1}, rslt_bno[MAX_SENSOR_NUMBER] = {1,1,1,1}; // rslt_xxx = 0 if no problem, 1 otherwise
 
-	led_sensor_id_imu  = led_register_TK();
-	led_sensor_id_baro = led_register_TK();
+	while(true) {
+		uint8_t num_barometer_data = 0;
+		uint8_t num_accelerometer_data = 0;
 
-	for(;;) {
-		start_profiler(1);
+		start_profiler(1); // Whole thread profiling
+
+		start_profiler(1); // Initialisation of sensors
+
+		for(uint8_t i = 0; i < MAX_BAROMETERS; i++) {
+			if(!available_barometers[i] && retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+				if(init_barometer(i) == BME280_OK) {
+					available_barometers[i] = true;
+					rocket_log("Barometer %u initialised\n", i);
+				}
+			}
+		}
+
+		for(uint8_t i = 0; i < 2; i++) {
+			if(!available_accelerometers[i] && retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+
+				if(init_accelerometer(i) == BNO055_SUCCESS) {
+					available_accelerometers[i] = true;
+					rocket_log("Accelerometer %u initialised\n", i);
+				}
+			}
+		}
+
+
+		retry_counter++;
+
+		end_profiler();
+
 
 		start_profiler(20); // BNO fetching (task ID higher than 20)
 
-		if (imu_init[0]) { //BNO
-			start_profiler(1);
-			set_sensor_led(led_sensor_id_imu, fetch_bno(0, rslt_bno) == BNO055_SUCCESS); //BNO055_SUCCESS = 0
-			end_profiler();
-		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
-			imu_init[0] = set_sensor_led(led_sensor_id_imu, init_bno(0, rslt_bno) == BNO055_SUCCESS);
-			if(imu_init[0]) rocket_log("IMU 0 initialised\n");
-		}
-
-		if (imu_init[1]) {
-			start_profiler(1);
-			set_sensor_led(led_sensor_id_imu, fetch_bno(1, rslt_bno) == BNO055_SUCCESS);
-			end_profiler();
-		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
-			imu_init[1] = set_sensor_led(led_sensor_id_imu, init_bno(1, rslt_bno) == BNO055_SUCCESS);
-			if(imu_init[1]) rocket_log("IMU 1 initialised\n");
-		}
-
-		if (imu_init[2]) {
-			start_profiler(1);
-			set_sensor_led(led_sensor_id_imu, fetch_bno(2, rslt_bno) == BNO055_SUCCESS);
-			end_profiler();
-		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
-			imu_init[2] = set_sensor_led(led_sensor_id_imu, init_bno(2, rslt_bno) == BNO055_SUCCESS);
-			if(imu_init[2]) rocket_log("IMU 2 initialised\n");
-		}
-
-		if (imu_init[3]) {
-			start_profiler(1);
-			set_sensor_led(led_sensor_id_imu, fetch_bno(3, rslt_bno) == BNO055_SUCCESS);
-			end_profiler();
-		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
-			imu_init[3] = set_sensor_led(led_sensor_id_imu, init_bno(3, rslt_bno) == BNO055_SUCCESS);
-			if(imu_init[3]) rocket_log("IMU 3 initialised\n");
+		for(uint8_t i = 0; i < MAX_BAROMETERS; i++) {
+			if(available_barometers[i]) {
+				if(fetch_barometer(i, &full_barometer_data[num_barometer_data]) == BME280_OK) {
+					num_barometer_data++;
+				} else {
+					available_barometers[i] = false;
+					rocket_log("Barometer %u ceased functioning\n", i);
+				}
+			}
 		}
 
 		end_profiler();
+
 
 		start_profiler(20); // BME fetching (task ID higher than 40)
 
-		if (baro_init[0]) { //BME
-			start_profiler(1);
-			set_sensor_led(led_sensor_id_baro, fetch_bme(0, rslt_bme) == BME280_OK); //BME280_OK = 0
-			end_profiler();
-		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
-			baro_init[0] = set_sensor_led(led_sensor_id_baro, init_bme(0, rslt_bme) == BME280_OK);
-			if(baro_init[0]) rocket_log("Barometer 0 initialised\n");
-		}
-
-		if (baro_init[1]) {
-			start_profiler(1);
-			set_sensor_led(led_sensor_id_baro, fetch_bme(1, rslt_bme) == BME280_OK);
-			end_profiler();
-		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
-			baro_init[1] = set_sensor_led(led_sensor_id_baro, init_bme(1, rslt_bme) == BME280_OK);
-			if(baro_init[1]) rocket_log("Barometer 1 initialised\n");
-		}
-
-		if (baro_init[2]) {
-			start_profiler(1);
-			set_sensor_led(led_sensor_id_baro, fetch_bme(2, rslt_bme) == BME280_OK);
-			end_profiler();
-		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
-			baro_init[2] = set_sensor_led(led_sensor_id_baro, init_bme(2, rslt_bme) == BME280_OK);
-			if(baro_init[2]) rocket_log("Barometer 2 initialised\n");
-		}
-
-		if (baro_init[3]) {
-			start_profiler(1);
-			set_sensor_led(led_sensor_id_baro, fetch_bme(3, rslt_bme) == BME280_OK);
-			end_profiler();
-		} else if(retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
-			baro_init[3] = set_sensor_led(led_sensor_id_baro, init_bme(3, rslt_bme) == BME280_OK);
-			if(baro_init[3]) rocket_log("Barometer 3 initialised\n");
+		for(uint8_t i = 0; i < MAX_ACCELEROMETERS; i++) {
+			if(available_accelerometers[i]) {
+				if(fetch_accelerometer(i, &full_accelerometer_data[num_accelerometer_data]) == BNO055_SUCCESS) {
+					num_accelerometer_data++;
+				} else {
+					available_accelerometers[i] = false;
+					rocket_log("Accelerometer %u ceased functioning\n", i);
+				}
+			}
 		}
 
 		end_profiler();
 
-		retry_counter++;
-		osDelay(10);
 
-		start_profiler(20); // Redundancy and CAN transmission (task ID higher than 60)
+		start_profiler(20); // Redundancy and data filtering (task ID higher than 60)
 
-		if(baro_init[0] || baro_init[1] || baro_init[2] || baro_init[3]
-		    || imu_init[0] || imu_init[1] || imu_init[2] || imu_init[3])
-		{ // Redundancy
-			bme_data_process(baro_init, rslt_bme, cntr);
-			bno_data_process(imu_init, rslt_bno, cntr);
+		if(num_barometer_data > 0) {
+			barometer_data = barometer_redundancy(full_barometer_data, num_barometer_data);
+			led_set_TK_rgb(led_barometer, 0x00, 0xFF, 0x00);
+		} else {
+			led_set_TK_rgb(led_barometer, 0xFF, 0x00, 0x00);
+		}
+
+		if(num_accelerometer_data > 0) {
+			accelerometer_data = accelerometer_redundancy(full_accelerometer_data, num_accelerometer_data);
+			led_set_TK_rgb(led_accelerometer, 0x00, 0xFF, 0x00);
+		} else {
+			led_set_TK_rgb(led_accelerometer, 0xFF, 0x00, 0x00);
 		}
 
 		end_profiler();
 
-		cntr = ++cntr < 30 ? cntr : 2;
+		start_profiler(20); // Transmit data through the CAN bus (task ID higher than 80)
+
+		uint32_t time = HAL_GetTick();
+
+		can_setFrame((int32_t) barometer_data.temperature, DATA_ID_TEMPERATURE, time);
+		can_setFrame((int32_t) (barometer_data.pressure * 100), DATA_ID_PRESSURE, time);
+		can_setFrame((int32_t) accelerometer_data.accel.x, DATA_ID_ACCELERATION_X, time);
+		can_setFrame((int32_t) accelerometer_data.accel.y, DATA_ID_ACCELERATION_Y, time);
+		can_setFrame((int32_t) accelerometer_data.accel.z, DATA_ID_ACCELERATION_Z, time);
+		can_setFrame((int32_t) (1000 * accelerometer_data.gyro.x), DATA_ID_GYRO_X, time);
+		can_setFrame((int32_t) (1000 * accelerometer_data.gyro.y), DATA_ID_GYRO_Y, time);
+		can_setFrame((int32_t) (1000 * accelerometer_data.gyro.z), DATA_ID_GYRO_Z, time);
+
+		average_barometer_data.temperature += barometer_data.temperature;
+		average_barometer_data.pressure += barometer_data.pressure;
+		average_accelerometer_data.accel.x += accelerometer_data.accel.x;
+		average_accelerometer_data.accel.y += accelerometer_data.accel.y;
+		average_accelerometer_data.accel.z += accelerometer_data.accel.z;
+		average_accelerometer_data.gyro.x += accelerometer_data.gyro.x;
+		average_accelerometer_data.gyro.y += accelerometer_data.gyro.y;
+		average_accelerometer_data.gyro.z += accelerometer_data.gyro.z;
+
+		end_profiler();
+
+		sample_counter++;
+
+		if(sample_counter > AVERAGE_SAMPLES) {
+			rocket_log_lock();
+			rocket_log("\x1b[15;0H"); // Reset cursor
+			rocket_log(" ----- Sensor acquisition -----\x1b[K\n\x1b[K\n");
+			rocket_log(" Available barometers: %d\x1b[K\n", num_barometer_data);
+			rocket_log(" Available accelerometers: %d\x1b[K\n", num_accelerometer_data);
+			rocket_log(" Temperature: %d [m°C]\x1b[K\n", (uint32_t) (average_barometer_data.temperature * 10 / AVERAGE_SAMPLES));
+			rocket_log(" Pressure: %d [Pa]\x1b[K\n", (uint32_t) (average_barometer_data.pressure / AVERAGE_SAMPLES));
+			rocket_log(" Acceleration X: %d [mg]\x1b[K\n", (uint32_t) (average_accelerometer_data.accel.x / AVERAGE_SAMPLES));
+			rocket_log(" Acceleration Y: %d [mg]\x1b[K\n", (uint32_t) (average_accelerometer_data.accel.y / AVERAGE_SAMPLES));
+			rocket_log(" Acceleration Z: %d [mg]\x1b[K\n", (uint32_t) (average_accelerometer_data.accel.z / AVERAGE_SAMPLES));
+			rocket_log(" Rotation X: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * average_accelerometer_data.gyro.x / AVERAGE_SAMPLES));
+			rocket_log(" Rotation Y: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * average_accelerometer_data.gyro.y / AVERAGE_SAMPLES));
+			rocket_log(" Rotation Z: %d [mrad/s]\x1b[K\n\x1b[K\n", (uint32_t) (1000 * average_accelerometer_data.gyro.z / AVERAGE_SAMPLES));
+			rocket_log(" ------------------------------\x1b[K\n\x1b[K\n\x1b[40;0H");
+			rocket_log_release();
+
+			average_barometer_data = (struct bme280_data_float) { 0 };
+			average_accelerometer_data = (struct bno055_data) { 0 };
+			sample_counter = 0;
+		}
 
 		end_profiler();
 	}
@@ -246,76 +258,115 @@ void TK_sensor_board(void const * argument) {
  */
 
 
-int8_t init_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER])
-{
+int8_t init_barometer(uint8_t sensor_id) {
 	current_sensor = sensor_id;
-	if (sensor_id == 1 || sensor_id == 2) {
-		bme[sensor_id].dev_id = BME280_I2C_ADDR_PRIM;
-	}
-	else if (sensor_id == 0 || sensor_id == 3) {
-		bme[sensor_id].dev_id = BME280_I2C_ADDR_SEC;
-	}
-	bme[sensor_id].intf = BME280_I2C_INTF;
-	bme[sensor_id].read = &stm32_i2c_read;
-	bme[sensor_id].write = &stm32_i2c_write;
-	bme[sensor_id].delay_ms = &stm32_delay_ms;
 
-	rslt_bme[sensor_id] = bme280_init(&bme[sensor_id]); // Returns 1 if error
-	if (rslt_bme[sensor_id] != BME280_OK) {
-		return rslt_bme[sensor_id];
+	if(sensor_id == 1 || sensor_id == 2) {
+		barometers[sensor_id].dev_id = BME280_I2C_ADDR_PRIM;
+	} else if(sensor_id == 0 || sensor_id == 3) {
+		barometers[sensor_id].dev_id = BME280_I2C_ADDR_SEC;
+	}
+
+	barometers[sensor_id].intf = BME280_I2C_INTF;
+	barometers[sensor_id].read = &bme_i2c_read;
+	barometers[sensor_id].write = &bme_i2c_write;
+	barometers[sensor_id].delay_ms = &delay_ms;
+
+	int8_t result = bme280_init(&barometers[sensor_id]); // Returns 1 if error
+
+	if(result != BME280_OK) {
+		return result;
 	}
 	//Always read the current settings before writing
-	rslt_bme[sensor_id] = bme280_get_sensor_settings(&bme[sensor_id]);
-	if (rslt_bme[sensor_id] != BME280_OK) {
-		return rslt_bme[sensor_id];
+	result = bme280_get_sensor_settings(&barometers[sensor_id]);
+
+	if(result != BME280_OK) {
+		return result;
 	}
 	//Overwrite the desired settings
-	bme[sensor_id].settings.filter = BME280_FILTER_COEFF_OFF;
-	bme[sensor_id].settings.osr_p = BME280_OVERSAMPLING_8X;
-	bme[sensor_id].settings.osr_t = BME280_OVERSAMPLING_1X;
-	bme[sensor_id].settings.standby_time = BME280_STANDBY_TIME_0_5_MS;
+	barometers[sensor_id].settings.filter = BME280_FILTER_COEFF_OFF;
+	barometers[sensor_id].settings.osr_p = BME280_OVERSAMPLING_8X;
+	barometers[sensor_id].settings.osr_t = BME280_OVERSAMPLING_1X;
+	barometers[sensor_id].settings.standby_time = BME280_STANDBY_TIME_0_5_MS;
 
-	rslt_bme[sensor_id] = bme280_set_sensor_settings(BME280_ALL_SETTINGS_SEL, &bme[sensor_id]);
-	if (rslt_bme[sensor_id] != BME280_OK) {
-		return rslt_bme[sensor_id];
+
+	result = bme280_set_sensor_settings(BME280_ALL_SETTINGS_SEL, &barometers[sensor_id]);
+
+	if(result != BME280_OK) {
+		return result;
 	}
-	//Always set the power mode after setting the configuration
-	rslt_bme[sensor_id] = bme280_set_sensor_mode(BME280_NORMAL_MODE, &bme[sensor_id]);
 
-	bme_calibrated[sensor_id] = false;
-	bme_calib_counter[sensor_id] = 0;
-	bme_data_float[sensor_id].basepressure = 0;
-	return rslt_bme[sensor_id];
+	//Always set the power mode after setting the configuration
+	result = bme280_set_sensor_mode(BME280_NORMAL_MODE, &barometers[sensor_id]);
+
+	return result;
 }
 
-int8_t init_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
-{
+int8_t init_accelerometer(uint8_t sensor_id) {
 	current_sensor = sensor_id;
-	if (sensor_id == 1 || sensor_id == 2) {
-		bno[sensor_id].dev_addr = BNO055_I2C_ADDR1;
+
+	if(sensor_id == 1 || sensor_id == 2) {
+		accelerometers[sensor_id].dev_addr = BNO055_I2C_ADDR1;
+	} else if(sensor_id == 0 || sensor_id == 3) {
+		accelerometers[sensor_id].dev_addr = BNO055_I2C_ADDR2;
 	}
-	else if (sensor_id == 0 || sensor_id == 3) {
-		bno[sensor_id].dev_addr = BNO055_I2C_ADDR2;
+
+	accelerometers[sensor_id].bus_write = &bno_i2c_write;
+	accelerometers[sensor_id].bus_read = &bno_i2c_read;
+	accelerometers[sensor_id].delay_msec = &delay_ms;
+
+	int8_t result = bno055_init(&accelerometers[sensor_id]); // Returns 1 if error
+
+	if(result != BNO055_SUCCESS) {
+		return result;
 	}
-	bno[sensor_id].bus_write = &stm32_i2c_write;
-	bno[sensor_id].bus_read = &stm32_i2c_read;
-	bno[sensor_id].delay_msec = &stm32_delay_ms;
 
-	rslt_bno[sensor_id] = bno055_init(&bno[sensor_id]); // Returns 1 if error
-	if(rslt_bno[sensor_id] != BNO055_SUCCESS)
-		return rslt_bno[sensor_id];
+	result = bno055_set_power_mode(BNO055_POWER_MODE_NORMAL);
 
-	rslt_bno[sensor_id] = bno055_set_power_mode(BNO055_POWER_MODE_NORMAL);
-	if(rslt_bno[sensor_id] != BNO055_SUCCESS)
-		return rslt_bno[sensor_id];
+	if(result != BNO055_SUCCESS) {
+		return result;
+	}
 
-	rslt_bno[sensor_id] = bno055_set_operation_mode(BNO055_OPERATION_MODE_AMG);
-	if(rslt_bno[sensor_id] != BNO055_SUCCESS)
-		return rslt_bno[sensor_id];
+	result = bno055_set_operation_mode(BNO055_OPERATION_MODE_ACCGYRO);
 
-	rslt_bno[sensor_id] = bno055_set_accel_range(BNO055_ACCEL_RANGE_16G);
+	if(result != BNO055_SUCCESS) {
+		return result;
+	}
 
-	return rslt_bno[sensor_id];
+	result = bno055_set_accel_range(BNO055_ACCEL_RANGE_16G);
+
+	if(result != BNO055_SUCCESS) {
+		return result;
+	}
+
+	// result = bno055_set_accel_bw(BNO055_ACCEL_BW_125HZ);
+	result = bno055_set_accel_bw(BNO055_ACCEL_BW_500HZ);
+
+	if(result != BNO055_SUCCESS) {
+		return result;
+	}
+
+	result = bno055_set_accel_unit(BNO055_ACCEL_UNIT_MG);
+
+	if(result != BNO055_SUCCESS) {
+		return result;
+	}
+
+	result = bno055_set_gyro_bw(BNO055_GYRO_BW_523HZ);
+
+	if(result != BNO055_SUCCESS) {
+		return result;
+	}
+
+	result = bno055_set_gyro_unit(BNO055_GYRO_UNIT_RPS);
+
+	if(result != BNO055_SUCCESS) {
+		return result;
+	}
+
+	result = bno055_write_page_id(BNO055_PAGE_ZERO);
+
+	return result;
 }
 
 /*
@@ -330,397 +381,156 @@ int8_t init_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
  *
  */
 
-int8_t fetch_bme(uint8_t sensor_id, int8_t rslt_bme[MAX_SENSOR_NUMBER])
-{
+int8_t fetch_barometer(uint8_t sensor_id, struct bme280_data_float* data) {
+	static struct bme280_data raw_data;
+
 	current_sensor = sensor_id;
-	static uint8_t cntr = 0;
-	bme[sensor_id].read = &stm32_i2c_read;
-	bme[sensor_id].write = &stm32_i2c_write;
 
-	rslt_bme[sensor_id] = bme280_get_sensor_data(BME280_ALL, &bme_data[sensor_id], &bme[sensor_id]);
-	bme_data_float[sensor_id].temperature = (float) bme_data[sensor_id].temperature;
-	bme_data_float[sensor_id].pressure = (float) bme_data[sensor_id].pressure/100;
-	if (!rslt_bme[sensor_id])
-	{
-		if (!bme_calibrated[sensor_id]) {
-			bme_data_float[sensor_id].basepressure += (float) bme_data[sensor_id].pressure/100;
-			bme_calib_counter[sensor_id]++;
+	int8_t result = bme280_get_sensor_data(BME280_TEMP | BME280_PRESS, &raw_data, &barometers[sensor_id]);
 
-			if (bme_calib_counter[sensor_id] == BARO_CALIB_N) {
-				bme_data_float[sensor_id].basepressure /= BARO_CALIB_N;
-				bme_calibrated[sensor_id] = true;
-			}
-		} else if (cntr==0) {
-			can_setFrame(bme_data_float[sensor_id].basepressure, DATA_ID_CALIB_PRESSURE, HAL_GetTick());
-		}
+	data->temperature = (float) raw_data.temperature;
+	data->pressure = (float) raw_data.pressure / 100;
 
-		/*can_setFrame(bme_data_float[sensor_id].temperature, DATA_ID_TEMPERATURE, HAL_GetTick());
-		can_setFrame(bme_data_float[sensor_id].pressure/100, DATA_ID_PRESSURE, HAL_GetTick());*/
-
-		if(!cntr)
-		{
-			/*sprintf(buf, "Pres: %"PRIu32"\nTemp: %"PRIu32"\nHum: %"PRIu32"\n",
-					bme_data_float[sensor_id].pressure, bme_data_float[sensor_id].temperature, bme_data[sensor_id].humidity);*/
-			//INFO(buf);
-		}
-	}
-
-	cntr = ++cntr < 30 ? cntr : 0;
-
-	return rslt_bme[sensor_id];
+	return result;
 }
 
-int8_t fetch_bno(uint8_t sensor_id, int8_t rslt_bno[MAX_SENSOR_NUMBER])
-{
+int8_t fetch_accelerometer(uint8_t sensor_id, struct bno055_data* data) {
+	static uint8_t accel_data[BNO055_ACCEL_XYZ_DATA_SIZE];
+	static uint8_t gyro_data[BNO055_GYRO_XYZ_DATA_SIZE];
+
 	current_sensor = sensor_id;
-	static uint8_t cntr = 0;
-	bno[sensor_id].bus_write = &stm32_i2c_write;
-	bno[sensor_id].bus_read = &stm32_i2c_read;
 
-	rslt_bno[sensor_id] += bno055_convert_float_accel_xyz_mg (&bno_data[sensor_id].accel);
-	rslt_bno[sensor_id] += bno055_convert_float_mag_xyz_uT (&bno_data[sensor_id].mag);
-	rslt_bno[sensor_id] += bno055_convert_float_gyro_xyz_rps (&bno_data[sensor_id].gyro);
+	uint8_t result = 0;
 
-	if(!rslt_bno[sensor_id])
-	{
-		/*can_setFrame((int32_t) bno_data[sensor_id].accel.x, DATA_ID_ACCELERATION_X, HAL_GetTick());
-		can_setFrame((int32_t) bno_data[sensor_id].accel.y, DATA_ID_ACCELERATION_Y, HAL_GetTick());
-		can_setFrame((int32_t) bno_data[sensor_id].accel.z, DATA_ID_ACCELERATION_Z, HAL_GetTick());
-		can_setFrame((int32_t)(1000*bno_data[sensor_id].gyro.x), DATA_ID_GYRO_X, HAL_GetTick());
-		can_setFrame((int32_t)(1000*bno_data[sensor_id].gyro.y), DATA_ID_GYRO_Y, HAL_GetTick());
-		can_setFrame((int32_t)(1000*bno_data[sensor_id].gyro.z), DATA_ID_GYRO_Z, HAL_GetTick());*/
-		if(!cntr)
-		{
-			//sprintf(buf, "Accel: [%f, %f, %f]\n", bno_data[sensor_id].accel.x, bno_data[sensor_id].accel.y, bno_data[sensor_id].accel.z);
-			//INFO(buf);
-			//sprintf(buf, "Gyro: [%f, %f, %f]\n", bno_data[sensor_id].gyro.x, bno_data[sensor_id].gyro.y, bno_data[sensor_id].gyro.z);
-			//INFO(buf);
-			//sprintf(buf, "Mag: [%f, %f, %f]\n\n\n", bno_data[sensor_id].mag.x, bno_data[sensor_id].mag.y, bno_data[sensor_id].mag.z);
-			//INFO(buf);
-		}
+	result += bno_i2c_read(accelerometers[sensor_id].dev_addr, BNO055_ACCEL_DATA_X_LSB_VALUEX_REG, accel_data, BNO055_ACCEL_XYZ_DATA_SIZE);
+	// result += bno_i2c_read(accelerometers[sensor_id].dev_addr, BNO055_GYRO_DATA_X_LSB_VALUEX_REG, gyro_data, BNO055_GYRO_XYZ_DATA_SIZE);
+
+	data->accel.x = (float) ((((int16_t) ((int8_t) accel_data[1]) << 8) | accel_data[0]) / BNO055_ACCEL_DIV_MG);
+	data->accel.y = (float) ((((int16_t) ((int8_t) accel_data[3]) << 8) | accel_data[2]) / BNO055_ACCEL_DIV_MG);
+	data->accel.z = (float) ((((int16_t) ((int8_t) accel_data[5]) << 8) | accel_data[4]) / BNO055_ACCEL_DIV_MG);
+	data->gyro.x = (float) ((((int16_t) ((int8_t) gyro_data[1]) << 8) | gyro_data[0]) / BNO055_GYRO_DIV_RPS);
+	data->gyro.y = (float) ((((int16_t) ((int8_t) gyro_data[3]) << 8) | gyro_data[2]) / BNO055_GYRO_DIV_RPS);
+	data->gyro.z = (float) ((((int16_t) ((int8_t) gyro_data[5]) << 8) | gyro_data[4]) / BNO055_GYRO_DIV_RPS);
+
+	return result;
+}
+
+
+
+/*
+ * Redundancy functions
+ *
+ * Calls the redundancy algorithm for each kind of data given by the sensors
+ *
+ */
+
+struct bme280_data_float barometer_redundancy(struct bme280_data_float* data, uint8_t count) {
+	struct bme280_data_float output;
+
+	float temperature[count];
+	float pressure[count];
+	float base_pressure[count];
+
+	for(uint8_t i = 0; i < count; i++) {
+		temperature[i] = data[i].temperature;
+		pressure[i] = data[i].pressure;
+		base_pressure[i] = data[i].base_pressure;
 	}
 
-	cntr = ++cntr < 10 ? cntr : 0;
+	output.temperature = get_filtered_sensor_output(temperature, count);
+	output.pressure = get_filtered_sensor_output(pressure, count);
+	output.base_pressure = get_filtered_sensor_output(base_pressure, count);
 
-	return rslt_bno[sensor_id];
+	return output;
+}
+
+struct bno055_data accelerometer_redundancy(struct bno055_data* data, uint8_t count) {
+	struct bno055_data output;
+
+	float accelX[count];
+	float accelY[count];
+	float accelZ[count];
+	float gyroX[count];
+	float gyroY[count];
+	float gyroZ[count];
+
+	for(uint8_t i = 0; i < count; i++) {
+		accelX[i] = data[i].accel.x;
+		accelY[i] = data[i].accel.y;
+		accelZ[i] = data[i].accel.z;
+		gyroX[i] = data[i].gyro.x;
+		gyroY[i] = data[i].gyro.y;
+		gyroZ[i] = data[i].gyro.z;
+	}
+
+	output.accel.x = get_filtered_sensor_output(accelX, count);
+	output.accel.y = get_filtered_sensor_output(accelY, count);
+	output.accel.z = get_filtered_sensor_output(accelZ, count);
+	output.gyro.x = get_filtered_sensor_output(gyroX, count);
+	output.gyro.y = get_filtered_sensor_output(gyroY, count);
+	output.gyro.z = get_filtered_sensor_output(gyroZ, count);
+
+	return output;
+}
+
+float mean(float* data, uint8_t count) {
+	float sum = 0.0f;
+
+	for(uint8_t i = 0; i < count; i++) {
+		sum += data[i];
+	}
+
+	return sum / count;
 }
 
 /*
- * stm32_i2c functions :
+ * Low level i2c functions :
  *
  * I2C3 : Sensor 0 and Sensor 1
  * FMPI2C1 : Sensor 2 and Sensor 3
  *
  */
 
-int8_t stm32_i2c_read (uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len)
-{
-	vTaskSuspendAll();
+int8_t bno_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t len) { // The function signature must have a 8-bit length
+	return bme_i2c_read(dev_id, reg_addr, data, len);
+}
+
+int8_t bno_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t len) { // The function signature must have a 8-bit length
+	return bme_i2c_write(dev_id, reg_addr, data, len);
+}
+
+int8_t bme_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len) {
 	int8_t rslt = 0;
+
+	vTaskSuspendAll();
+
 	if (current_sensor == 0 || current_sensor == 1) {
 		rslt = HAL_I2C_Mem_Read(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
-	}
-	else if (current_sensor == 2 || current_sensor == 3) {
+	} else if (current_sensor == 2 || current_sensor == 3) {
 		rslt = HAL_FMPI2C_Mem_Read(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
 	}
+
 	xTaskResumeAll();
+
 	return rslt;
 }
 
-int8_t stm32_i2c_write (uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len)
-{
-	vTaskSuspendAll();
+int8_t bme_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len) {
 	int8_t rslt = 0;
+
+	vTaskSuspendAll();
+
 	if (current_sensor == 0 || current_sensor == 1) {
 		rslt = HAL_I2C_Mem_Write(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
-	}
-	else if (current_sensor == 2 || current_sensor == 3) {
+	} else if (current_sensor == 2 || current_sensor == 3) {
 		rslt = HAL_FMPI2C_Mem_Write(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
 	}
+
 	xTaskResumeAll();
+
 	return rslt;
 }
 
-void stm32_delay_ms (uint32_t delay)
-{
+void delay_ms(uint32_t delay) {
 	osDelay(delay);
-}
-
-/*
- * sensor_elimination :
- *
- * Used to compare the data from the different sensors
- *
- * Input Arguments :
- *  - values from the different sensors
- *  - correct value determined by the algorithm
- *  - array of size MAX_SENSOR_NUMBER to know if there was an initialization or
- *    fetch error
- *
- * If sensor_elimination_4 finds an erroneous sensor, its values are not taken into
- * account and sensor_elimination_3 takes over. Indeed, the intervals of confidence
- * calculated by sensor_elimination _4 might have been corrupted by the erroneous sensor,
- * therefore new intervals have to be calculated.
- *
- */
-
-void sensor_elimination_4(float value_0, float value_1, float value_2, float value_3, float *correct_value, bool erroneous_sensor[MAX_SENSOR_NUMBER]) {
-	float value[MAX_SENSOR_NUMBER] = {value_0, value_1, value_2, value_3};
-	if (!erroneous_sensor[0]) { // Checking if one of the sensor has been eliminated before
-		if (!erroneous_sensor[1]) {
-			if (!erroneous_sensor[2]) {
-				if (!erroneous_sensor[3]) {
-					if (within_conf_interval_4(value_0, value_1, value_2, value_3)) { // If all sensors are working properly so far, we check the confidence intervals
-						if (within_conf_interval_4(value_1, value_0, value_2, value_3)) {
-							if (within_conf_interval_4(value_2, value_0, value_1, value_3)) {
-								if (within_conf_interval_4(value_3, value_1, value_2, value_0)) {
-									*correct_value = (value_0 + value_1 + value_2 + value_3)/MAX_SENSOR_NUMBER;
-								}
-								else { // Value_3 out, redundancy on the 3 sensors left
-									sensor_elimination_3(value, 0, 1, 2, correct_value, erroneous_sensor);
-								}
-							}
-							else { // Value_2 out
-								sensor_elimination_3(value, 0, 1, 3, correct_value, erroneous_sensor);
-							}
-						}
-						else { // value_1 out
-							sensor_elimination_3(value, 0, 2, 3, correct_value, erroneous_sensor);
-						}
-					}
-					else { // value_0 out
-						sensor_elimination_3(value, 1, 2, 3, correct_value, erroneous_sensor);
-					}
-				}
-				else { // Value_3 not fetched, redundancy on the 3 sensors left
-					sensor_elimination_3(value, 0, 1, 2, correct_value, erroneous_sensor);
-				}
-			}
-			else { // Value_2 not fetched
-				sensor_elimination_3(value, 0, 1, 3, correct_value, erroneous_sensor);
-			}
-		}
-		else { // value_1 not fetched
-			sensor_elimination_3(value, 0, 2, 3, correct_value, erroneous_sensor);
-		}
-	}
-	else { // value_0 not fetched
-		sensor_elimination_3(value, 1, 2, 3, correct_value, erroneous_sensor);
-	}
-}
-
-void sensor_elimination_3(float value[MAX_SENSOR_NUMBER], uint8_t index_0, uint8_t index_1, uint8_t index_2, float *correct_value, bool erroneous_sensor[MAX_SENSOR_NUMBER]) {
-	if (!erroneous_sensor[index_0]) { // Checking if one of the sensor has been eliminated before
-		if (!erroneous_sensor[index_1]) {
-			if (!erroneous_sensor[index_2]) {
-				if (within_conf_interval_3(value[index_0], value[index_1], value[index_2])) { // If all sensors are working properly so far, we check the confidence intervals
-					if (within_conf_interval_3(value[index_1], value[index_0], value[index_2])) {
-						if (within_conf_interval_3(value[index_2], value[index_1], value[index_0])) {
-							*correct_value = (value[index_0] + value[index_1] + value[index_2])/(MAX_SENSOR_NUMBER-1);
-						}
-						else { // Value_2 out, no redundancy on the 2 sensors left
-							*correct_value = (value[index_0] + value[index_1])/(MAX_SENSOR_NUMBER-2);
-						}
-					}
-					else { // Value_1 out
-						*correct_value = (value[index_0] + value[index_2])/(MAX_SENSOR_NUMBER-2);
-					}
-				}
-				else { // Value_0 out
-					*correct_value = (value[index_1] + value[index_2])/(MAX_SENSOR_NUMBER-2);
-				}
-			}
-			else { // Value_2 not fetched
-				sensor_elimination_2(value, index_0, index_1, correct_value, erroneous_sensor);
-			}
-		}
-		else { // Value_1 not fetched
-			sensor_elimination_2(value, index_0, index_2, correct_value, erroneous_sensor);
-		}
-	}
-	else { // Value_0 not fetched
-		sensor_elimination_2(value, index_1, index_2, correct_value, erroneous_sensor);
-	}
-}
-
-void sensor_elimination_2(float value[MAX_SENSOR_NUMBER], uint8_t index_0, uint8_t index_1, float *correct_value, bool erroneous_sensor[MAX_SENSOR_NUMBER]) {
-	if (!erroneous_sensor[index_0]) { // Checking if one of the sensor has been eliminated before
-		if (!erroneous_sensor[index_1]) {
-			*correct_value = (value[index_0] + value[index_1])/(MAX_SENSOR_NUMBER-2);
-		}
-	}
-	else {
-		if (!erroneous_sensor[index_1]) {
-			*correct_value = value[index_1]/(MAX_SENSOR_NUMBER-3);
-		}
-		else { } // If no sensors are fetched, correct_value doesn't change
-	}
-}
-
-/*
- * within_conf_interval
- *
- * Checks if the FIRST GIVEN ARGUMENT is included inside [-3*sigma;+3*sigma]
- * of the normal distribution for a 99% confidence interval
- * The normal distribution is baised on the values of the two or three other
- * sensors
- *
- */
-
-
-bool within_conf_interval_4(float data_0, float data_1, float data_2, float data_3) {
-	if (data_1 != data_2 && data_1 != data_3 && data_2 != data_3) {
-		float mean = (data_1 + data_2 + data_3)/(MAX_SENSOR_NUMBER-1);
-		float std_dev = sqrt( pow(data_1 - mean,2) + pow(data_2 - mean,2) + pow(data_3 - mean,2) );
-		float normal_data_0 = (data_0 - mean)/std_dev;
-		return ( -normal_coef < normal_data_0 && normal_coef > normal_data_0 );
-	}
-	else { return false; }
-}
-
-bool within_conf_interval_3(float data_0, float data_1, float data_2) {
-	if (data_1 != data_2) { // If two values are equal, returns their shared value
-		float mean = (data_1 + data_2)/(MAX_SENSOR_NUMBER-2);
-		float std_dev = sqrt( pow(data_1 - mean,2) + pow(data_2 - mean,2) );
-		float normal_data_0 = (data_0 - mean)/std_dev;
-		return ( -normal_coef < normal_data_0 && normal_coef > normal_data_0 );
-	}
-	else { return false; }
-}
-
-/*
- * XXX_redundancy
- *
- * Calls the redundancy algorithm for each kind of data given by the sensors
- *
- */
-
-void bno_redundancy(int8_t rslt_bno[MAX_SENSOR_NUMBER]) {
-	bool erroneous_bno[MAX_SENSOR_NUMBER] = {false};
-	for (uint8_t i = 0; i<MAX_SENSOR_NUMBER; i++) {
-		erroneous_bno[i] = rslt_bno[i]; // If the sensor hasn't been fetched, we can't have a rogue value
-	}
-	sensor_elimination_4(bno_data[0].accel.x, bno_data[1].accel.x, bno_data[2].accel.x, bno_data[3].accel.x, &correct_bno_data.accel.x, erroneous_bno); // Attention ! Il faut toujours que les baros soient appelés par ordre d'indice croissant !
-	sensor_elimination_4(bno_data[0].accel.y, bno_data[1].accel.y, bno_data[2].accel.y, bno_data[3].accel.y, &correct_bno_data.accel.y, erroneous_bno);
-	sensor_elimination_4(bno_data[0].accel.z, bno_data[1].accel.z, bno_data[2].accel.z, bno_data[3].accel.z, &correct_bno_data.accel.z, erroneous_bno);
-	sensor_elimination_4(bno_data[0].gyro.x, bno_data[1].gyro.x, bno_data[2].gyro.x, bno_data[3].gyro.x, &correct_bno_data.gyro.x, erroneous_bno);
-	sensor_elimination_4(bno_data[0].gyro.y, bno_data[1].gyro.y, bno_data[2].gyro.y, bno_data[3].gyro.y, &correct_bno_data.gyro.y, erroneous_bno);
-	sensor_elimination_4(bno_data[0].gyro.z, bno_data[1].gyro.z, bno_data[2].gyro.z, bno_data[3].gyro.z, &correct_bno_data.gyro.z, erroneous_bno);
-}
-
-void bme_redundancy(int8_t rslt_bme[MAX_SENSOR_NUMBER]) {
-	bool erroneous_bme[MAX_SENSOR_NUMBER] = {false};
-	for (uint8_t i = 0; i<MAX_SENSOR_NUMBER; i++) {
-			erroneous_bme[i] = rslt_bme[i];
-	}
-	sensor_elimination_4(bme_data_float[0].pressure, bme_data_float[1].pressure, bme_data_float[2].pressure, bme_data_float[3].pressure, &correct_bme_data.pressure, erroneous_bme);
-	sensor_elimination_4(bme_data_float[0].temperature, bme_data_float[1].temperature, bme_data_float[2].temperature, bme_data_float[3].temperature, &correct_bme_data.temperature,erroneous_bme);
-}
-
-/*
- * XXX_data_process
- *
- * Used to send the sensors data through the can, whether there was a redundancy or not.
- * No redundancy means that only one sensor has been initialized/fetched, its values are then sent.
- *
- */
-
-
-void bme_data_process(uint8_t baro_init[MAX_SENSOR_NUMBER], int8_t rslt_bme[MAX_SENSOR_NUMBER], uint8_t cntr)
-{
-	if ( baro_init[0] || baro_init[1] || baro_init[2] || baro_init[3] )
-	{ // Checks if at least one BME is initialized
-		if(cntr>0)
-		{
-			if ( (!rslt_bme[0] && !rslt_bme[1]) || (!rslt_bme[1] && !rslt_bme[2]) || (!rslt_bme[0] && !rslt_bme[2]) ||
-				 (!rslt_bme[0] && !rslt_bme[3]) || (!rslt_bme[1] && !rslt_bme[3]) || (!rslt_bme[2] && !rslt_bme[3]))
-			{ // Checks if at least two barometers have correctly been fetched
-
-				start_profiler(1);
-				bme_redundancy(rslt_bme);
-				end_profiler();
-				/*if (!correct_bme_calibrated)
-				{
-					correct_bme_basepressure += correct_bme_data.pressure/100;
-					correct_bme_calib_counter++;
-					if (correct_bme_calib_counter == BARO_CALIB_N)
-					{
-						correct_bme_basepressure /= BARO_CALIB_N;
-						correct_bme_calibrated = true;
-					}
-				}
-				if (cntr==1)
-				{
-						can_setFrame(correct_bme_basepressure, DATA_ID_CALIB_PRESSURE, HAL_GetTick());
-				}*/
-				can_setFrame(correct_bme_data.temperature, DATA_ID_TEMPERATURE, HAL_GetTick());
-				can_setFrame(correct_bme_data.pressure/100, DATA_ID_PRESSURE, HAL_GetTick());
-			}
-
-			else { // No BME redundancy
-				for (uint8_t i = 0; i<3; i++) {
-					if (!rslt_bme[i])
-					{
-						/*if (!correct_bme_calibrated)
-						{
-							correct_bme_basepressure += bme_data_float[i].pressure/100;
-							correct_bme_calib_counter++;
-							if (correct_bme_calib_counter == BARO_CALIB_N)
-							{
-								correct_bme_basepressure /= BARO_CALIB_N;
-								correct_bme_calibrated = true;
-							}
-						}
-						if (cntr==1)
-						{
-							can_setFrame(correct_bme_basepressure, DATA_ID_CALIB_PRESSURE, HAL_GetTick()); // Still needs the ID of the correct data for the CanBus to recognize it
-						}*/
-						can_setFrame(bme_data_float[i].temperature, DATA_ID_TEMPERATURE, HAL_GetTick());
-						can_setFrame(bme_data_float[i].pressure/100, DATA_ID_PRESSURE, HAL_GetTick());
-					}
-				}
-			}
-		}
-	}
-}
-
-void bno_data_process(uint8_t imu_init[MAX_SENSOR_NUMBER], int8_t rslt_bno[MAX_SENSOR_NUMBER], uint8_t cntr)
-{
-	if ( imu_init[0] || imu_init[1] || imu_init[2] || imu_init[3] )
-	{ // Checks if at least one BNO is initialized
-		if(cntr>0)
-		{
-			if ( (!rslt_bno[0] && !rslt_bno[1]) || (!rslt_bno[1] && !rslt_bno[2]) || (!rslt_bno[0] && !rslt_bno[2]) ||
-				 (!rslt_bno[0] && !rslt_bno[3]) || (!rslt_bno[1] && !rslt_bno[3]) || (!rslt_bno[2] && !rslt_bno[3]))
-			{ // Checks if at least two IMU have correctly been fetched
-
-				start_profiler(1);
-				bno_redundancy(rslt_bno);
-				end_profiler();
-
-				can_setFrame((int32_t) correct_bno_data.accel.x, DATA_ID_ACCELERATION_X, HAL_GetTick());
-				can_setFrame((int32_t) correct_bno_data.accel.y, DATA_ID_ACCELERATION_Y, HAL_GetTick());
-				can_setFrame((int32_t) correct_bno_data.accel.z, DATA_ID_ACCELERATION_Z, HAL_GetTick());
-				can_setFrame((int32_t)(1000*correct_bno_data.gyro.x), DATA_ID_GYRO_X, HAL_GetTick());
-				can_setFrame((int32_t)(1000*correct_bno_data.gyro.y), DATA_ID_GYRO_Y, HAL_GetTick());
-				can_setFrame((int32_t)(1000*correct_bno_data.gyro.z), DATA_ID_GYRO_Z, HAL_GetTick());
-			}
-
-			else
-			{ // No BNO redundancy
-				for (uint8_t i = 0; i<3; i++)
-				{
-					if (!rslt_bno[i])
-					{
-						can_setFrame((int32_t) bno_data[i].accel.x, DATA_ID_ACCELERATION_X, HAL_GetTick());
-						can_setFrame((int32_t) bno_data[i].accel.y, DATA_ID_ACCELERATION_Y, HAL_GetTick());
-						can_setFrame((int32_t) bno_data[i].accel.z, DATA_ID_ACCELERATION_Z, HAL_GetTick());
-						can_setFrame((int32_t)(1000*bno_data[i].gyro.x), DATA_ID_GYRO_X, HAL_GetTick());
-						can_setFrame((int32_t)(1000*bno_data[i].gyro.y), DATA_ID_GYRO_Y, HAL_GetTick());
-						can_setFrame((int32_t)(1000*bno_data[i].gyro.z), DATA_ID_GYRO_Z, HAL_GetTick());
-					}
-				}
-			}
-		}
-	}
 }

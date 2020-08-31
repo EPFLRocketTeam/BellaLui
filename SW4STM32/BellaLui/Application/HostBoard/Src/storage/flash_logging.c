@@ -5,23 +5,20 @@
  *      Author: Arion
  */
 
-#include <storage/flash_logging.h>
+#include "storage/flash_logging.h"
+#include "debug/led.h"
+#include "debug/console.h"
 
-#include "cmsis_os.h"
-#include "fatfs.h"
+#include "rocket_fs.h"
+#include "flash.h"
+#include "storage/flash_runtime.h"
+#include "storage/heavy_io.h"
 
+#include <cmsis_os.h>
+#include <fatfs.h>
 
 #include <stdint.h>
 #include <stdbool.h>
-
-
-#include <debug/led.h>
-#include <debug/console.h>
-
-#include <rocket_fs.h>
-#include <flash.h>
-#include <storage/flash_runtime.h>
-#include <storage/heavy_io.h>
 
 
 

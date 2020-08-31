@@ -24,7 +24,10 @@ extern "C"
 extern void initialise_monitor_handles(void);
 #endif
 
-int rocket_log(const char *format, ...);
+void rocket_log_lock();
+void rocket_log_release();
+int rocket_boot_log(const char* format, ...);
+int rocket_log(const char* format, ...);
 void rocket_log_init();
 
 #ifdef __cplusplus

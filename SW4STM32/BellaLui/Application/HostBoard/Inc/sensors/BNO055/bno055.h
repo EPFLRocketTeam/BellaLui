@@ -2156,6 +2156,13 @@ BNO055_GYRO_ANY_MOTION_THRES_ADDR
 /**************************************************/
 /**\name INITIALIZATION AND REVISION ID FUNCTIONS */
 /**************************************************/
+
+/*
+ * CUSTOM FUNCTION
+ * WARNING: THIS FUNCTION FORCES THE DRIVER TO SWITCH DEVICES BETWEEN MEASUREMENTS
+ */
+BNO055_RETURN_FUNCTION_TYPE bno055_force_device(struct bno055_t *bno055);
+
 /*!
  *	@brief
  *	This API is used for initialize

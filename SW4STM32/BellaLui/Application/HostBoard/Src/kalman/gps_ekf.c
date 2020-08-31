@@ -18,18 +18,23 @@
  * MIT License
  */
 
-#include <can_transmission.h>
-#include <kalman/tiny_ekf.h>
-#include <kalman/tinyekf_config.h>
-#include <string.h>
-#include <stdlib.h>
+#include "kalman/tiny_ekf.h"
+#include "kalman/tinyekf_config.h"
+
+#include "can_transmission.h"
+#include "debug/profiler.h"
+#include "debug/console.h"
+
+
 #include <stdbool.h>
 #include <strings.h>
 #include <math.h>
 
-#include "cmsis_os.h"
+#include <cmsis_os.h>
 
-#include "../../../HostBoard/Inc/Misc/datastructs.h"
+
+#define DELAY_BETWEEN_SAMPLES 32
+
 
 
 #define EKF_PERIOD_MS (100) // [ms] step period
@@ -75,6 +80,7 @@ bool kalmanProcessIMU(IMU_data imu) {
 	IMUb[4] = 0*imu.eulerAngles.y;
 	IMUb[5] = 0*imu.eulerAngles.z;
 	IMU_avail = 1;
+
 	return true;
 }
 
@@ -103,6 +109,7 @@ static void init(ekf_t * ekf) {
 			9.8116e-05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0002, 1.4035e-20,
 			8.6736e-21, 0, 0, 0, 0, 0, 0, 2.4938e-21, 0.0002, 0, 0, 0, 0, 0, 0,
 			0, 9.5501e-21, -1.2369e-20, 0.0002 };
+
 	int i, j;
 	for (i = 0; i < 9; i++) {
 		ekf->x[i] = 0;
@@ -152,6 +159,8 @@ void TK_kalman() {
 	}
 
 	start_time = HAL_GetTick();
+
+	uint8_t sample_counter = 0;
 
 
 	while (1) {
@@ -238,7 +247,25 @@ void TK_kalman() {
 			}
 
 			ekf_step(&ekf, zdata);
+
 			iter++;
+
+			sample_counter++;
+
+			int32_t altitude = (int32_t) (1000 * ekf.x[2]);
+			int32_t velocity = (int32_t) (1000 * ekf.x[5]);
+
+			if(sample_counter > DELAY_BETWEEN_SAMPLES) {
+				rocket_log_lock();
+				rocket_log("\x1b[30;0H"); // Reset cursor
+				rocket_log(" ----------- Kalman -----------\x1b[K\n\x1b[K\n");
+				rocket_log(" Altitude: %d [mm]\x1b[K\n", altitude);
+				rocket_log(" Vertical velocity: %d [mm/s]\x1b[K\n\n", velocity);
+				rocket_log(" ------------------------------\x1b[K\n\x1b[K\n\x1b[40;0H");
+				rocket_log_release();
+
+				sample_counter = 0;
+			}
 
 
 			//send estimate to the CAN

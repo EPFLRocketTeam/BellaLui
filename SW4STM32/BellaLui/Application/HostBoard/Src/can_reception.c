@@ -19,7 +19,7 @@ typedef float float32_t;
 #include <debug/led.h>
 #include <telemetry/telemetry_handling.h>
 #include <airbrakes/airbrake.h>
-#include <sensors/GPS_board.h>
+#include <sensors/gps_board.h>
 #include <sensors/sensor_board.h>
 #include <misc/datastructs.h>
 #include <misc/Common.h>
@@ -195,14 +195,14 @@ void TK_can_reader() {
 
 			switch(msg.id) {
 			case DATA_ID_PRESSURE:
-				baro[idx].pressure = ((float32_t) ((int32_t) msg.data)) / 100; // convert from cPa to hPa
+				baro[idx].pressure = ((float32_t) ((int32_t) msg.data)) / 10000; // convert from cPa to hPa
 				new_baro[idx] = true; // only update when we get the pressure
 				break;
 			case DATA_ID_TEMPERATURE:
 				baro[idx].temperature = ((float32_t) ((int32_t) msg.data)) / 100; // from to cDegC in DegC
 				break;
 			case DATA_ID_CALIB_PRESSURE:
-				baro[idx].base_pressure = ((float32_t) ((int32_t) msg.data)) / 100; // from cPa to hPa
+				baro[idx].base_pressure = ((float32_t) ((int32_t) msg.data)) / 10000; // from cPa to hPa
 				break;
 			case DATA_ID_ACCELERATION_X:
 				imu[idx].acceleration.x = ((float32_t) ((int32_t) msg.data)) / 1000; // convert from m-g to g
@@ -318,7 +318,7 @@ void TK_can_reader() {
 	}
 }
 
-
+/*
 void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart)
 {
 	if (huart == gps_gethuart()) {
@@ -326,4 +326,4 @@ void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart)
 	} else if (huart == ab_gethuart()) {
 		AB_RxCpltCallback();
 	}
-}
+}*/

@@ -17,7 +17,7 @@
 
 // High level Thread LED handling
 void TK_led_handler(void const *arg); // main thread
-int led_register_TK(void);
+uint8_t led_register_TK(void);
 void led_set_TK_rgb(int tk_id, uint16_t r, uint16_t g, uint16_t b);
 
 // Low level LED control

@@ -138,7 +138,7 @@ int main(void) {
 	// Semi hosting has to be enabled in eclipse, otherwise the program will sigtrap at the instruction initialise_monitor_handler() in main.c
 	rocket_log_init(&huart3);
 
-	rocket_log("BellaLui v1.0\n\n");
+	rocket_boot_log("BellaLui v1.0\n\n");
 
 	led_init();
 	led_set_rgb(127, 255, 255);

@@ -33,7 +33,7 @@ void MX_FMPI2C1_Init(void)
 {
 
   hfmpi2c1.Instance = FMPI2C1;
-  hfmpi2c1.Init.Timing = 100000;
+  hfmpi2c1.Init.Timing = 500000;
   hfmpi2c1.Init.OwnAddress1 = 0;
   hfmpi2c1.Init.AddressingMode = FMPI2C_ADDRESSINGMODE_7BIT;
   hfmpi2c1.Init.DualAddressMode = FMPI2C_DUALADDRESS_DISABLE;
@@ -106,6 +106,10 @@ void HAL_FMPI2C_MspInit(FMPI2C_HandleTypeDef* fmpi2cHandle)
     }
 
     //__HAL_LINKDMA(fmpi2cHandle,hdmarx,hdma_fmpi2c1_rx);
+
+
+    HAL_FMPI2CEx_EnableFastModePlus(FMPI2C_FASTMODEPLUS_SCL);
+    HAL_FMPI2CEx_EnableFastModePlus(FMPI2C_FASTMODEPLUS_SDA);
 
   /* USER CODE BEGIN FMPI2C1_MspInit 1 */
 

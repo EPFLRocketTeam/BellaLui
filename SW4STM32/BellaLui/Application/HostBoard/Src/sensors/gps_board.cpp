@@ -1,0 +1,105 @@
+#include "sensors/GPS/TinyGPS++.h"
+
+#include "debug/led.h"
+#include "debug/console.h"
+#include "can_transmission.h"
+
+#include "storage/flash_logging.h"
+
+#include <stm32f4xx_hal.h>
+#include <cmsis_os.h>
+#include <sensors/gps_board.h>
+#include <usart.h>
+
+#include <stdint.h>
+
+#define GPS_RX_BUFFER_SIZE 256
+
+
+UART_HandleTypeDef* gps_huart;
+
+volatile uint32_t lastGpsDmaStreamIndex = 0;
+volatile uint32_t endGpsDmaStreamIndex = 0;
+
+uint8_t gpsRxBuffer[GPS_RX_BUFFER_SIZE];
+
+TinyGPSPlus gpsParser;
+
+
+void gps_init(UART_HandleTypeDef* gpsHuart) {
+	gps_huart = gpsHuart;
+}
+
+/*
+ * Returns 0 if the GPS data was successfully transmitted
+ * Returns 1 if the GPS is connected to satellites but could not determine any location
+ * Returns 2 if the GPS is not connected to any satellite
+ */
+int8_t send_gps_data() {
+	uint8_t sats = gpsParser.satellites.isValid() ? static_cast<uint8_t>(gpsParser.satellites.value()) : 0;
+
+	can_setFrame((int32_t) sats, DATA_ID_GPS_SATS, HAL_GetTick());
+
+	if(gpsParser.location.isValid()) {
+		float hdop = gpsParser.hdop.isValid() ? gpsParser.hdop.hdop() : 0xffffffff;
+		float lat = gpsParser.location.isValid() ? gpsParser.location.lat() : 0xffffffff;
+		float lon = gpsParser.location.isValid() ? gpsParser.location.lng() : 0xffffffff;
+		int32_t altitude = gpsParser.altitude.isValid() ? gpsParser.altitude.value() : 0;
+
+		can_setFrame((int32_t) ((1E3) * hdop), DATA_ID_GPS_HDOP, HAL_GetTick());
+		can_setFrame((int32_t) ((1E6) * lat), DATA_ID_GPS_LAT, HAL_GetTick());
+		can_setFrame((int32_t) ((1E6) * lon), DATA_ID_GPS_LONG, HAL_GetTick());
+		can_setFrame((int32_t) altitude, DATA_ID_GPS_ALTITUDE, HAL_GetTick());
+
+		return 0;
+	} else if(sats > 0){
+		return 1;
+	} else {
+		return 2;
+	}
+}
+
+void TK_GPS_board(void const* argument) {
+	uint8_t gps_led = led_register_TK();
+
+	start_logging();
+
+	uint32_t last_transmission = HAL_GetTick();
+
+	HAL_UART_Receive_DMA(gps_huart, gpsRxBuffer, GPS_RX_BUFFER_SIZE);
+
+	while(true) {
+		endGpsDmaStreamIndex = GPS_RX_BUFFER_SIZE - gps_huart->hdmarx->Instance->NDTR;
+
+		while(lastGpsDmaStreamIndex < endGpsDmaStreamIndex) {
+			gpsParser.encode(gpsRxBuffer[lastGpsDmaStreamIndex++]);
+		}
+
+		if(((HAL_GetTick() - last_transmission) > 100) && gpsParser.passedChecksum() > 1) {
+			switch(send_gps_data()) {
+			case 0:
+				led_set_TK_rgb(gps_led, 0x00, 0xFF, 0x00);
+				break;
+			case 1:
+				led_set_TK_rgb(gps_led, 0x00, 0x00, 0xFF);
+				break;
+			default:
+				led_set_TK_rgb(gps_led, 0xFF, 0x00, 0x00);
+				break;
+			}
+
+			last_transmission = HAL_GetTick();
+		}
+
+		osDelay (10);
+	}
+}
+
+void GPS_RxCpltCallback() {
+	while(lastGpsDmaStreamIndex < GPS_RX_BUFFER_SIZE) {
+		gpsParser.encode(gpsRxBuffer[lastGpsDmaStreamIndex++]);
+	}
+
+	endGpsDmaStreamIndex = 0;
+	lastGpsDmaStreamIndex = 0;
+}
