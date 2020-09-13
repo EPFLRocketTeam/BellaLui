@@ -26,7 +26,6 @@ typedef struct
 {
   float3D acceleration;
   float3D eulerAngles;
-  float32_t temperatureC;
 } IMU_data;
 
 typedef struct

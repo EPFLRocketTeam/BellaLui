@@ -19,8 +19,8 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include <can_transmission.h>
 #include "main.h"
+
 #include "cmsis_os.h"
 #include "adc.h"
 #include "can.h"
@@ -36,12 +36,14 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <threads.h>
+#include "threads.h"
+#include "can_transmission.h"
+#include "debug/led.h"
+#include "debug/console.h"
+#include "debug/shell.h"
+#include "debug/terminal.h"
 
-#include <debug/led.h>
-#include <debug/console.h>
-
-#include <storage/flash_runtime.h>
+#include "storage/flash_runtime.h"
 
 
 /* USER CODE END Includes */
@@ -135,8 +137,9 @@ int main(void) {
 #endif
 
 
-	// Semi hosting has to be enabled in eclipse, otherwise the program will sigtrap at the instruction initialise_monitor_handler() in main.c
+	// Outdated: Semi-hosting has to be enabled in eclipse, otherwise the program will sigtrap at the instruction initialise_monitor_handler() in main.c
 	rocket_log_init(&huart3);
+	shell_init(&huart3, &terminal_execute);
 
 	rocket_boot_log("BellaLui v1.0\n\n");
 

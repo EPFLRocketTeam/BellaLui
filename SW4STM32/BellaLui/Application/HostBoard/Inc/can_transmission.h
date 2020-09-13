@@ -63,6 +63,10 @@ typedef struct
 
 #define DATA_ID_MOTOR_PRESSURE 55
 
+#define DATA_ID_SHELL_CONTROL  200
+#define DATA_ID_SHELL_INPUT    201
+#define DATA_ID_SHELL_OUTPUT   202
+
 // Define all the board ID's (lower means higher priority for CAN protocol)
 #define CAN_ID_SENSOR_BOARD 0
 #define CAN_ID_GPS_BOARD 1
@@ -77,9 +81,11 @@ typedef struct
 
 void CAN_Config(uint32_t id);
 void can_setFrame(uint32_t data, uint8_t data_id, uint32_t timestamp);
-
+void can_addMsg(CAN_msg msg);
 uint32_t can_msgPending();
 CAN_msg can_readBuffer();
+
+uint8_t get_board_id();
 
 
 #endif /* CAN_COMMUNICATION_H_ */

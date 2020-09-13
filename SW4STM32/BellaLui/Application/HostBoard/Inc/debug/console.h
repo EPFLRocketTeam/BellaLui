@@ -13,6 +13,10 @@
 #include <threads.h>
 #include <stdio.h>
 
+#include <stm32f4xx_hal.h>
+
+#define CONSOLE_BUFFER_SIZE 256
+
 
 #ifdef __cplusplus
 extern "C"
@@ -26,9 +30,12 @@ extern void initialise_monitor_handles(void);
 
 void rocket_log_lock();
 void rocket_log_release();
+void rocket_direct_transmit(uint8_t* buffer, uint32_t length);
+void rocket_transmit(uint8_t* buffer, uint32_t length);
 int rocket_boot_log(const char* format, ...);
 int rocket_log(const char* format, ...);
-void rocket_log_init();
+void rocket_log_init(UART_HandleTypeDef* uart);
+UART_HandleTypeDef* get_console_uart();
 
 #ifdef __cplusplus
 }

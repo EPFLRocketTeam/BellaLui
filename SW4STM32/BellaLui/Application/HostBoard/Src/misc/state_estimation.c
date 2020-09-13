@@ -22,7 +22,7 @@ void TK_state_estimation ()
 
   uint32_t lastBaroSeqNumber = 0;
 
-  while (LIFTOFF_TIME == 0)
+  while (liftoff_time == 0)
     {
       if (lastBaroSeqNumber < currentBaroSeqNumber)
         {

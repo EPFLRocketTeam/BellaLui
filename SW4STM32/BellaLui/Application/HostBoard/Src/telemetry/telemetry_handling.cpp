@@ -45,7 +45,7 @@ volatile static uint32_t telemetrySeqNumber = 0;
 
 uint8_t current_state = STATE_IDLE;
 
-IMU_data imu = { { 0, 0, 0 }, { 0, 0, 0 }, 0 };
+IMU_data imu = { { 0, 0, 0 }, { 0, 0, 0 } };
 BARO_data baro = { 0, 0, 0 };
 uint32_t last_sensor_update = 0;
 uint32_t last_motor_update = 0;

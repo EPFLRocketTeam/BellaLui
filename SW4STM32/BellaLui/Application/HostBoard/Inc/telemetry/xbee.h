@@ -17,6 +17,7 @@
 
 
 void xbee_freertos_init(UART_HandleTypeDef *huart);
+void xbee_change_uart(UART_HandleTypeDef *huart);
 void initXbee ();
 void TK_xBeeTransmit (const void* args);
 
@@ -36,7 +37,7 @@ void xBee_rxCpltCallback ();
 
 void processReceivedPacket ();
 
-inline void processReceivedByte (uint8_t rxByte);
+void processReceivedByte(uint8_t rxByte);
 
 void resetStateMachine ();
 

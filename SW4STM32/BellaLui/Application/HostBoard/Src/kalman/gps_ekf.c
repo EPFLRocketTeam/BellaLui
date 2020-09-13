@@ -24,6 +24,7 @@
 #include "can_transmission.h"
 #include "debug/profiler.h"
 #include "debug/console.h"
+#include "debug/monitor.h"
 
 
 #include <stdbool.h>
@@ -31,10 +32,6 @@
 #include <math.h>
 
 #include <cmsis_os.h>
-
-
-#define DELAY_BETWEEN_SAMPLES 32
-
 
 
 #define EKF_PERIOD_MS (100) // [ms] step period
@@ -160,11 +157,11 @@ void TK_kalman() {
 
 	start_time = HAL_GetTick();
 
-	uint8_t sample_counter = 0;
-
 
 	while (1) {
 		rocket_state = can_getState();
+
+		start_profiler(1);
 
 		if (IMU_avail == 1) {
 			IMU_avail = 0;
@@ -250,21 +247,16 @@ void TK_kalman() {
 
 			iter++;
 
-			sample_counter++;
-
 			int32_t altitude = (int32_t) (1000 * ekf.x[2]);
 			int32_t velocity = (int32_t) (1000 * ekf.x[5]);
 
-			if(sample_counter > DELAY_BETWEEN_SAMPLES) {
-				rocket_log_lock();
-				rocket_log("\x1b[30;0H"); // Reset cursor
+			if(enter_monitor(KALMAN_MONITOR)) {
 				rocket_log(" ----------- Kalman -----------\x1b[K\n\x1b[K\n");
 				rocket_log(" Altitude: %d [mm]\x1b[K\n", altitude);
 				rocket_log(" Vertical velocity: %d [mm/s]\x1b[K\n\n", velocity);
 				rocket_log(" ------------------------------\x1b[K\n\x1b[K\n\x1b[40;0H");
-				rocket_log_release();
 
-				sample_counter = 0;
+				exit_monitor(KALMAN_MONITOR);
 			}
 
 
@@ -285,6 +277,8 @@ void TK_kalman() {
 			// no IMU data available :sadface:
 			kalman_state = KALMAN_NO_IMU;
 		}
+
+		end_profiler();
 
 		// ensure periodicity
 		now = HAL_GetTick();

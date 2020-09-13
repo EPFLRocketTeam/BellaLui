@@ -63,7 +63,7 @@ typedef struct FileSystem {
 
 	uint32_t total_used_blocks;
 	uint8_t partition_table[NUM_BLOCKS];
-   uint8_t reverse_partition_table[NUM_BLOCKS];
+    uint8_t reverse_partition_table[NUM_BLOCKS];
 	bool partition_table_modified;
 	DataBlock data_blocks[NUM_BLOCKS];
 	File files[NUM_FILES];

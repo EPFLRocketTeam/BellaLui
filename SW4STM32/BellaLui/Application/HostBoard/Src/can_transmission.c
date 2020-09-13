@@ -10,12 +10,14 @@
  */
 
 #include <can_transmission.h>
-#include <debug/led.h>
-#include <storage/flash_logging.h>
-#include <sync.h>
-#include <threads.h>
 
-#define CAN_BUFFER_DEPTH 64
+#include "debug/board_io.h"
+#include "debug/led.h"
+#include "storage/flash_logging.h"
+#include "sync.h"
+#include "threads.h"
+
+#define CAN_BUFFER_DEPTH 256
 
 extern CAN_HandleTypeDef hcan1;
 
@@ -23,6 +25,8 @@ CAN_TxHeaderTypeDef   TxHeader;
 CAN_RxHeaderTypeDef   RxHeader;
 uint8_t               RxData[8];
 uint32_t              TxMailbox;
+
+uint8_t board_id;
 
 volatile CAN_msg can_current_msg;
 
@@ -48,8 +52,9 @@ void can_addMsg(CAN_msg msg) {
 /*
  * Configures CAN protocol for 250kbit/s without interrupt for reading (only polling).
  */
-void CAN_Config(uint32_t id)
-{
+void CAN_Config(uint32_t id) {
+	board_id = id;
+
     CAN_FilterTypeDef  sFilterConfig;
     
     /*##-1- Configure the CAN peripheral #######################################*/
@@ -119,8 +124,29 @@ void can_setFrame(uint32_t data, uint8_t data_id, uint32_t timestamp) {
 
     if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) == HAL_OK) {
     	flash_log(message);
-    	can_addMsg(message);
 
+    	if(has_io_mode(IO_OUTPUT & IO_CAN & IO_AUTO) || message.id >= 200) {
+			can_addMsg(message);
+		}
+
+    	if(has_io_mode(IO_OUTPUT & IO_CAN & IO_PIPE)) {
+			uint8_t buffer[8];
+
+			buffer[0] = message.id;
+			buffer[1] = (uint8_t) (message.timestamp >> 16);
+			buffer[2] = (uint8_t) (message.timestamp >> 8);
+			buffer[3] = (uint8_t) (message.timestamp >> 0);
+			buffer[4] = (uint8_t) (message.data >> 24);
+			buffer[5] = (uint8_t) (message.data >> 16);
+			buffer[6] = (uint8_t) (message.data >> 8);
+			buffer[7] = (uint8_t) (message.data >> 0);
+
+			rocket_transmit(buffer, 8);
+		}
+
+    	if(has_io_mode(IO_OUTPUT & IO_CAN & IO_DIRECT)) {
+			rocket_log("%d: %08x @ %dms\n", (uint32_t) message.id, message.data, message.timestamp);
+		}
     } else { // something bad happen
     	// not sure what to do
     }
@@ -128,7 +154,10 @@ void can_setFrame(uint32_t data, uint8_t data_id, uint32_t timestamp) {
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 	can_readFrame();
-	can_addMsg(can_current_msg);
+
+	if(has_io_mode(IO_INPUT & IO_CAN & IO_AUTO)) {
+		can_addMsg(can_current_msg);
+	}
 }
 
 uint32_t can_msgPending() {
@@ -184,4 +213,8 @@ uint32_t can_readFrame(void) {
         can_current_msg.id_CAN = RxHeader.StdId;
     }
     return fill_level;
+}
+
+uint8_t get_board_id() {
+	return board_id;
 }

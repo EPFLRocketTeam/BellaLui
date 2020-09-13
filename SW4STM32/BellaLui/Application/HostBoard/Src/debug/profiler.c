@@ -10,28 +10,34 @@
 
 #include <cmsis_os.h>
 #include <stm32f4xx.h>
+#include <stdbool.h>
 
 #define NUM_PROFILERS 16
 #define MAX_PROFILER_DEPTH 8
-#define TICKS_PER_SAMPLE 64
+#define TIME_BETWEEN_UPDATES 1000
 
 struct ThreadProfiler {
 	uint8_t depth;
-	uint8_t samples;
+	uint32_t last_update;
+	int8_t depth_to_display;
 	uint32_t timestamps[MAX_PROFILER_DEPTH];
 	uint8_t measurement_id[MAX_PROFILER_DEPTH];
 };
 
 struct ThreadProfiler profilers[NUM_PROFILERS];
 
-void start_profiler(uint8_t identifier_addend) {
+static volatile bool profiling_requested;
+static bool profiling;
+
+void start_profiler(uint8_t measurement_id) {
 	TaskHandle_t handle = xTaskGetCurrentTaskHandle();
-	uint32_t taskID = uxTaskGetTaskNumber(handle);
+	uint8_t* task_name = (uint8_t*) pcTaskGetName(handle);
+	uint8_t task_id = task_name[0] - 0x30;
 
-	if(taskID < NUM_PROFILERS) {
-		struct ThreadProfiler* profiler = &profilers[taskID];
+	if(task_id < NUM_PROFILERS) {
+		struct ThreadProfiler* profiler = &profilers[task_id];
 
-		profiler->measurement_id[profiler->depth] += identifier_addend;
+		profiler->measurement_id[profiler->depth] = measurement_id;
 		profiler->measurement_id[profiler->depth + 1] = 0;
 		profiler->timestamps[profiler->depth] = HAL_GetTick();
 
@@ -41,25 +47,26 @@ void start_profiler(uint8_t identifier_addend) {
 
 		if(profiler->depth >= MAX_PROFILER_DEPTH) {
 			profiler->depth = MAX_PROFILER_DEPTH - 1;
-			rocket_log("Attempt from thread %s to exceed the maximum profiler nesting depth!\n", pcTaskGetName(handle));
+			rocket_log("Attempt from thread %s to exceed the maximum profiler nesting depth!\n", task_name);
 		}
 	} else {
-		rocket_log("Unable to profile thread %s\n", pcTaskGetName(handle));
+		rocket_log("Unable to profile thread %s\n", task_name);
 	}
 }
 
-void _tabs(uint8_t count) {
+static void _spaces(uint8_t count) {
 	while(count--) {
-		rocket_log(" > ");
+		rocket_log(" ");
 	}
 }
 
 void end_profiler() {
 	TaskHandle_t handle = xTaskGetCurrentTaskHandle();
-	uint32_t taskID = uxTaskGetTaskNumber(handle);
+	uint8_t* task_name = (uint8_t*) pcTaskGetName(handle);
+	uint8_t task_id = task_name[0] - 0x30;
 
-	if(taskID < NUM_PROFILERS) {
-		struct ThreadProfiler* profiler = &profilers[taskID];
+	if(task_id < NUM_PROFILERS) {
+		struct ThreadProfiler* profiler = &profilers[task_id];
 
 		profiler->depth--;
 
@@ -67,34 +74,53 @@ void end_profiler() {
 		uint32_t diff = time - profiler->timestamps[profiler->depth]; // Should not overflow
 		profiler->timestamps[profiler->depth] = 0;
 
-		if(profiler->samples > TICKS_PER_SAMPLE) {
+		if(profiler->depth == profiler->depth_to_display) {
 			uint8_t measurement_id = (uint8_t) profiler->measurement_id[profiler->depth];
-			_tabs(profiler->depth);
 
-			for(uint8_t i = 0; i < profiler->depth; i++) {
-				profiler->timestamps[i] += 1; // One rocket_log takes 1.7 ms
-
-				if(time % 3 == 0 || time % 3 == 1) {
-					profiler->timestamps[i] += 1; // Suppose time mod 2 is uniformly distributed
-				}
+			if(profiling) {
+				rocket_log("\x1b[%u;%uH", 1 + (uint32_t) measurement_id, (uint32_t) (20 * task_id));
+				_spaces(profiler->depth);
+				rocket_log(" (%u) %u.5 %-9s", (uint32_t) measurement_id, (uint32_t) diff, "ms");
 			}
-
-			rocket_log("Thread %s took %d.5 ms to perform task %u.\n", pcTaskGetName(handle), (uint32_t) diff, measurement_id);
-
 		}
 
 		if(profiler->depth == 0) {
-			if(profiler->samples > TICKS_PER_SAMPLE) {
-				profiler->samples = 0;
-				rocket_log("\n ------------------------------\n\n\x1b[40;0H");
-				rocket_log_release();
-			} else if(profiler->samples == TICKS_PER_SAMPLE) {
-				rocket_log_lock();
-				rocket_log("\x1b[15;0H\x1b[1J\x1b[H\n"); // Reset cursor
-				rocket_log(" ---------- Profiler ----------\n\n");
+			if(profiler->depth_to_display == 0) {  // Update layer per layer
+				if(profiling) {
+					rocket_log("\n");
+					rocket_log("\e8"); // Restore cursor
+					rocket_log_release();
+				}
+			} else if(time - profiler->last_update > TIME_BETWEEN_UPDATES) {
+				profiler->last_update = time;
+
+				if(profiling_requested) {
+					profiling_requested = false;
+					profiling = true;
+				}
+
+				if(profiling) {
+					rocket_log_lock();
+					rocket_log("\e7"); // Save cursor
+					rocket_log("\x1b[0;%dH %-16s |", 20 * task_id, task_name);
+
+					profiler->depth_to_display = MAX_PROFILER_DEPTH; // Magic number. Signals an update request.
+				}
 			}
 
-			profiler->samples++;
+			profiler->depth_to_display--;
 		}
 	}
+}
+
+void enable_profiler() {
+	profiling_requested = true;
+
+	for(uint8_t i = 0; i < NUM_PROFILERS; i++) {
+		profilers[i].depth_to_display = -1;
+	}
+}
+
+void disable_profiler() {
+	profiling = false;
 }

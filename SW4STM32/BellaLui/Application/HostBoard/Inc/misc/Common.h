@@ -40,7 +40,7 @@ volatile float32_t airbrakes_angle;
 extern volatile float air_speed_state_estimate, altitude_estimate;
 
 volatile uint8_t currentState;
-volatile uint32_t LIFTOFF_TIME;
+volatile uint32_t liftoff_time;
 
 volatile uint32_t currentImuSeqNumber;
 volatile uint32_t currentBaroSeqNumber;

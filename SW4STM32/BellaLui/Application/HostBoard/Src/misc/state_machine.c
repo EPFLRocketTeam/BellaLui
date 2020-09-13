@@ -52,7 +52,7 @@ void TK_state_machine (void const * argument)
   // State Machine main task loop
   for (;;)
     {
-      sync_logic(1);
+      sync_logic(10);
       can_setFrame(currentState, DATA_ID_STATE, HAL_GetTick());
 
       // if new imu data is available
@@ -81,7 +81,7 @@ void TK_state_machine (void const * argument)
           baroIsReady = 0; // set new data flag to false
         }
 
-      if (LIFTOFF_TIME != 0 && (HAL_GetTick() - LIFTOFF_TIME) > 5 * 60 * 1000) {
+      if (liftoff_time != 0 && (HAL_GetTick() - liftoff_time) > 5 * 60 * 1000) {
           currentState = STATE_TOUCHDOWN;
           rocket_log("Touchdown!\n");
           flight_status = 40;
@@ -108,10 +108,10 @@ void TK_state_machine (void const * argument)
                 // Compute lift-off triggers for acceleration
                 uint8_t liftoffAccelTrig = (abs_fl32 (imu_data->acceleration.z) > ROCKET_CST_LIFTOFF_TRIG_ACCEL);
 
-                if (LIFTOFF_TIME != 0)
+                if (liftoff_time != 0)
                   {
                     //already detected the acceleration trigger. now we need the trigger for at least 1000ms before trigerring the liftoff.
-                    if (liftoffAccelTrig && HAL_GetTick () - LIFTOFF_TIME > LIFTOFF_DETECTION_DELAY)
+                    if (liftoffAccelTrig && HAL_GetTick () - liftoff_time > LIFTOFF_DETECTION_DELAY)
                       {
                     	rocket_log("Lift off!\n");
                         currentState = STATE_LIFTOFF; // Switch to lift-off state
@@ -119,7 +119,7 @@ void TK_state_machine (void const * argument)
                       }
                     else if (!liftoffAccelTrig) //false positive.
                       {
-                        LIFTOFF_TIME = 0;
+                        liftoff_time = 0;
                         time_tmp = 0;
                       }
                     break;
@@ -127,7 +127,7 @@ void TK_state_machine (void const * argument)
                 // detect lift-off
                 if (liftoffAccelTrig)
                   {
-                    LIFTOFF_TIME = HAL_GetTick ();
+                    liftoff_time = HAL_GetTick ();
                     time_tmp = HAL_GetTick (); // Start timer to estimate motor burn out
                   }
               }

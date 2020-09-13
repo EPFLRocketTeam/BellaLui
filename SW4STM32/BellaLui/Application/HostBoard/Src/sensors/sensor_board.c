@@ -3,7 +3,7 @@
   * File Name          : sensor_board.c
   * Description        : This file provides code for the configuration
   *                      of the sensor board.
-  * Author 			   : Clément Nussbaumer, Quentin Delfosse, Arion Zimmermann
+  * Author 			   : Alexandre Devienne, Quentin Delfosse, Arion Zimmermann
   * Date    		   : Feb 2020
 
   * Notes : The code below was developed to implement a redundancy on the 4 sensors
@@ -21,9 +21,11 @@
 #include "debug/profiler.h"
 #include "debug/led.h"
 #include "debug/console.h"
+#include "debug/monitor.h"
 #include "sensors/BME280/bme280.h"
 #include "sensors/BNO055/bno055.h"
 #include "can_transmission.h"
+#include "sync.h"
 
 #include <stm32f4xx_hal.h>
 #include <cmsis_os.h>
@@ -37,7 +39,6 @@
 #define BARO_CALIB_N 128
 
 #define TICKS_BETWEEN_INIT_ATTEMPTS 64 // At 10 Hz, corresponds to ca. 5 seconds
-#define AVERAGE_SAMPLES 64
 
 /* sensor_id is the index of the sensor, which is different form the dev_id ( defined in bme280_dev)
  * or dev_addr ( defined in bno055_t) representing its address for the I2C protocol
@@ -81,13 +82,11 @@ uint8_t current_sensor = 0;
 //## BME280 ## Barometer
 struct bme280_dev barometers[MAX_BAROMETERS];
 struct bme280_data_float barometer_data;
-struct bme280_data_float average_barometer_data;
 bool available_barometers[MAX_BAROMETERS];
 
 //## BNO055 ## IMU
 struct bno055_t accelerometers[MAX_ACCELEROMETERS];
 struct bno055_data accelerometer_data;
-struct bno055_data average_accelerometer_data;
 bool available_accelerometers[MAX_ACCELEROMETERS];
 
 /*
@@ -100,7 +99,6 @@ bool available_accelerometers[MAX_ACCELEROMETERS];
 
 void TK_sensor_board(void const * argument) {
 	uint16_t retry_counter = 0;
-	uint16_t sample_counter = 0;
 
 	uint8_t led_barometer = led_register_TK();
 	uint8_t led_accelerometer = led_register_TK();
@@ -108,7 +106,7 @@ void TK_sensor_board(void const * argument) {
 	struct bme280_data_float full_barometer_data[MAX_BAROMETERS];
 	struct bno055_data full_accelerometer_data[MAX_ACCELEROMETERS];
 
-	osDelay(500);
+	osDelay(2000);
 
 	while(true) {
 		uint8_t num_barometer_data = 0;
@@ -120,17 +118,20 @@ void TK_sensor_board(void const * argument) {
 
 		for(uint8_t i = 0; i < MAX_BAROMETERS; i++) {
 			if(!available_barometers[i] && retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
-				if(init_barometer(i) == BME280_OK) {
+				int8_t status = init_barometer(i);
+
+				if(status == BME280_OK) {
 					available_barometers[i] = true;
 					rocket_log("Barometer %u initialised\n", i);
 				}
 			}
 		}
 
-		for(uint8_t i = 0; i < 2; i++) {
+		for(uint8_t i = 0; i < MAX_ACCELEROMETERS; i++) {
 			if(!available_accelerometers[i] && retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+				int32_t status = init_accelerometer(i);
 
-				if(init_accelerometer(i) == BNO055_SUCCESS) {
+				if(status == BNO055_SUCCESS) {
 					available_accelerometers[i] = true;
 					rocket_log("Accelerometer %u initialised\n", i);
 				}
@@ -138,12 +139,30 @@ void TK_sensor_board(void const * argument) {
 		}
 
 
+		if(available_barometers[0] == 0 && available_barometers[1] == 0 && retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+			HAL_I2C_DeInit(&hi2c3);
+			hi2c3.Instance->CR1 |= I2C_CR1_SWRST | I2C_CR1_STOP;
+			RCC->APB1RSTR |= RCC_APB1RSTR_I2C3RST;
+			RCC->APB1RSTR &= ~RCC_APB1RSTR_I2C3RST;
+			hi2c3.Instance->CR1 &= ~(I2C_CR1_SWRST | I2C_CR1_STOP);
+			HAL_I2C_Init(&hi2c3);
+		}
+
+		if(available_barometers[2] == 0 && available_barometers[3] == 0 && retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+			HAL_FMPI2C_DeInit(&hfmpi2c1);
+			hfmpi2c1.Instance->CR1 |= I2C_CR1_SWRST | I2C_CR1_STOP;
+			RCC->APB1RSTR |= RCC_APB1RSTR_FMPI2C1RST;
+			RCC->APB1RSTR &= ~RCC_APB1RSTR_FMPI2C1RST;
+			hfmpi2c1.Instance->CR1 &= ~(I2C_CR1_SWRST | I2C_CR1_STOP);
+			HAL_FMPI2C_Init(&hfmpi2c1);
+		}
+
 		retry_counter++;
 
 		end_profiler();
 
 
-		start_profiler(20); // BNO fetching (task ID higher than 20)
+		start_profiler(2); // BNO fetching (task ID higher than 20)
 
 		for(uint8_t i = 0; i < MAX_BAROMETERS; i++) {
 			if(available_barometers[i]) {
@@ -159,7 +178,7 @@ void TK_sensor_board(void const * argument) {
 		end_profiler();
 
 
-		start_profiler(20); // BME fetching (task ID higher than 40)
+		start_profiler(3); // BME fetching (task ID higher than 40)
 
 		for(uint8_t i = 0; i < MAX_ACCELEROMETERS; i++) {
 			if(available_accelerometers[i]) {
@@ -175,7 +194,7 @@ void TK_sensor_board(void const * argument) {
 		end_profiler();
 
 
-		start_profiler(20); // Redundancy and data filtering (task ID higher than 60)
+		start_profiler(4); // Redundancy and data filtering (task ID higher than 60)
 
 		if(num_barometer_data > 0) {
 			barometer_data = barometer_redundancy(full_barometer_data, num_barometer_data);
@@ -193,7 +212,7 @@ void TK_sensor_board(void const * argument) {
 
 		end_profiler();
 
-		start_profiler(20); // Transmit data through the CAN bus (task ID higher than 80)
+		start_profiler(5); // Transmit data through the CAN bus (task ID higher than 80)
 
 		uint32_t time = HAL_GetTick();
 
@@ -206,42 +225,29 @@ void TK_sensor_board(void const * argument) {
 		can_setFrame((int32_t) (1000 * accelerometer_data.gyro.y), DATA_ID_GYRO_Y, time);
 		can_setFrame((int32_t) (1000 * accelerometer_data.gyro.z), DATA_ID_GYRO_Z, time);
 
-		average_barometer_data.temperature += barometer_data.temperature;
-		average_barometer_data.pressure += barometer_data.pressure;
-		average_accelerometer_data.accel.x += accelerometer_data.accel.x;
-		average_accelerometer_data.accel.y += accelerometer_data.accel.y;
-		average_accelerometer_data.accel.z += accelerometer_data.accel.z;
-		average_accelerometer_data.gyro.x += accelerometer_data.gyro.x;
-		average_accelerometer_data.gyro.y += accelerometer_data.gyro.y;
-		average_accelerometer_data.gyro.z += accelerometer_data.gyro.z;
+		end_profiler();
 
 		end_profiler();
 
-		sample_counter++;
 
-		if(sample_counter > AVERAGE_SAMPLES) {
-			rocket_log_lock();
-			rocket_log("\x1b[15;0H"); // Reset cursor
+		if(enter_monitor(SENSOR_MONITOR)) {
 			rocket_log(" ----- Sensor acquisition -----\x1b[K\n\x1b[K\n");
 			rocket_log(" Available barometers: %d\x1b[K\n", num_barometer_data);
 			rocket_log(" Available accelerometers: %d\x1b[K\n", num_accelerometer_data);
-			rocket_log(" Temperature: %d [m°C]\x1b[K\n", (uint32_t) (average_barometer_data.temperature * 10 / AVERAGE_SAMPLES));
-			rocket_log(" Pressure: %d [Pa]\x1b[K\n", (uint32_t) (average_barometer_data.pressure / AVERAGE_SAMPLES));
-			rocket_log(" Acceleration X: %d [mg]\x1b[K\n", (uint32_t) (average_accelerometer_data.accel.x / AVERAGE_SAMPLES));
-			rocket_log(" Acceleration Y: %d [mg]\x1b[K\n", (uint32_t) (average_accelerometer_data.accel.y / AVERAGE_SAMPLES));
-			rocket_log(" Acceleration Z: %d [mg]\x1b[K\n", (uint32_t) (average_accelerometer_data.accel.z / AVERAGE_SAMPLES));
-			rocket_log(" Rotation X: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * average_accelerometer_data.gyro.x / AVERAGE_SAMPLES));
-			rocket_log(" Rotation Y: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * average_accelerometer_data.gyro.y / AVERAGE_SAMPLES));
-			rocket_log(" Rotation Z: %d [mrad/s]\x1b[K\n\x1b[K\n", (uint32_t) (1000 * average_accelerometer_data.gyro.z / AVERAGE_SAMPLES));
+			rocket_log(" Temperature: %d [m°C]\x1b[K\n", (uint32_t) (barometer_data.temperature * 10));
+			rocket_log(" Pressure: %d [Pa]\x1b[K\n", (uint32_t) (barometer_data.pressure));
+			rocket_log(" Acceleration X: %d [mg]\x1b[K\n", (uint32_t) (accelerometer_data.accel.x));
+			rocket_log(" Acceleration Y: %d [mg]\x1b[K\n", (uint32_t) (accelerometer_data.accel.y));
+			rocket_log(" Acceleration Z: %d [mg]\x1b[K\n", (uint32_t) (accelerometer_data.accel.z));
+			rocket_log(" Rotation X: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.x));
+			rocket_log(" Rotation Y: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.y));
+			rocket_log(" Rotation Z: %d [mrad/s]\x1b[K\n\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.z));
 			rocket_log(" ------------------------------\x1b[K\n\x1b[K\n\x1b[40;0H");
-			rocket_log_release();
 
-			average_barometer_data = (struct bme280_data_float) { 0 };
-			average_accelerometer_data = (struct bno055_data) { 0 };
-			sample_counter = 0;
+			exit_monitor(SENSOR_MONITOR);
 		}
 
-		end_profiler();
+	    sync_logic(10);
 	}
 }
 
@@ -275,12 +281,14 @@ int8_t init_barometer(uint8_t sensor_id) {
 	int8_t result = bme280_init(&barometers[sensor_id]); // Returns 1 if error
 
 	if(result != BME280_OK) {
+		// rocket_log("Barometer %u failed to initialise with error code %d\n", sensor_id, result);
 		return result;
 	}
 	//Always read the current settings before writing
 	result = bme280_get_sensor_settings(&barometers[sensor_id]);
 
 	if(result != BME280_OK) {
+		// rocket_log("Barometer %u failed to fetch sensor settings with error code %d\n", sensor_id, result);
 		return result;
 	}
 	//Overwrite the desired settings
@@ -293,13 +301,19 @@ int8_t init_barometer(uint8_t sensor_id) {
 	result = bme280_set_sensor_settings(BME280_ALL_SETTINGS_SEL, &barometers[sensor_id]);
 
 	if(result != BME280_OK) {
+		// rocket_log("Barometer %u failed to change sensor settings with error code %d\n", sensor_id, result);
 		return result;
 	}
 
 	//Always set the power mode after setting the configuration
 	result = bme280_set_sensor_mode(BME280_NORMAL_MODE, &barometers[sensor_id]);
 
-	return result;
+	if(result != BME280_OK) {
+		// rocket_log("Barometer %u failed to change power mode with error code %d\n", sensor_id, result);
+		return result;
+	}
+
+	return BME280_OK;
 }
 
 int8_t init_accelerometer(uint8_t sensor_id) {
@@ -318,55 +332,69 @@ int8_t init_accelerometer(uint8_t sensor_id) {
 	int8_t result = bno055_init(&accelerometers[sensor_id]); // Returns 1 if error
 
 	if(result != BNO055_SUCCESS) {
+		// rocket_log("Accelerometer %u failed to initialise with error code %d\n", sensor_id, result);
 		return result;
 	}
 
 	result = bno055_set_power_mode(BNO055_POWER_MODE_NORMAL);
 
 	if(result != BNO055_SUCCESS) {
+		// rocket_log("Accelerometer %u failed to set power mode with error code %d\n", sensor_id, result);
 		return result;
 	}
 
 	result = bno055_set_operation_mode(BNO055_OPERATION_MODE_ACCGYRO);
 
 	if(result != BNO055_SUCCESS) {
+		// rocket_log("Accelerometer %u failed to set operation mode with error code %d\n", sensor_id, result);
 		return result;
 	}
 
 	result = bno055_set_accel_range(BNO055_ACCEL_RANGE_16G);
 
 	if(result != BNO055_SUCCESS) {
+		// rocket_log("Accelerometer %u failed to set acceleration range with error code %d\n", sensor_id, result);
 		return result;
 	}
 
-	// result = bno055_set_accel_bw(BNO055_ACCEL_BW_125HZ);
+	// result = bno055_set_accel_bw(BNO055_ACCEL_BW_31_25HZ);
 	result = bno055_set_accel_bw(BNO055_ACCEL_BW_500HZ);
 
 	if(result != BNO055_SUCCESS) {
+		// rocket_log("Accelerometer %u failed to set acceleration bandwidth with error code %d\n", sensor_id, result);
 		return result;
 	}
 
 	result = bno055_set_accel_unit(BNO055_ACCEL_UNIT_MG);
 
 	if(result != BNO055_SUCCESS) {
+		// rocket_log("Accelerometer %u failed to set acceleration unit with error code %d\n", sensor_id, result);
 		return result;
 	}
 
+	// result = bno055_set_gyro_bw(BNO055_GYRO_BW_47HZ);
 	result = bno055_set_gyro_bw(BNO055_GYRO_BW_523HZ);
 
 	if(result != BNO055_SUCCESS) {
+		// rocket_log("Accelerometer %u failed to set gyroscope bandwidth with error code %d\n", sensor_id, result);
 		return result;
 	}
 
 	result = bno055_set_gyro_unit(BNO055_GYRO_UNIT_RPS);
 
 	if(result != BNO055_SUCCESS) {
+		// rocket_log("Accelerometer %u failed to set gyroscope unit with error code %d\n", sensor_id, result);
 		return result;
 	}
 
 	result = bno055_write_page_id(BNO055_PAGE_ZERO);
 
-	return result;
+	if(result != BNO055_SUCCESS) {
+		// rocket_log("Accelerometer %u failed to set default write page ID with error code %d\n", sensor_id, result);
+		return result;
+	}
+
+	return BNO055_SUCCESS;
 }
 
 /*
@@ -502,15 +530,22 @@ int8_t bno_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t le
 int8_t bme_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len) {
 	int8_t rslt = 0;
 
-	vTaskSuspendAll();
+	if(do_privileged_io()) {
+		vTaskSuspendAll();
 
-	if (current_sensor == 0 || current_sensor == 1) {
-		rslt = HAL_I2C_Mem_Read(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
-	} else if (current_sensor == 2 || current_sensor == 3) {
-		rslt = HAL_FMPI2C_Mem_Read(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
+		if (current_sensor == 0 || current_sensor == 1) {
+			rslt = HAL_I2C_Mem_Read(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
+		} else if (current_sensor == 2 || current_sensor == 3) {
+			rslt = HAL_FMPI2C_Mem_Read(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
+		}
+
+		xTaskResumeAll();
+
+		end_privileged_io();
+	} else {
+		rocket_direct_transmit("Err\n", 4);
+		return -1;
 	}
-
-	xTaskResumeAll();
 
 	return rslt;
 }
@@ -518,15 +553,22 @@ int8_t bme_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t le
 int8_t bme_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len) {
 	int8_t rslt = 0;
 
-	vTaskSuspendAll();
+	if(do_privileged_io()) {
+		vTaskSuspendAll();
 
-	if (current_sensor == 0 || current_sensor == 1) {
-		rslt = HAL_I2C_Mem_Write(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
-	} else if (current_sensor == 2 || current_sensor == 3) {
-		rslt = HAL_FMPI2C_Mem_Write(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
+		if (current_sensor == 0 || current_sensor == 1) {
+			rslt = HAL_I2C_Mem_Write(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
+		} else if (current_sensor == 2 || current_sensor == 3) {
+			rslt = HAL_FMPI2C_Mem_Write(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
+		}
+
+		xTaskResumeAll();
+
+		end_privileged_io();
+	} else {
+		rocket_direct_transmit("Err\n", 4);
+		return -1;
 	}
-
-	xTaskResumeAll();
 
 	return rslt;
 }

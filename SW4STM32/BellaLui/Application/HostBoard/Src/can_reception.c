@@ -15,22 +15,24 @@ typedef float float32_t;
 #include <threads.h>
 #include <cmsis_os.h>
 
-#include <can_transmission.h>
-#include <debug/led.h>
-#include <telemetry/telemetry_handling.h>
-#include <airbrakes/airbrake.h>
-#include <sensors/gps_board.h>
-#include <sensors/sensor_board.h>
-#include <misc/datastructs.h>
-#include <misc/Common.h>
-#include <storage/flash_logging.h>
-#include <debug/console.h>
-//#include <kalman/tiny_ekf.h>
-
-#include <storage/flash_logging.h>
+#include "can_transmission.h"
+#include "debug/profiler.h"
+#include "debug/led.h"
+#include "telemetry/telemetry_handling.h"
+#include "airbrakes/airbrake.h"
+#include "sensors/gps_board.h"
+#include "sensors/sensor_board.h"
+#include "misc/datastructs.h"
+#include "misc/Common.h"
+#include "storage/flash_logging.h"
+#include "debug/console.h"
+#include "storage/flash_logging.h"
+#include "debug/terminal.h"
 
 
 #define BUFFER_SIZE 128
+#define OUTPUT_SHELL_BUFFER_SIZE 256
+#define SHELL_MIN_FLUSH_TIME 100
 #define GPS_DEFAULT (-1.0)
 #define MAX_MOTOR_PRESSURE 10000.0f // TO BE CONFIGURED
 
@@ -107,13 +109,18 @@ bool handleABData(uint32_t timestamp, int32_t new_angle) {
 }
 
 bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
+	rocket_log("State updated: %d\n", state);
 	if(state == STATE_LIFTOFF) {
-		rocket_log("Logging started.\n");
     	start_logging();
+		rocket_log("Logging started.\n");
 	} else if(state == STATE_TOUCHDOWN) {
+		stop_logging();
 		rocket_log("Logging stopped.\n");
         on_dump_request();
 	}
+
+	currentState = state; // Update the system state
+	liftoff_time = timestamp;
 
 	return true;
 }
@@ -170,6 +177,8 @@ void TK_can_reader() {
 	IMU_data  imu [MAX_BOARD_NUMBER] = {0};
 	BARO_data baro[MAX_BOARD_NUMBER] = {0};
 	GPS_data  gps [MAX_BOARD_NUMBER] = {0};
+	uint8_t state = 0;
+
 	int total_gps_fixes = 0;
 	bool gps_fix [MAX_BOARD_NUMBER] = {0};
 	bool new_baro[MAX_BOARD_NUMBER] = {0};
@@ -179,13 +188,18 @@ void TK_can_reader() {
 	bool new_motor_pressure = 0;
 	bool new_state = 0;
 	int idx = 0;
+	uint32_t shell_command;
+	uint32_t shell_payload;
 
 	osDelay (500); // Wait for the other threads to be ready
 
-	for (;;)
-	{
+	while(true) {
+		start_profiler(1);
+
 		while (can_msgPending()) { // check if new data
 			msg = can_readBuffer();
+
+
 			// add to SD card
 #ifdef SDCARD
 				sendSDcard(msg);
@@ -244,14 +258,17 @@ void TK_can_reader() {
 				new_gps[idx] = true;
 				break;
 			case DATA_ID_STATE:
-				if(currentState != msg.data) {
+				if(msg.data > state) {
 					new_state = true;
+					state = msg.data;
 				}
 
 				#ifndef ROCKET_FSM // to avoid self loop on board with FSM
-					telemetrySendState(msg.timestamp, EVENT, 0, currentState = msg.data);
+					telemetrySendState(msg.timestamp, EVENT, 0, currentState);
 				#endif
 
+				break;
+			case DATA_ID_KALMAN_STATE:
 				break;
 			case DATA_ID_KALMAN_Z:
 				kalman_z = ((float32_t) ((int32_t) msg.data))/1e3; // from mm to m
@@ -263,10 +280,38 @@ void TK_can_reader() {
 				ab_angle = ((int32_t) msg.data); // keep in deg
 				// new_ab = true;
 				break;
-
 			case DATA_ID_MOTOR_PRESSURE:
 				motor_pressure = (float32_t) msg.data;
 				new_motor_pressure = true;
+				break;
+			case DATA_ID_SHELL_CONTROL:
+				shell_command = msg.data & 0xFF000000;
+				shell_payload = msg.data & 0x00FFFFFF;
+
+				if(shell_command == SHELL_BRIDGE_CREATE) {
+					shell_bridge(shell_payload & 0xF);
+					can_setFrame(SHELL_ACK, DATA_ID_SHELL_CONTROL, HAL_GetTick());
+					rocket_log("\n\nBellaLui Terminal for board %u\n\n", get_board_id());
+				} else if(shell_command == SHELL_BRIDGE_DESTROY) {
+					shell_bridge(-1);
+				} else if(shell_command == SHELL_ACK) {
+					rocket_direct_transmit((uint8_t*) "> Connected to remote shell\n", 28);
+				} else if(shell_command == SHELL_ERR) {
+					rocket_direct_transmit((uint8_t*) "> Failed to connect to remote shell\n", 36);
+				}
+
+				break;
+			case DATA_ID_SHELL_INPUT: // Little-Endian
+				shell_receive_byte(((char*) &msg.data)[0], -1);
+				shell_receive_byte(((char*) &msg.data)[1], -1);
+				shell_receive_byte(((char*) &msg.data)[2], -1);
+				shell_receive_byte(((char*) &msg.data)[3], -1);
+				break;
+			case DATA_ID_SHELL_OUTPUT:
+				rocket_direct_transmit((uint8_t*) &msg.data, 4);
+				break;
+			default:
+				rocket_log("Unhandled can frame ID %d\n", msg.id);
 			}
 		}
 
@@ -307,14 +352,16 @@ void TK_can_reader() {
 		}
 
 		if(new_state) {
-			new_state = !handleStateUpdate(msg.timestamp, currentState);
+			new_state = !handleStateUpdate(msg.timestamp, state);
 		}
 
 		if (new_motor_pressure) {
 			new_motor_pressure = !handleMotorPressureData(msg.timestamp, motor_pressure);
 		}
 
-		osDelay (10);
+		end_profiler();
+
+		osDelay(10);
 	}
 }
 

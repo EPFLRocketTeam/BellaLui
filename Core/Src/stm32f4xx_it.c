@@ -25,6 +25,7 @@
 #include "task.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "debug/console.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -71,7 +72,15 @@ extern DMA_HandleTypeDef hdma_usart3_tx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 #endif
 extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart3;
 extern TIM_HandleTypeDef htim14;
+
+static const char* err_hardfault = "===== KERNEL PANIC =====\nHard fault detected\nShutting down immediately";
+static const char* err_stackoverflow = "===== KERNEL PANIC =====\nStack overflow detected\nShutting down immediately";
+static const char* err_outofmemory = "===== KERNEL PANIC =====\nOut of memory\nShutting down immediately";
+static const char* err_busfault = "===== KERNEL PANIC =====\nBus fault detected\nShutting down immediately";
+static const char* err_usagefault = "===== KERNEL PANIC =====\nUsage fault detected\nShutting down immediately";
+
 
 /* USER CODE BEGIN EV */
 
@@ -103,6 +112,8 @@ void HardFault_Handler(void)
 	__BKPT(0);
 	#endif
 
+	rocket_direct_transmit(err_hardfault, strlen(err_hardfault));
+
 	/* USER CODE END HardFault_IRQn 0 */
 	while (1)
 	{
@@ -117,6 +128,8 @@ void vApplicationStackOverflowHook( xTaskHandle pxTask, signed char *pcTaskName 
 	__BKPT(1);
   	#endif
 
+	rocket_direct_transmit(err_stackoverflow, strlen(err_stackoverflow));
+
     while (1)
     {
         /* my code. Prints stuff directly to the console*/
@@ -129,7 +142,10 @@ void vApplicationStackOverflowHook( xTaskHandle pxTask, signed char *pcTaskName 
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
-
+	#ifdef DEBUG
+	__BKPT(0);
+	#endif
+	rocket_direct_transmit(err_outofmemory, strlen(err_outofmemory));
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
   {
@@ -144,7 +160,10 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
-
+	#ifdef DEBUG
+	__BKPT(0);
+	#endif
+	rocket_direct_transmit(err_busfault, strlen(err_busfault));
   /* USER CODE END BusFault_IRQn 0 */
   while (1)
   {
@@ -159,7 +178,10 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
-
+	#ifdef DEBUG
+	__BKPT(0);
+	#endif
+	rocket_direct_transmit(err_usagefault, strlen(err_usagefault));
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)
   {
@@ -257,6 +279,18 @@ void USART1_IRQHandler(void)
 
   /* USER CODE END USART1_IRQn 1 */
 }
+
+void USART3_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART1_IRQn 0 */
+
+  /* USER CODE END USART1_IRQn 0 */
+  HAL_UART_IRQHandler(&huart3);
+  /* USER CODE BEGIN USART1_IRQn 1 */
+
+  /* USER CODE END USART1_IRQn 1 */
+}
+
 
 /**
   * @brief This function handles TIM8 trigger and commutation interrupts and TIM14 global interrupt.

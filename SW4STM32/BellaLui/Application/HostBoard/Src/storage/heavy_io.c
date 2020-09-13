@@ -5,10 +5,11 @@
  *      Author: Arion
  */
 
-#include <storage/heavy_io.h>
+#include "storage/heavy_io.h"
 
-#include <debug/led.h>
-#include <debug/console.h>
+#include "debug/led.h"
+#include "debug/console.h"
+#include "debug/profiler.h"
 
 #include <cmsis_os.h>
 
@@ -90,7 +91,9 @@ void TK_heavy_io_scheduler() {
 	while(true) {
 		xSemaphoreTake(task_semaphore, portMAX_DELAY);
 
-		printf("Launching task\n");
+		start_profiler(1);
+
+		rocket_log("Launching task\n");
 
 		led_set_TK_rgb(led_identifier, 0xFF, 0xAA, 0);
 
@@ -103,7 +106,9 @@ void TK_heavy_io_scheduler() {
 			queue.first = queue.last;
 		}
 
-		printf("Task finished\n");
+		rocket_log("Task finished\n");
+
+		end_profiler();
 
 		led_set_TK_rgb(led_identifier, 0, 0, 0);
 	}

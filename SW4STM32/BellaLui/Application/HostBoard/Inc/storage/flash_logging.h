@@ -18,6 +18,7 @@
 
 void init_logging();
 void start_logging();
+void stop_logging();
 void flash_log(CAN_msg message);
 void TK_logging_thread(void const *pvArgs);
 

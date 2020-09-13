@@ -8,6 +8,8 @@
 #include "storage/flash_logging.h"
 #include "debug/led.h"
 #include "debug/console.h"
+#include "debug/profiler.h"
+#include "debug/monitor.h"
 
 #include "rocket_fs.h"
 #include "flash.h"
@@ -44,6 +46,13 @@ void init_logging() {
 void start_logging() {
 	is_logging = true;
 }
+
+void stop_logging() {
+	acquire_flash_lock();
+	is_logging = false;
+	release_flash_lock();
+}
+
 
 void flash_log(CAN_msg message) {
 	/*
@@ -128,14 +137,18 @@ void TK_logging_thread(void const *pvArgs) {
 		 * Enter the main loop
 		 */
 
-		uint32_t can = 0;
+		uint32_t bytes_written = 0;
+		uint32_t last_update = 0;
 
 		while (!flash_ignore_write) {
 			/*
 			 * Copy the front buffer to the back buffer and reset the index counter.
 			 */
 
+
 			xSemaphoreTake(master_swap, portMAX_DELAY);
+
+			start_profiler(1);
 
 			if(front_buffer_index > LOGGING_BUFFER_SIZE) {
 				front_buffer_index = LOGGING_BUFFER_SIZE;
@@ -154,12 +167,36 @@ void TK_logging_thread(void const *pvArgs) {
 			 * Process the back buffer and write its content to the flash memory.
 			 */
 
+			start_profiler(1);
+
 			stream.write(back_buffer, back_buffer_length);
-			can += back_buffer_length;
 
-			rocket_log("Wrote 2KB worth of CAN messages.\n");
+			end_profiler();
 
-			led_set_TK_rgb(led_identifier, 0, 50, 50);
+			bytes_written += back_buffer_length;
+
+			end_profiler();
+
+			if(enter_monitor(FLASH_MONITOR)) {
+				uint32_t time = HAL_GetTick();
+
+				rocket_log(" -------- Flash logging -------\x1b[K\n");
+				rocket_log(" Throughput: %dKB/s\x1b[K\n", bytes_written / (time - last_update));
+				rocket_log(" Log file size: %dKB\x1b[K\n", flight_data->length / 1000);
+				rocket_log(" Device capacity: %d%%\x1b[K\n", 100 - (100 * flight_data->length / fs->addressable_space));
+				rocket_log(" ------------------------------\x1b[K\n");
+				exit_monitor(FLASH_MONITOR);
+
+				bytes_written = 0;
+				last_update = time;
+			}
+
+
+			if(is_logging) {
+				led_set_TK_rgb(led_identifier, 0, 50, 50);
+			} else {
+				led_set_TK_rgb(led_identifier, 0, 0, 0);
+			}
 		}
 
 		stream.close();
@@ -178,9 +215,9 @@ void TK_logging_thread(void const *pvArgs) {
 
 void acquire_flash_lock() {
 	if(!flash_ignore_write) {
-		flash_ignore_write = true;
 		xSemaphoreGive(master_swap);
 		xSemaphoreTake(slave_swap, portMAX_DELAY);
+		flash_ignore_write = true;
 		xSemaphoreTake(master_io_semaphore, portMAX_DELAY);
 	}
 }
