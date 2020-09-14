@@ -113,14 +113,14 @@ bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
 	if(state == STATE_LIFTOFF) {
     	start_logging();
 		rocket_log("Logging started.\n");
+    	liftoff_time = timestamp;
 	} else if(state == STATE_TOUCHDOWN) {
 		stop_logging();
 		rocket_log("Logging stopped.\n");
         on_dump_request();
 	}
 
-	currentState = state; // Update the system state
-	liftoff_time = timestamp;
+	current_state = state; // Update the system state
 
 	return true;
 }
@@ -146,7 +146,7 @@ float can_getSpeed() {
 }
 
 uint8_t can_getState() {
-	return currentState;
+	return current_state;
 }
 
 int32_t can_getABangle() {
@@ -198,6 +198,10 @@ void TK_can_reader() {
 
 		while (can_msgPending()) { // check if new data
 			msg = can_readBuffer();
+
+			if(HAL_GetTick() - msg.timestamp > 1000) {
+				rocket_log("Erroneous CAN frame received with ID %d\n", msg.id);
+			}
 
 
 			// add to SD card
@@ -258,7 +262,7 @@ void TK_can_reader() {
 				new_gps[idx] = true;
 				break;
 			case DATA_ID_STATE:
-				if(msg.data > state) {
+				if(msg.data > state && msg.data < NUM_STATES) {
 					new_state = true;
 					state = msg.data;
 				}

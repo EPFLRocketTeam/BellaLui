@@ -251,10 +251,10 @@ void TK_kalman() {
 			int32_t velocity = (int32_t) (1000 * ekf.x[5]);
 
 			if(enter_monitor(KALMAN_MONITOR)) {
-				rocket_log(" ----------- Kalman -----------\x1b[K\n\x1b[K\n");
+				rocket_log(" ----------- Kalman -----------\x1b[K\n");
 				rocket_log(" Altitude: %d [mm]\x1b[K\n", altitude);
 				rocket_log(" Vertical velocity: %d [mm/s]\x1b[K\n\n", velocity);
-				rocket_log(" ------------------------------\x1b[K\n\x1b[K\n\x1b[40;0H");
+				rocket_log(" ------------------------------\x1b[K\n\x1b[40;0H");
 
 				exit_monitor(KALMAN_MONITOR);
 			}

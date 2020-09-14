@@ -87,7 +87,7 @@ void shell_receive_byte(char cbuf, int32_t bridge) {
 	}
 
 	if(!should_execute) {
-		should_execute = do_privileged_io();
+		should_execute = do_privileged_io(); // Attempt to acquire pseudo-lock
 	}
 
 	if(cbuf != '\n' && command_index < CMD_BUFFER_SIZE) {
@@ -114,14 +114,17 @@ void shell_receive_byte(char cbuf, int32_t bridge) {
 			} else {
 				__bridge_receive((uint8_t*) command_buffer, command_index);
 			}
+
+			end_privileged_io();
+			should_execute = false;
+		} else {
+			rocket_direct_transmit("\a", 1);
 		}
 
 		command_index = 0;
 		cmd.num_components = 0;
 		cmd.components[0].length = 0;
 		cmd.components[0].component = command_buffer;
-
-		end_privileged_io();
 	}
 }
 

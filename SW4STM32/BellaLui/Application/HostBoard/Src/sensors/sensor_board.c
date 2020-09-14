@@ -231,7 +231,7 @@ void TK_sensor_board(void const * argument) {
 
 
 		if(enter_monitor(SENSOR_MONITOR)) {
-			rocket_log(" ----- Sensor acquisition -----\x1b[K\n\x1b[K\n");
+			rocket_log(" ----- Sensor acquisition -----\x1b[K\n");
 			rocket_log(" Available barometers: %d\x1b[K\n", num_barometer_data);
 			rocket_log(" Available accelerometers: %d\x1b[K\n", num_accelerometer_data);
 			rocket_log(" Temperature: %d [m°C]\x1b[K\n", (uint32_t) (barometer_data.temperature * 10));
@@ -242,7 +242,7 @@ void TK_sensor_board(void const * argument) {
 			rocket_log(" Rotation X: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.x));
 			rocket_log(" Rotation Y: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.y));
 			rocket_log(" Rotation Z: %d [mrad/s]\x1b[K\n\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.z));
-			rocket_log(" ------------------------------\x1b[K\n\x1b[K\n\x1b[40;0H");
+			rocket_log(" ------------------------------\x1b[K\n\x1b[40;0H");
 
 			exit_monitor(SENSOR_MONITOR);
 		}
@@ -540,10 +540,8 @@ int8_t bme_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t le
 		}
 
 		xTaskResumeAll();
-
 		end_privileged_io();
 	} else {
-		rocket_direct_transmit("Err\n", 4);
 		return -1;
 	}
 
@@ -563,10 +561,8 @@ int8_t bme_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t l
 		}
 
 		xTaskResumeAll();
-
 		end_privileged_io();
 	} else {
-		rocket_direct_transmit("Err\n", 4);
 		return -1;
 	}
 

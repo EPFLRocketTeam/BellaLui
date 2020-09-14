@@ -39,11 +39,10 @@ extern "C" bool telemetrySendAirbrakesAngle(uint32_t timestamp, float angle);
 extern "C" bool telemetryReceiveOrder(uint8_t *packet);
 extern "C" bool telemetryReceiveIgnition(uint8_t *packet);
 
+extern volatile enum state current_state;
 extern osMessageQId xBeeQueueHandle;
 
 volatile static uint32_t telemetrySeqNumber = 0;
-
-uint8_t current_state = STATE_IDLE;
 
 IMU_data imu = { { 0, 0, 0 }, { 0, 0, 0 } };
 BARO_data baro = { 0, 0, 0 };
