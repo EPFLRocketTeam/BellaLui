@@ -32,7 +32,9 @@ void rocket_log_release() {
 }
 
 void rocket_direct_transmit(uint8_t* buffer, uint32_t length) {
+	__disable_irq();
 	HAL_UART_Transmit(__console_uart, buffer, length, 0xFFFFFF);
+	__enable_irq();
 }
 
 void __shell_transmit(uint8_t* buffer, uint32_t length) {

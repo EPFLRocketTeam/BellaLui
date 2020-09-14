@@ -98,15 +98,13 @@ bool available_accelerometers[MAX_ACCELEROMETERS];
 
 
 void TK_sensor_board(void const * argument) {
-	uint16_t retry_counter = 0;
+	uint16_t retry_counter = 1;
 
 	uint8_t led_barometer = led_register_TK();
 	uint8_t led_accelerometer = led_register_TK();
 
 	struct bme280_data_float full_barometer_data[MAX_BAROMETERS];
 	struct bno055_data full_accelerometer_data[MAX_ACCELEROMETERS];
-
-	osDelay(2000);
 
 	while(true) {
 		uint8_t num_barometer_data = 0;
@@ -115,6 +113,37 @@ void TK_sensor_board(void const * argument) {
 		start_profiler(1); // Whole thread profiling
 
 		start_profiler(1); // Initialisation of sensors
+
+
+		if(available_barometers[0] == 0 && available_barometers[1] == 0 && retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+			HAL_I2C_DeInit(&hi2c3);
+			osDelay(10);
+			hi2c3.Instance->CR1 |= I2C_CR1_SWRST | I2C_CR1_STOP;
+			osDelay(10);
+			RCC->APB1RSTR |= RCC_APB1RSTR_I2C3RST;
+			osDelay(10);
+			RCC->APB1RSTR &= ~RCC_APB1RSTR_I2C3RST;
+			osDelay(10);
+			hi2c3.Instance->CR1 &= ~(I2C_CR1_SWRST | I2C_CR1_STOP);
+			osDelay(10);
+			HAL_I2C_Init(&hi2c3);
+			osDelay(10);
+		}
+
+		if(available_barometers[2] == 0 && available_barometers[3] == 0 && retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
+			HAL_FMPI2C_DeInit(&hfmpi2c1);
+			osDelay(10);
+			hfmpi2c1.Instance->CR1 |= I2C_CR1_SWRST | I2C_CR1_STOP;
+			osDelay(10);
+			RCC->APB1RSTR |= RCC_APB1RSTR_FMPI2C1RST;
+			osDelay(10);
+			RCC->APB1RSTR &= ~RCC_APB1RSTR_FMPI2C1RST;
+			osDelay(10);
+			hfmpi2c1.Instance->CR1 &= ~(I2C_CR1_SWRST | I2C_CR1_STOP);
+			osDelay(10);
+			HAL_FMPI2C_Init(&hfmpi2c1);
+			osDelay(10);
+		}
 
 		for(uint8_t i = 0; i < MAX_BAROMETERS; i++) {
 			if(!available_barometers[i] && retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
@@ -136,25 +165,6 @@ void TK_sensor_board(void const * argument) {
 					rocket_log("Accelerometer %u initialised\n", i);
 				}
 			}
-		}
-
-
-		if(available_barometers[0] == 0 && available_barometers[1] == 0 && retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
-			HAL_I2C_DeInit(&hi2c3);
-			hi2c3.Instance->CR1 |= I2C_CR1_SWRST | I2C_CR1_STOP;
-			RCC->APB1RSTR |= RCC_APB1RSTR_I2C3RST;
-			RCC->APB1RSTR &= ~RCC_APB1RSTR_I2C3RST;
-			hi2c3.Instance->CR1 &= ~(I2C_CR1_SWRST | I2C_CR1_STOP);
-			HAL_I2C_Init(&hi2c3);
-		}
-
-		if(available_barometers[2] == 0 && available_barometers[3] == 0 && retry_counter % TICKS_BETWEEN_INIT_ATTEMPTS == 0) {
-			HAL_FMPI2C_DeInit(&hfmpi2c1);
-			hfmpi2c1.Instance->CR1 |= I2C_CR1_SWRST | I2C_CR1_STOP;
-			RCC->APB1RSTR |= RCC_APB1RSTR_FMPI2C1RST;
-			RCC->APB1RSTR &= ~RCC_APB1RSTR_FMPI2C1RST;
-			hfmpi2c1.Instance->CR1 &= ~(I2C_CR1_SWRST | I2C_CR1_STOP);
-			HAL_FMPI2C_Init(&hfmpi2c1);
 		}
 
 		retry_counter++;
@@ -530,20 +540,15 @@ int8_t bno_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t le
 int8_t bme_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len) {
 	int8_t rslt = 0;
 
-	if(do_privileged_io()) {
-		vTaskSuspendAll();
+	vTaskSuspendAll();
 
-		if (current_sensor == 0 || current_sensor == 1) {
-			rslt = HAL_I2C_Mem_Read(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
-		} else if (current_sensor == 2 || current_sensor == 3) {
-			rslt = HAL_FMPI2C_Mem_Read(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
-		}
-
-		xTaskResumeAll();
-		end_privileged_io();
-	} else {
-		return -1;
+	if (current_sensor == 0 || current_sensor == 1) {
+		rslt = HAL_I2C_Mem_Read(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
+	} else if (current_sensor == 2 || current_sensor == 3) {
+		rslt = HAL_FMPI2C_Mem_Read(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
 	}
+
+	xTaskResumeAll();
 
 	return rslt;
 }
@@ -551,20 +556,15 @@ int8_t bme_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t le
 int8_t bme_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len) {
 	int8_t rslt = 0;
 
-	if(do_privileged_io()) {
-		vTaskSuspendAll();
+	vTaskSuspendAll();
 
-		if (current_sensor == 0 || current_sensor == 1) {
-			rslt = HAL_I2C_Mem_Write(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
-		} else if (current_sensor == 2 || current_sensor == 3) {
-			rslt = HAL_FMPI2C_Mem_Write(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
-		}
-
-		xTaskResumeAll();
-		end_privileged_io();
-	} else {
-		return -1;
+	if (current_sensor == 0 || current_sensor == 1) {
+		rslt = HAL_I2C_Mem_Write(&hi2c3, dev_id << 1, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, I2C_TIMEOUT);
+	} else if (current_sensor == 2 || current_sensor == 3) {
+		rslt = HAL_FMPI2C_Mem_Write(&hfmpi2c1, dev_id << 1, reg_addr, FMPI2C_MEMADD_SIZE_8BIT, data, len, FMPI2C_TIMEOUT);
 	}
+
+	xTaskResumeAll();
 
 	return rslt;
 }

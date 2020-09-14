@@ -149,8 +149,6 @@ int main(void) {
 
 	CAN_Config(CAN_ID); // A changer en fonction de la board
 
-    // flash_erase_all();
-
 	init_filesystem();
 
 

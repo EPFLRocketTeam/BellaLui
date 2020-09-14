@@ -78,21 +78,19 @@ void end_profiler() {
 			uint8_t measurement_id = (uint8_t) profiler->measurement_id[profiler->depth];
 
 			if(profiling) {
-				rocket_log("\x1b[%u;%uH", 1 + (uint32_t) measurement_id, (uint32_t) (20 * task_id));
+				rocket_log("\e7\x1b[%u;%uH", 1 + (uint32_t) measurement_id, (uint32_t) (20 * task_id));
 				_spaces(profiler->depth);
-				rocket_log(" (%u) %u.5 %-9s", (uint32_t) measurement_id, (uint32_t) diff, "ms");
+				rocket_log(" (%u) %u.5 %-9s\e8", (uint32_t) measurement_id, (uint32_t) diff, "ms");
 			}
 		}
 
 		if(profiler->depth == 0) {
 			if(profiler->depth_to_display == 0) {  // Update layer per layer
 				if(profiling) {
-					rocket_log("\n");
-					rocket_log("\e8"); // Restore cursor
 					rocket_log_release();
 				}
 			} else if(time - profiler->last_update > TIME_BETWEEN_UPDATES) {
-				profiler->last_update = time;
+				profiler->last_update = time - diff;
 
 				if(profiling_requested) {
 					profiling_requested = false;
@@ -101,8 +99,7 @@ void end_profiler() {
 
 				if(profiling) {
 					rocket_log_lock();
-					rocket_log("\e7"); // Save cursor
-					rocket_log("\x1b[0;%dH %-16s |", 20 * task_id, task_name);
+					rocket_log("\e7\x1b[0;%dH %-16s |\e8", 20 * task_id, task_name);
 
 					profiler->depth_to_display = MAX_PROFILER_DEPTH; // Magic number. Signals an update request.
 				}

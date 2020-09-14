@@ -16,7 +16,7 @@
 #define NUM_SYNCHRONIZABLES 16
 
 static uint32_t last_update[NUM_SYNCHRONIZABLES];
-static volatile bool doing_privileged = false;
+static volatile uint32_t priv_begin = 0;
 
 void sync_logic(uint16_t period) {
 	TaskHandle_t handle = xTaskGetCurrentTaskHandle();
@@ -36,15 +36,17 @@ void sync_logic(uint16_t period) {
 }
 
 bool do_privileged_io() {
-	if(doing_privileged) {
+	uint32_t time = HAL_GetTick();
+
+	if(time - priv_begin < 500) { // If no deadlock
 		return false;
 	} else {
-		doing_privileged = true;
+		priv_begin = time;
 		return true;
 	}
 }
 
 bool end_privileged_io() {
-	doing_privileged = false;
+	priv_begin = 0;
 	return true;
 }

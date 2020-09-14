@@ -26,7 +26,6 @@ static uint8_t cbuf;
 static ShellCommand cmd;
 
 static volatile int8_t bridge = -1; // No bridge by default
-static volatile bool should_execute = false;
 
 void shell_init(UART_HandleTypeDef* uart, void (*terminal)(ShellCommand* cmd, int (*respond)(const char* format, ...))) {
 	__shell_uart = uart;
@@ -86,10 +85,6 @@ void shell_receive_byte(char cbuf, int32_t bridge) {
 		return;
 	}
 
-	if(!should_execute) {
-		should_execute = do_privileged_io(); // Attempt to acquire pseudo-lock
-	}
-
 	if(cbuf != '\n' && command_index < CMD_BUFFER_SIZE) {
 		command_buffer[command_index++] = cbuf;
 
@@ -108,17 +103,10 @@ void shell_receive_byte(char cbuf, int32_t bridge) {
 			cmd.num_components++;
 		}
 
-		if(should_execute) {
-			if(bridge == -1) {
-				__shell_terminal(&cmd, &rocket_boot_log);
-			} else {
-				__bridge_receive((uint8_t*) command_buffer, command_index);
-			}
-
-			end_privileged_io();
-			should_execute = false;
+		if(bridge == -1) {
+			__shell_terminal(&cmd, &rocket_boot_log);
 		} else {
-			rocket_direct_transmit("\a", 1);
+			__bridge_receive((uint8_t*) command_buffer, command_index);
 		}
 
 		command_index = 0;

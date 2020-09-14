@@ -199,8 +199,9 @@ void TK_can_reader() {
 		while (can_msgPending()) { // check if new data
 			msg = can_readBuffer();
 
-			if(HAL_GetTick() - msg.timestamp > 1000) {
+			if(HAL_GetTick() - msg.timestamp > 10000) {
 				rocket_log("Erroneous CAN frame received with ID %d\n", msg.id);
+				continue;
 			}
 
 
