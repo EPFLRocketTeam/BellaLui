@@ -11,8 +11,8 @@
 #include <cmsis_os.h>
 
 #include <propulsion/pressure_monitor.h>
-#include <misc/Common.h>
 #include <debug/led.h>
+#include <misc/common.h>
 
 #define PRESSURE_MONITOR_PERIOD_MS (50)
 

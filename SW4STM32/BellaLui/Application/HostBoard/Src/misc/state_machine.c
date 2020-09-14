@@ -8,12 +8,12 @@
 #include "misc/state_machine.h"
 
 #include "can_transmission.h"
-#include "misc/Common.h"
 #include "misc/rocket_constants.h"
 #include "debug/monitor.h"
 #include "sync.h"
 
 #include <cmsis_os.h>
+#include <misc/common.h>
 #include <stm32f4xx_hal.h>
 
 

@@ -23,7 +23,7 @@ typedef float float32_t;
 #include "sensors/gps_board.h"
 #include "sensors/sensor_board.h"
 #include "misc/datastructs.h"
-#include "misc/Common.h"
+#include <misc/common.h>
 #include "storage/flash_logging.h"
 #include "debug/console.h"
 #include "storage/flash_logging.h"
@@ -128,7 +128,7 @@ bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
 bool handleMotorPressureData(uint32_t timestamp, float pressure) {
 	#ifdef XBEE
 	if (motor_pressure > MAX_MOTOR_PRESSURE) {
-		telemetrySendState(timestamp, WARNING_MOTOR_PRESSURE, motor_pressure, currentState);
+		telemetrySendState(timestamp, WARNING_MOTOR_PRESSURE, motor_pressure, current_state);
 	}
 	#endif
 
@@ -269,7 +269,7 @@ void TK_can_reader() {
 				}
 
 				#ifndef ROCKET_FSM // to avoid self loop on board with FSM
-					telemetrySendState(msg.timestamp, EVENT, 0, currentState);
+					telemetrySendState(msg.timestamp, EVENT, 0, current_state);
 				#endif
 
 				break;

@@ -13,7 +13,7 @@
 
 #include <stm32f4xx_hal.h>
 
-#define CMD_BUFFER_SIZE 256
+#define CMD_BUFFER_SIZE 512
 #define CMD_MAX_COMPONENTS 8
 
 struct CommandComponent {

@@ -11,6 +11,10 @@
 
 #include "../../../HostBoard/Inc/Misc/datastructs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 bool telemetrySendGPS(uint32_t timestamp, GPS_data data);
 bool telemetrySendIMU(uint32_t timestamp, IMU_data data);
 bool telemetrySendBaro(uint32_t timestamp, BARO_data data);
@@ -21,6 +25,9 @@ bool telemetrySendAirbrakesAngle(uint32_t timestamp, int32_t angle);
 bool telemetryReceiveOrder(uint8_t *RX_Order_Packet);
 bool telemetryReceiveIgnition(uint8_t *RX_Ignition_Packet);
 
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* TELEMETRY_HANDLING_H_ */

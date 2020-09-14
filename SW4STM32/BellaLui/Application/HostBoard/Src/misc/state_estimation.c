@@ -7,7 +7,7 @@
 
 #include <can_transmission.h>
 #include <cmsis_os.h>
-#include <misc/Common.h>
+#include <misc/common.h>
 #include <misc/rocket_constants.h>
 #include <misc/state_machine.h>
 

@@ -6,19 +6,23 @@
  *      Alexandre Devienne
  */
 
-#include "../../../HostBoard/Inc/debug/led.h"
-#include <misc/Common.h>
-#include <misc/data_handling.h>
-#include <misc/datagram_builder.h>
-#include "cmsis_os.h"
+#include "telemetry/telemetry_handling.h"
+
+#include "debug/led.h"
+#include "misc/data_handling.h"
+#include "misc/datagram_builder.h"
+#include "telemetry/simpleCRC.h"
+#include "telemetry/telemetry_protocol.h"
+
+#include <cmsis_os.h>
+#include <misc/common.h>
 
 #include <stdbool.h>
-#include <telemetry/simpleCRC.h>
-#include <telemetry/telemetry_protocol.h>
+
 
 extern "C" {
-#include <can_transmission.h>
-#include <storage/sd_card.h>
+	#include "can_transmission.h"
+	#include "storage/sd_card.h"
 }
 
 #define TELE_TIMEMIN 20
@@ -27,17 +31,6 @@ extern "C" {
 #define WARNING_TIMEMIN 50
 #define AB_TIMEMIN 100
 //#define TELE_RAW_TIMEMIN 100
-
-// for import in C code
-extern "C" bool telemetrySendGPS(uint32_t timestamp, GPS_data data);
-extern "C" bool telemetrySendIMU(uint32_t timestamp, IMU_data data);
-extern "C" bool telemetrySendBaro(uint32_t timestamp, BARO_data data);
-extern "C" bool telemetrySendState(uint32_t timestamp, bool id, float value, uint8_t av_state);
-extern "C" bool telemetrySendMotorPressure(uint32_t timestamp, uint32_t pressure);
-extern "C" bool telemetrySendAirbrakesAngle(uint32_t timestamp, float angle);
-
-extern "C" bool telemetryReceiveOrder(uint8_t *packet);
-extern "C" bool telemetryReceiveIgnition(uint8_t *packet);
 
 extern volatile enum state current_state;
 extern osMessageQId xBeeQueueHandle;

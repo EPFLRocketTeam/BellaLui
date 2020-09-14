@@ -31,7 +31,7 @@ static const char *state_names[] = { "Sleeping", "Calibrating", "Idle",
 
 #define NUM_STATES 12
 
-enum state {
+enum State {
 	STATE_SLEEP,
 	STATE_CALIBRATION,
 	STATE_IDLE,
@@ -46,7 +46,7 @@ enum state {
 	STATE_TOUCHDOWN
 };
 
-enum warning {
+enum Warning {
 	EVENT, WARNING_MOTOR_PRESSURE
 };
 
@@ -54,7 +54,7 @@ volatile uint32_t flight_status;
 volatile float32_t airbrakes_angle;
 extern volatile float air_speed_state_estimate, altitude_estimate;
 
-volatile enum state current_state;
+volatile enum State current_state;
 volatile uint32_t liftoff_time;
 
 volatile uint32_t currentImuSeqNumber;

@@ -5,14 +5,17 @@
  *      Author: Alexandre
  */
 
-#include "stm32f4xx_hal.h"
-#include <cmsis_os.h>
+#include "airbrakes/airbrake.h"
 
-#include <airbrakes/airbrake.h>
-#include <can_reception.h>
-#include <can_transmission.h>
-#include <misc/Common.h>
-#include <debug/led.h>
+#include "can_reception.h"
+#include "can_transmission.h"
+#include "debug/led.h"
+
+
+#include <stm32f4xx_hal.h>
+#include <cmsis_os.h>
+#include <misc/common.h>
+#include <stdbool.h>
 
 #define AB_PERIOD_MS (50)
 

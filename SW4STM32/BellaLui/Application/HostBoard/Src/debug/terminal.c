@@ -26,7 +26,7 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 		if(has_io_mode(IO_INPUT & IO_DIRECT)) {
 			if(EQUALS(0, "exit")) {
 				disable_io_mode(IO_INPUT & IO_DIRECT); // Disables direct input mode
-				respond("> Board IO mode set to 0x%8x\n", get_io_mode());
+				respond("> Board IO mode set to 0x%08x\n", get_io_mode());
 			} else if(has_io_mode(IO_INPUT & IO_DIRECT & IO_CAN)) {
 				CAN_msg message;
 
@@ -61,14 +61,10 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 
 				can_addMsg(message);
 			} else if(has_io_mode(IO_INPUT & IO_DIRECT & IO_TELEMETRY)) {
-				if(cmd->components[0].length == 128) {
-					const char* packet_buffer = cmd->components[0].component;
+				const char* packet_buffer = cmd->components[0].component;
 
-					for(uint8_t i = 0; i < 128; i++) {
-						processReceivedByte((uint8_t) strtol(packet_buffer++, 0, 16));
-					}
-				} else {
-					respond("> Format: 64 hexadecimal bytes representing an xbee datagram (read %d)\n", cmd->components[0].length / 2);
+				for(uint8_t i = 0; i < 512; i++) {
+					processReceivedByte((uint8_t) strtol(packet_buffer++, 0, 16));
 				}
 			}
 
@@ -237,7 +233,7 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 
 			enable_io_mode(mask & mode);
 
-			respond("> Board IO mode set to 0x%8x\n", get_io_mode());
+			respond("> Board IO mode set to 0x%08x\n", get_io_mode());
 		} else if(EQUALS(0, "input")) {
 
 			uint32_t mask = 0;
@@ -279,7 +275,7 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 
 			enable_io_mode(mask & mode);
 
-			respond("> Board IO mode set to 0x%8x\n", get_io_mode());
+			respond("> Board IO mode set to 0x%08x\n", get_io_mode());
 		} else if(EQUALS(0, "flash")) {
 			if(EQUALS(1, "dump")) {
 				on_fullsd_dump_request();
