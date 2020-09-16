@@ -62,6 +62,7 @@ struct RxPacket {
 
 uint8_t rxBuffer[XBEE_RX_BUFFER_SIZE];  // Buffer with all data received
 uint32_t rxIndex = 0;
+bool rxEscape = false;
 struct RxPacket currentRxPacket;
 
 static uint8_t XBEE_FRAME_OPTIONS[XBEE_OPTIONS_SIZE] = {
@@ -208,6 +209,22 @@ inline void addToBuffer(uint8_t *txData, uint16_t txDataSize) {
 	currentXbeeTxBufPos += txDataSize;
 }
 
+void __append_escaped(uint16_t* pos, uint8_t* dma, uint8_t byte) {
+	switch(byte) {
+	case 0x7e:
+	case 0x7d:
+	case 0x11:
+	case 0x13:
+		dma[(*pos)++] = XBEE_ESCAPE;
+		byte ^= 0x20;
+		break;
+	default:
+		break;
+	}
+
+	dma[(*pos)++] = byte;
+}
+
 /**
  * Sends the data contained in the buffer (the frame)
  */
@@ -218,9 +235,29 @@ void sendXbeeFrame() {
 		return;
 	}
 
-	uint16_t payloadAndConfigSize = XBEE_OPTIONS_SIZE + currentXbeeTxBufPos;
-
+	uint16_t size = XBEE_OPTIONS_SIZE + currentXbeeTxBufPos;
 	uint16_t pos = 0;
+
+	txDmaBuffer[pos++] = XBEE_START;
+	__append_escaped(&pos, txDmaBuffer, size >> 8);
+	__append_escaped(&pos, txDmaBuffer, size & 0xFF);
+
+	for(uint8_t i = 0; i < sizeof(XBEE_FRAME_OPTIONS); i++) {
+		__append_escaped(&pos, txDmaBuffer, XBEE_FRAME_OPTIONS[i]);
+	}
+
+	currentCrc = XBEE_FRAME_OPTIONS_CRC;
+
+	for(int i = 0; i < currentXbeeTxBufPos; ++i) {
+		__append_escaped(&pos, txDmaBuffer, payloadBuffer[i]);
+		currentCrc += payloadBuffer[i];
+	}
+
+	currentCrc = 0xff - currentCrc;
+	__append_escaped(&pos, txDmaBuffer, currentCrc);
+
+	/*
+
 	txDmaBuffer[pos++] = XBEE_START;
 	txDmaBuffer[pos++] = payloadAndConfigSize >> 8;
 	txDmaBuffer[pos++] = payloadAndConfigSize & 0xff;
@@ -230,7 +267,6 @@ void sendXbeeFrame() {
 	currentCrc = XBEE_FRAME_OPTIONS_CRC;
 
 	for(int i = 0; i < currentXbeeTxBufPos; ++i) {
-		uint8_t escapedChar;
 		if((escapedChar = escapedCharacter(payloadBuffer[i]))) {
 			txDmaBuffer[pos++] = XBEE_ESCAPE;
 			txDmaBuffer[pos++] = escapedChar;
@@ -242,7 +278,7 @@ void sendXbeeFrame() {
 	}
 
 	currentCrc = 0xff - currentCrc;
-	txDmaBuffer[pos++] = currentCrc;
+	txDmaBuffer[pos++] = currentCrc;*/
 	//send the data buffer to the xBee module
 
 	if(has_io_mode(IO_OUTPUT & IO_DIRECT & IO_TELEMETRY)) {
@@ -279,21 +315,6 @@ void initXbee() {
 	}
 
 	XBEE_FRAME_OPTIONS_CRC = checksum;
-}
-
-inline uint8_t escapedCharacter(uint8_t byte) {
-	switch(byte) {
-	case 0x7e:
-		return 0x5e;
-	case 0x7d:
-		return 0x5d;
-	case 0x11:
-		return 0x31;
-	case 0x13:
-		return 0x33;
-	default:
-		return 0x00;
-	}
 }
 
 /*void xBee_rxCpltCallback() {
@@ -333,6 +354,16 @@ void processReceivedByte(uint8_t rxByte) {
 	if(rxByte == XBEE_START) {
 		currentRxPacket.state = PARSING_PREAMBLE;
 		rxIndex = 0;
+	}
+
+	if(rxByte == XBEE_ESCAPE) {
+		rxEscape = true;
+		return;
+	}
+
+	if(rxEscape) {
+		rxByte ^= 0x20;
+		rxEscape = false;
 	}
 
 	rxBuffer[rxIndex] = rxByte;

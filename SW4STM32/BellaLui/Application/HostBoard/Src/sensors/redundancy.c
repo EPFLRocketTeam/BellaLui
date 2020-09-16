@@ -56,7 +56,6 @@ uint8_t combinations[] = {
 
 float get_filtered_sensor_output(float* values, uint8_t num_sensors) {
 
-
 	float validated_values[num_sensors];
 	uint8_t num_validated_values;
 
