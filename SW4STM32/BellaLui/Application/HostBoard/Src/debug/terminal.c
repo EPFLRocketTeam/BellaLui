@@ -297,9 +297,18 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 			} else if(EQUALS(1, "erase")) {
 				respond("> Erasing flash memory... ");
 				flash_erase_all();
-				respond("done\n");
+				respond("done\nPlease reset the board to format the filesystem.\n");
+			} else if(EQUALS(1, "download")) {
+				for(uint8_t i = 2; i < cmd->num_components; i++) {
+					uint16_t block = atoi(cmd->components[i].component);
+
+					if(block < 4096) {
+						respond("> Upload of block %d requested\n", block);
+						on_upload_request(block);
+					}
+				}
 			} else {
-				respond("> Usage: flash { dump | erase }");
+				respond("> Usage: flash { dump | erase | download } [blocks...]\n");
 			}
 		} else {
 			respond("> %.*s: command not found\n", cmd->components[0].length, cmd->components[0].component);

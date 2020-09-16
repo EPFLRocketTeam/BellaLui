@@ -31,8 +31,13 @@ struct FIFO {
 
 
 static volatile SemaphoreHandle_t task_semaphore;
-
 static volatile struct FIFO queue = { 0 };
+
+
+
+static struct Node node_heap[MAX_TASKS];
+static volatile uint8_t heap_counter = 0;
+static volatile uint8_t scheduled_tasks = 0;
 
 
 void init_heavy_scheduler() {
@@ -40,15 +45,18 @@ void init_heavy_scheduler() {
 }
 
 
+
+
 /*
  * TODO: Better concurrent implementation of FIFO queue.
  */
 void schedule_heavy_task(int32_t (*task)(void*), const void* arg, void (*feedback)(int32_t)) {
-	struct Node* node = pvPortMalloc(sizeof(struct Node));
+	struct Node* node = &node_heap[heap_counter++]; // To avoid using malloc from interrupts
 
 	node->task = task;
 	node->arg = arg;
 	node->feedback = feedback;
+	node->next = 0;
 
 	if(queue.first != 0) {
 		queue.last->next = node;
@@ -58,38 +66,14 @@ void schedule_heavy_task(int32_t (*task)(void*), const void* arg, void (*feedbac
 
 	queue.last = node;
 
-	xSemaphoreGive(task_semaphore);
+	scheduled_tasks++;
 }
 
 void TK_heavy_io_scheduler() {
 	uint32_t led_identifier = led_register_TK();
 
-
-	//on_dump_request();
-	//on_fullsd_dump_request();
-
-
-   /*CAN_msg msg;
-
-
-	uint32_t start = HAL_GetTick();
-
-	uint32_t num_messages = 8192;
-
-	for(uint32_t i = 0; i < num_messages; i++) {
-      msg.data = 1;
-      msg.id = 2;
-      msg.id_CAN = 0xCAFEBABE;
-      msg.timestamp = HAL_GetTick();
-
-      flash_log(msg);
-	}
-
-	printf("CAN message processing time: %ldµs\n", 1000 * (HAL_GetTick() - start) / num_messages);*/
-
-
 	while(true) {
-		xSemaphoreTake(task_semaphore, portMAX_DELAY);
+		while(!scheduled_tasks);
 
 		rocket_log("Launching task\n");
 
@@ -101,11 +85,13 @@ void TK_heavy_io_scheduler() {
 		task->feedback(task->task(task->arg));
 
 		if(!queue.first) { // Avoid inconsistent FIFO queue state
-			queue.first = queue.last;
+			queue.last = queue.first;
 		}
 
 		rocket_log("Task finished\n");
 
 		led_set_TK_rgb(led_identifier, 0, 0, 0);
+
+		scheduled_tasks--;
 	}
 }

@@ -56,7 +56,7 @@ void flash_log(CAN_msg message) {
 	 * Write the CAN message to the front buffer.
 	 */
 
-	if(!is_logging) {
+	if(!is_logging && message.id < 50) {
 		return;
 	}
 
@@ -212,8 +212,8 @@ void TK_logging_thread(void const *pvArgs) {
 void acquire_flash_lock() {
 	if(!flash_ignore_write) {
 		xSemaphoreGive(master_swap);
-		xSemaphoreTake(slave_swap, portMAX_DELAY);
 		flash_ignore_write = true;
+		xSemaphoreTake(slave_swap, portMAX_DELAY);
 		xSemaphoreTake(master_io_semaphore, portMAX_DELAY);
 	}
 }
@@ -234,18 +234,37 @@ void on_dump_feedback(int32_t error_code) {
 	}
 }
 
+void on_upload_feedback(int32_t error_code) {
+	if(error_code != 0) {
+		rocket_log("Upload failed with error code: %ld\n", error_code);
+		// An error occurred while copying the flash data into the SD card.
+	}
+}
+
+const char* file = "FLIGHT";
 void on_dump_request() {
-	schedule_heavy_task(&dump_file_on_sd, "FLIGHT", &on_dump_feedback);
+	schedule_heavy_task(&dump_file_on_sd, file, &on_dump_feedback);
 }
 
 void on_fullsd_dump_request() {
 	schedule_heavy_task(&dump_everything_on_sd, 0, &on_dump_feedback);
 }
 
+void on_upload_request(uint16_t block_id) {
+	static uint16_t req_blocks[256];
+	static uint8_t req_id = 0;
+
+	req_blocks[req_id] = block_id;
+	schedule_heavy_task(&upload_block, req_blocks + req_id, &on_upload_feedback);
+	req_id++;
+}
+
+
 /*
  * Returns an error code.
  */
-int32_t dump_file_on_sd(const char *filename) {
+int32_t dump_file_on_sd(void* arg) {
+	const char* filename = (const char*) arg;
 	/*
 	 * Stage 1: Initialise the SD output stream.
 	 */
@@ -360,7 +379,7 @@ int32_t dump_file_on_sd(const char *filename) {
 	return 0;
 }
 
-int32_t dump_everything_on_sd(void *arg) {
+int32_t dump_everything_on_sd(void* arg) {
 	/*
 	 * Stage 1: Initialise the SD output stream.
 	 */
@@ -437,6 +456,31 @@ int32_t dump_everything_on_sd(void *arg) {
 	f_mount(0, 0, 1); // Unmount volume immediately
 
 	release_flash_lock(); // Extremely important call
+
+	return 0;
+}
+
+int32_t upload_block(void* arg) {
+	uint16_t block = *((uint16_t*) arg);
+
+	acquire_flash_lock();
+
+	rocket_log("----- Block %d begins -----\n", block);
+
+	uint8_t buffer[64];
+	for(uint8_t i = 0; i < 64; i++) {
+		flash_read(block * 4096 + i * 64, buffer, 64);
+
+		for(uint16_t j = 0; j < 64; j++) {
+			rocket_log("%02x", buffer[j]);
+		}
+
+		osDelay(5); // Let time for the USART unit to process
+	}
+
+	rocket_log("\n----- Block %d ends -----\n", block);
+
+	release_flash_lock();
 
 	return 0;
 }

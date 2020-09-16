@@ -37,6 +37,7 @@
 #define BOARD_LED_G (50)
 #define BOARD_LED_B (0)
 #define XBEE
+#define FLASH_LOGGING
 #endif
 
 #ifdef AIRBRAKES_BOARD
