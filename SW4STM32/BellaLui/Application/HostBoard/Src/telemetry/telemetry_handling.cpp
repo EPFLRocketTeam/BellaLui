@@ -32,7 +32,7 @@ extern "C" {
 #define AB_TIMEMIN 100
 //#define TELE_RAW_TIMEMIN 100
 
-extern volatile enum state current_state;
+extern volatile enum State current_state;
 extern osMessageQId xBeeQueueHandle;
 
 volatile static uint32_t telemetrySeqNumber = 0;
@@ -240,11 +240,8 @@ bool telemetrySendAirbrakesAngle(uint32_t timestamp, float angle) {
 
 // Received Packet Handling
 
-bool telemetryReceiveOrder(uint8_t *packet) {
-	uint32_t timestamp = packet[3] | (packet[2] << 8) | (packet[1] << 16) | (packet[0] << 24);
-	uint32_t seq_number = packet[7] | (packet[6] << 8) | (packet[5] << 16) | (packet[4] << 24);
-
-	switch (packet[8]) {
+bool telemetryReceiveOrder(uint32_t timestamp, uint8_t* payload) {
+	switch (payload[0]) {
 	case STATE_OPEN_FILL_VALVE: {
 		current_state = STATE_OPEN_FILL_VALVE;
 		break;
@@ -268,11 +265,8 @@ bool telemetryReceiveOrder(uint8_t *packet) {
 	return 0;
 }
 
-bool telemetryReceiveIgnition(uint8_t *packet) {
-	uint32_t timestamp = packet[3] | (packet[2] << 8) | (packet[1] << 16) | (packet[0] << 24);
-	uint32_t seq_number = packet[7] | (packet[6] << 8) | (packet[5] << 16) | (packet[4] << 24);
-	
-	if (packet[8] == 0x22) {
+bool telemetryReceiveIgnition(uint32_t timestamp, uint8_t* payload) {
+	if (payload[0] == 0x22) {
 		//TODO: define more robust ignition process in collaboration with GS
 		can_setFrame((int32_t) 0x22, DATA_ID_IGNITION, timestamp);
 	}

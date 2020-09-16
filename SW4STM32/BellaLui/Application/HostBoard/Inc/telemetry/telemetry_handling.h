@@ -22,8 +22,8 @@ bool telemetrySendState(uint32_t timestamp, bool id, float value, uint8_t av_sta
 bool telemetrySendMotorPressure(uint32_t timestamp, uint32_t pressure);
 bool telemetrySendAirbrakesAngle(uint32_t timestamp, int32_t angle);
 
-bool telemetryReceiveOrder(uint8_t *RX_Order_Packet);
-bool telemetryReceiveIgnition(uint8_t *RX_Ignition_Packet);
+bool telemetryReceiveOrder(uint32_t timestamp, uint8_t *payload);
+bool telemetryReceiveIgnition(uint32_t timestamp, uint8_t *payload);
 
 #ifdef __cplusplus
 }

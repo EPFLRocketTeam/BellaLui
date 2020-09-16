@@ -21,6 +21,19 @@
 
 #define EQUALS(index, str) (cmd->num_components > (index) && component_matches(&cmd->components[(index)], (str)))
 
+
+uint8_t __parse_hex_char(char c) {
+	if(c >= '0' && c <= '9') {
+		return c - '0';
+	} else if(c >= 'A' && c <= 'F') {
+		return 10 + (c - 'A');
+	} else if(c >= 'a' && c <= 'f') {
+		return 10 + (c - 'a');
+	} else {
+		return 0xFF; // Error
+	}
+}
+
 void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...)) {
 	if(cmd->num_components > 0) {
 		if(has_io_mode(IO_INPUT & IO_DIRECT)) {
@@ -63,8 +76,9 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 			} else if(has_io_mode(IO_INPUT & IO_DIRECT & IO_TELEMETRY)) {
 				const char* packet_buffer = cmd->components[0].component;
 
-				for(uint8_t i = 0; i < 512; i++) {
-					processReceivedByte((uint8_t) strtol(packet_buffer++, 0, 16));
+				for(uint8_t i = 0; i < cmd->components[0].length; i += 2) {
+					uint8_t byte = __parse_hex_char(packet_buffer[i]) << 4 | __parse_hex_char(packet_buffer[i + 1]);
+					processReceivedByte(byte);
 				}
 			}
 

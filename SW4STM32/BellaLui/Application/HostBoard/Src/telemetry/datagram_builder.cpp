@@ -41,7 +41,7 @@ DatagramBuilder::DatagramBuilder(uint16_t datagramPayloadSize, uint8_t datagramT
 	write32<uint32_t>(seqNumber);
 
 	datagramCrc = CRC_16_GENERATOR_POLY.initialValue;
-	for(int16_t i = currentIdx - 5; i < currentIdx; i++) {
+	for(int16_t i = currentIdx - 13; i < currentIdx; i++) {
 		//Calculate checksum for datagram seq number and payload type fields
 		datagramCrc = CalculateRemainderFromTable(*((uint8_t*) datagramPtr + i), datagramCrc);
 	}
