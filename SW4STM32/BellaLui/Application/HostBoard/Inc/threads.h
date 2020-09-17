@@ -8,10 +8,12 @@
 #ifndef APPLICATION_HOSTBOARD_INC_THREADS_H_
 #define APPLICATION_HOSTBOARD_INC_THREADS_H_
 
+
 #define OS_STKCHECK
 #define LED
 //#define DEBUG
 #define SENSOR_TELEMETRY_BOARD
+
 
 
 #ifdef GPS_BOARD
@@ -87,6 +89,7 @@
 #define CAN_ID CAN_ID_VALVE_BOARD
 #define VALVE
 #define IGNITION
+#define IGNITION_1
 
 #define BOARD_LED_R (0)
 #define BOARD_LED_G (127)
@@ -97,6 +100,7 @@
 #define CAN_ID CAN_ID_CODE_BOARD
 #define SECURITY_CODE
 #define IGNITION
+#define DISCONNECT
 
 #define BOARD_LED_R (0)
 #define BOARD_LED_G (255)
@@ -108,8 +112,9 @@
 #define SENSOR_TELEMETRY
 #define XBEE
 #define IGNITION
+#define IGNITION_2
 
-#define BOARD_LED_R (255)
+#define BOARD_LED_R (0)
 #define BOARD_LED_G (0)
 #define BOARD_LED_B (255)
 #endif

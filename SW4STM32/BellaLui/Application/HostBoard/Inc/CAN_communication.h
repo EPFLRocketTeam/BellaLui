@@ -57,8 +57,6 @@ typedef struct
 
 #define DATA_ID_STATE 50 // enum
 
-//TODO which DATA_ID is the correct one for the ignition?
-
 //GSE Rx Data
 #define DATA_ID_IGNITION 51
 #define DATA_ID_ORDER 52
@@ -71,6 +69,15 @@ typedef struct
 #define DATA_ID_HOSE_DISCONNECT_STATE 58
 #define DATA_ID_MAIN_IGNITION_STATE 59
 #define DATA_ID_SEC_IGNITION_STATE 60
+
+//GSE Sensor Data
+#define DATA_ID_IGNITION_CURRENT_1 61
+#define DATA_ID_IGNITION_CURRENT_2 62
+#define DATA_ID_DISCONNECT_CURRENT 63
+#define DATA_ID_IN_HOSE_PRESSURE 64
+#define DATA_ID_IN_HOSE_TEMPERATURE 65
+#define DATA_ID_TANK_TEMPERATURE 66
+#define DATA_ID_ROCKET_WEIGHT 67
 
 //Propulsion Data
 #define DATA_ID_MOTOR_PRESSURE 55

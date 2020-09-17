@@ -10,5 +10,6 @@
 
 void ignition_sys_init(void);
 void TK_ignition_control(void const * argument);
+float read_current(void);
 
 #endif /* IGNITION_H_ */

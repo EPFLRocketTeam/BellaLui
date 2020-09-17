@@ -14,4 +14,6 @@ void sensors_init(void);
 void TK_telemetry_control(void const * argument);
 void TK_sensors_control(void const * argument);
 
+float read_tank_temp(void);
+
 #endif /* SENSOR_TELEMETRY_H_ */

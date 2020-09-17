@@ -170,14 +170,19 @@ Telemetry_Message createGSEStateDatagram(GSE_state* GSE, uint32_t time_stamp, ui
 
 	builder.write32<uint32_t> (time_stamp);
 	builder.write32<uint32_t> (Packet_Number++);
-	builder.write32<uint32_t> (GSE->code);
 	builder.write8 (GSE->fill_valve_state);
 	builder.write8 (GSE->purge_valve_state);
 	builder.write8 (GSE->main_ignition_state);
 	builder.write8 (GSE->sec_ignition_state);
-	builder.write8 (GSE->host_disconnect_state);
-	return builder.finalizeDatagram();
+	builder.write8 (GSE->hose_disconnect_state);
+	builder.write32<float32_t>(GSE->hose_pressure);
+	builder.write32<float32_t>(GSE->hose_temperature);
+	builder.write32<float32_t>(GSE->tank_temperature);
+	builder.write32<float32_t>(GSE->rocket_weight);
+	builder.write32<float32_t>(GSE->ignition1_current);
+	builder.write32<float32_t>(GSE->ignition2_current);
 
+	return builder.finalizeDatagram();
 }
 
 Telemetry_Message createOrderDatagram(uint8_t order, uint32_t time_stamp, uint32_t seqNumber)

@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    stm32f4xx_hal_conf_template.h
+  * @file    stm32f4xx_hal_conf.h
   * @author  MCD Application Team
   * @brief   HAL configuration template file. 
   *          This file should be copied to the application folder and renamed
@@ -36,7 +36,8 @@
   */
 #define HAL_MODULE_ENABLED  
 
-  /* #define HAL_ADC_MODULE_ENABLED   */
+#define HAL_ADC_MODULE_ENABLED
+
 /* #define HAL_CRYP_MODULE_ENABLED   */
 #define HAL_CAN_MODULE_ENABLED
 /* #define HAL_CRC_MODULE_ENABLED   */
