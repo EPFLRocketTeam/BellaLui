@@ -161,6 +161,9 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 				} else if(EQUALS(2, "telemetry")) {
 					enable_monitor(TELEMETRY_MONITOR, location, refresh_rate);
 					respond("> Telemetry monitor enabled with %dHz frequency\n", refresh_rate);
+				} else if(EQUALS(2, "gps")) {
+					enable_monitor(GPS_MONITOR, location, refresh_rate);
+					respond("> GPS monitor enabled with %dHz frequency\n", refresh_rate);
 				} else {
 					respond("> Usage: monitor enable { sensor | state | kalman | flash | can | telemetry } location [refresh rate; default: 1Hz]\n");
 				}
@@ -185,6 +188,9 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 				} else if(EQUALS(2, "telemetry")) {
 					disable_monitor(TELEMETRY_MONITOR);
 					respond("> Telemetry monitor disabled\n");
+				} else if(EQUALS(2, "gps")) {
+					disable_monitor(GPS_MONITOR);
+					respond("> GPS monitor disabled\n");
 				} else {
 					respond("> Usage: monitor disable { sensor | state | kalman | flash | can | telemetry }\n");
 				}

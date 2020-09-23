@@ -32,7 +32,7 @@ void TK_pressure_monitor (void const * argument)
 		  data = *((uint32_t*)(&pressure_data));
 		  timestamp = HAL_GetTick();
 		  // send data over can bus
-		  can_setFrame(data, DATA_ID_MOTOR_PRESSURE,timestamp);
+		  // can_setFrame(data, DATA_ID_MOTOR_PRESSURE,timestamp);
 		  osDelay(PRESSURE_MONITOR_PERIOD_MS);
 
 	  }

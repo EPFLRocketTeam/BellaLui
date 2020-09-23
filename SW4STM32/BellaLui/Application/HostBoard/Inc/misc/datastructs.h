@@ -39,6 +39,17 @@ typedef struct
 
 typedef struct
 {
+  uint16_t pressure1;
+  uint16_t pressure2;
+  uint16_t temperature1;
+  uint16_t temperature2;
+  uint16_t temperature3;
+  uint16_t status;
+  uint16_t motor_position;
+} PropulsionData;
+
+typedef struct
+{
   void* ptr;
   uint16_t size;
 } Telemetry_Message;

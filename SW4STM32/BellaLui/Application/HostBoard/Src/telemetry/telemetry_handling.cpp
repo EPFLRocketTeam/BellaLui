@@ -8,7 +8,6 @@
 
 #include "telemetry/telemetry_handling.h"
 
-#include "debug/led.h"
 #include "misc/data_handling.h"
 #include "misc/datagram_builder.h"
 #include "telemetry/simpleCRC.h"
@@ -21,18 +20,19 @@
 
 
 extern "C" {
+	#include "debug/led.h"
+	#include "debug/console.h"
 	#include "can_transmission.h"
 	#include "storage/sd_card.h"
 }
 
 #define TELE_TIMEMIN 20
 #define GPS_TIMEMIN 100
-#define MOTOR_TIMEMIN 100
-#define WARNING_TIMEMIN 50
+#define STATE_TIMEMIN 100
+#define PROP_DATA_TIMEMIN 50
 #define AB_TIMEMIN 100
 //#define TELE_RAW_TIMEMIN 100
 
-extern volatile enum State current_state;
 extern osMessageQId xBeeQueueHandle;
 
 volatile static uint32_t telemetrySeqNumber = 0;
@@ -41,8 +41,9 @@ IMU_data imu = { { 0, 0, 0 }, { 0, 0, 0 } };
 BARO_data baro = { 0, 0, 0 };
 uint32_t last_sensor_update = 0;
 uint32_t last_motor_update = 0;
-uint32_t last_warning_update = 0;
+uint32_t last_propulsion_update = 0;
 uint32_t last_airbrakes_update = 0;
+uint32_t last_state_update = 0;
 //uint32_t last_sensor_raw_update = 0;
 Telemetry_Message m1;
 Telemetry_Message m2;
@@ -100,7 +101,7 @@ Telemetry_Message createGPSDatagram(uint32_t timestamp, GPS_data gpsData) {
 }
 
 Telemetry_Message createStateDatagram(uint32_t timestamp, uint8_t id, float value, uint8_t av_state) {
-	DatagramBuilder builder = DatagramBuilder(WARNING_DATAGRAM_PAYLOAD_SIZE, STATUS_PACKET, timestamp, telemetrySeqNumber++);
+	DatagramBuilder builder = DatagramBuilder(STATUS_DATAGRAM_PAYLOAD_SIZE, STATUS_PACKET, timestamp, telemetrySeqNumber++);
 
 	builder.write8(id);
 	builder.write32(value);
@@ -109,10 +110,16 @@ Telemetry_Message createStateDatagram(uint32_t timestamp, uint8_t id, float valu
 	return builder.finalizeDatagram();
 }
 
-Telemetry_Message createPropulsionDatagram(uint32_t timestamp, float32_t pressure) {
-	DatagramBuilder builder = DatagramBuilder(MOTORPRESSURE_DATAGRAM_PAYLOAD_SIZE, MOTOR_PACKET, timestamp, telemetrySeqNumber++);
+Telemetry_Message createPropulsionDatagram(uint32_t timestamp, PropulsionData* data) {
+	DatagramBuilder builder = DatagramBuilder(PROPULSION_DATAGRAM_PAYLOAD_SIZE, MOTOR_PACKET, timestamp, telemetrySeqNumber++);
 
-	builder.write32<float32_t>(pressure);
+	builder.write16<uint16_t>(data->pressure1);
+	builder.write16<uint16_t>(data->pressure2);
+	builder.write16<uint16_t>(data->temperature1);
+	builder.write16<uint16_t>(data->temperature2);
+	builder.write16<uint16_t>(data->temperature3);
+	builder.write16<uint16_t>(data->status);
+	builder.write16<uint16_t>(data->motor_position);
 
 	return builder.finalizeDatagram();
 }
@@ -192,36 +199,6 @@ bool telemetrySendBaro(uint32_t timestamp, BARO_data data) {
 	return handled;
 }
 
-bool telemetrySendMotorPressure(uint32_t timestamp, uint32_t pressure) {
-	uint32_t now = HAL_GetTick();
-	bool handled = false;
-
-	if (now - last_motor_update > MOTOR_TIMEMIN) {
-		m4 = createPropulsionDatagram(timestamp, pressure);
-		if (osMessagePut(xBeeQueueHandle, (uint32_t) &m4, 10) != osOK) {
-			vPortFree(m4.ptr); // free the datagram if we couldn't queue it
-		}
-		last_motor_update = now;
-		handled = true;
-	}
-	return handled;
-}
-
-bool telemetrySendState(uint32_t timestamp, bool id, float value, uint8_t av_state) {
-	uint32_t now = HAL_GetTick();
-	bool handled = false;
-
-	if (now - last_warning_update > WARNING_TIMEMIN) {
-		m5 = createStateDatagram(timestamp, id, value, av_state);
-		if (osMessagePut(xBeeQueueHandle, (uint32_t) &m5, 10) != osOK) {
-			vPortFree(m5.ptr); // free the datagram if we couldn't queue it
-		}
-		last_warning_update = now;
-		handled = true;
-	}
-	return handled;
-}
-
 bool telemetrySendAirbrakesAngle(uint32_t timestamp, float angle) {
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
@@ -238,39 +215,60 @@ bool telemetrySendAirbrakesAngle(uint32_t timestamp, float angle) {
 	return handled;
 }
 
+bool telemetrySendState(uint32_t timestamp, bool id, float value, uint8_t av_state) {
+	uint32_t now = HAL_GetTick();
+	bool handled = false;
+
+	if (now - last_state_update > STATE_TIMEMIN) {
+		m5 = createStateDatagram(timestamp, id, value, av_state);
+		if (osMessagePut(xBeeQueueHandle, (uint32_t) &m5, 10) != osOK) {
+			vPortFree(m5.ptr); // free the datagram if we couldn't queue it
+		}
+		last_state_update = now;
+		handled = true;
+	}
+	return handled;
+}
+
+bool telemetrySendPropulsionData(uint32_t timestamp, PropulsionData* data) {
+	uint32_t now = HAL_GetTick();
+	bool handled = false;
+
+	if (now - last_propulsion_update > PROP_DATA_TIMEMIN) {
+		m5 = createPropulsionDatagram(timestamp, data);
+		if (osMessagePut(xBeeQueueHandle, (uint32_t) &m5, 10) != osOK) {
+			vPortFree(m5.ptr); // free the datagram if we couldn't queue it
+		}
+		last_propulsion_update = now;
+		handled = true;
+	}
+	return handled;
+}
+
 // Received Packet Handling
 
-bool telemetryReceiveOrder(uint32_t timestamp, uint8_t* payload) {
-	switch (payload[0]) {
-	case STATE_OPEN_FILL_VALVE: {
-		current_state = STATE_OPEN_FILL_VALVE;
-		break;
-	}
-	case STATE_CLOSE_FILL_VALVE: {
-		current_state = STATE_CLOSE_FILL_VALVE;
-		break;
-	}
-	case STATE_OPEN_PURGE_VALVE: {
-		current_state = STATE_OPEN_PURGE_VALVE;
-		break;
-	}
-	case STATE_DISCONNECT_HOSE: {
-		current_state = STATE_DISCONNECT_HOSE;
-		break;
-	}
-	}
+bool telemetryReceivePropulsionCommand(uint32_t timestamp, uint8_t* payload) {
+	uint8_t command = payload[0];
 
-	can_setFrame((int32_t) current_state, DATA_ID_ORDER, timestamp);
-
-	return 0;
-}
-
-bool telemetryReceiveIgnition(uint32_t timestamp, uint8_t* payload) {
-	if (payload[0] == 0x22) {
-		//TODO: define more robust ignition process in collaboration with GS
-		can_setFrame((int32_t) 0x22, DATA_ID_IGNITION, timestamp);
+	switch(command) {
+	case 0x01:
+		can_setFrame(0xC0FFEE, DATA_ID_START_VALVE_OPERATION, timestamp);
+		break;
+	case 0x02:
+		can_setFrame(0xC0FFEE, DATA_ID_START_FUELING, timestamp);
+		break;
+	case 0x03:
+		can_setFrame(0xC0FFEE, DATA_ID_STOP_FUELING, timestamp);
+		break;
+	case 0x04:
+		can_setFrame(0xC0FFEE, DATA_ID_START_HOMING, timestamp);
+		break;
+	case 0x05:
+		can_setFrame(0xC0FFEE, DATA_ID_ABORT, timestamp);
+		break;
+	default:
+		rocket_boot_log("Invalid propulsion command received from GS: %d\n", command);
 	}
 
 	return 0;
 }
-

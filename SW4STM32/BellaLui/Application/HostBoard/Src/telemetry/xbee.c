@@ -338,14 +338,11 @@ void processReceivedPacket(struct RxPacket *packet) {
 	}
 
 	switch(packet->packet_id) {
-	case ORDER_PACKET:
-		telemetryReceiveOrder(packet->timestamp, packet->payload);
-		break;
-	case IGNITION_PACKET:
-		telemetryReceiveIgnition(packet->timestamp, packet->payload);
+	case PROPULSION_COMMAND_PACKET:
+		telemetryReceivePropulsionCommand(packet->timestamp, packet->payload);
 		break;
 	default:
-		rocket_boot_log("Unhandled telemetry packet ID %d\n", packet->packet_id); // Might be called from interrupt
+		rocket_boot_log("Unhandled telemetry packet ID %d\n", packet->packet_id); // Might be called from interrupt for debug
 		break;
 	}
 }

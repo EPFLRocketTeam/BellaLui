@@ -40,6 +40,9 @@
 
 #define TICKS_BETWEEN_INIT_ATTEMPTS 64 // At 10 Hz, corresponds to ca. 5 seconds
 
+#define ACCEL_ACQUISITION_DIVIDER 1
+#define GYRO_ACQUISITION_DIVIDER 10
+
 /* sensor_id is the index of the sensor, which is different form the dev_id ( defined in bme280_dev)
  * or dev_addr ( defined in bno055_t) representing its address for the I2C protocol
  */
@@ -252,7 +255,7 @@ void TK_sensor_board(void const * argument) {
 			rocket_log(" Rotation X: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.x));
 			rocket_log(" Rotation Y: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.y));
 			rocket_log(" Rotation Z: %d [mrad/s]\x1b[K\n\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.z));
-			rocket_log(" ------------------------------\x1b[K\n\x1b[40;0H");
+			rocket_log(" ------------------------------\x1b[K\n");
 
 			exit_monitor(SENSOR_MONITOR);
 		}
@@ -367,8 +370,8 @@ int8_t init_accelerometer(uint8_t sensor_id) {
 		return result;
 	}
 
-	// result = bno055_set_accel_bw(BNO055_ACCEL_BW_31_25HZ);
-	result = bno055_set_accel_bw(BNO055_ACCEL_BW_500HZ);
+	result = bno055_set_accel_bw(BNO055_ACCEL_BW_250HZ);
+	// result = bno055_set_accel_bw(BNO055_ACCEL_BW_500HZ);
 
 	if(result != BNO055_SUCCESS) {
 		// rocket_log("Accelerometer %u failed to set acceleration bandwidth with error code %d\n", sensor_id, result);
@@ -382,8 +385,8 @@ int8_t init_accelerometer(uint8_t sensor_id) {
 		return result;
 	}
 
-	// result = bno055_set_gyro_bw(BNO055_GYRO_BW_47HZ);
-	result = bno055_set_gyro_bw(BNO055_GYRO_BW_523HZ);
+	result = bno055_set_gyro_bw(BNO055_GYRO_BW_230HZ);
+	// result = bno055_set_gyro_bw(BNO055_GYRO_BW_523HZ);
 
 	if(result != BNO055_SUCCESS) {
 		// rocket_log("Accelerometer %u failed to set gyroscope bandwidth with error code %d\n", sensor_id, result);
@@ -435,13 +438,22 @@ int8_t fetch_barometer(uint8_t sensor_id, struct bme280_data_float* data) {
 int8_t fetch_accelerometer(uint8_t sensor_id, struct bno055_data* data) {
 	static uint8_t accel_data[BNO055_ACCEL_XYZ_DATA_SIZE];
 	static uint8_t gyro_data[BNO055_GYRO_XYZ_DATA_SIZE];
+	static uint8_t accel_counter = 0;
+	static uint8_t gyro_counter = 0;
 
 	current_sensor = sensor_id;
 
 	uint8_t result = 0;
 
-	result += bno_i2c_read(accelerometers[sensor_id].dev_addr, BNO055_ACCEL_DATA_X_LSB_VALUEX_REG, accel_data, BNO055_ACCEL_XYZ_DATA_SIZE);
-	// result += bno_i2c_read(accelerometers[sensor_id].dev_addr, BNO055_GYRO_DATA_X_LSB_VALUEX_REG, gyro_data, BNO055_GYRO_XYZ_DATA_SIZE);
+	if(accel_counter++ == ACCEL_ACQUISITION_DIVIDER) {
+		result += bno_i2c_read(accelerometers[sensor_id].dev_addr, BNO055_ACCEL_DATA_X_LSB_VALUEX_REG, accel_data, BNO055_ACCEL_XYZ_DATA_SIZE);
+		accel_counter = 0;
+	}
+
+	if(gyro_counter++ == GYRO_ACQUISITION_DIVIDER) {
+		result += bno_i2c_read(accelerometers[sensor_id].dev_addr, BNO055_GYRO_DATA_X_LSB_VALUEX_REG, gyro_data, BNO055_GYRO_XYZ_DATA_SIZE);
+		gyro_counter = 0;
+	}
 
 	data->accel.x = (float) ((((int16_t) ((int8_t) accel_data[1]) << 8) | accel_data[0]) / BNO055_ACCEL_DIV_MG);
 	data->accel.y = (float) ((((int16_t) ((int8_t) accel_data[3]) << 8) | accel_data[2]) / BNO055_ACCEL_DIV_MG);

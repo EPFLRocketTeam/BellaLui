@@ -57,11 +57,22 @@ typedef struct
 
 #define DATA_ID_STATE 50 // enum
 
-//TODO which DATA_ID is the correct one for the ignition?
-#define DATA_ID_ORDER 51
-#define DATA_ID_IGNITION 51
 
-#define DATA_ID_MOTOR_PRESSURE 55
+#define DATA_ID_START_VALVE_OPERATION 80
+#define DATA_ID_START_FUELING 81
+#define DATA_ID_STOP_FUELING 82
+#define DATA_ID_START_HOMING 83
+#define DATA_ID_ABORT 84
+
+
+
+#define DATA_ID_PROP_PRESSURE1 85 // enum
+#define DATA_ID_PROP_PRESSURE2 86 // enum
+#define DATA_ID_PROP_TEMPERATURE1 87 // enum
+#define DATA_ID_PROP_TEMPERATURE2 88 // enum
+#define DATA_ID_PROP_TEMPERATURE3 89 // enum
+#define DATA_ID_PROP_STATUS 90 // enum
+#define DATA_ID_PROP_MOTOR_POSITION 91 // enum
 
 #define DATA_ID_SHELL_CONTROL  200
 #define DATA_ID_SHELL_INPUT    201

@@ -21,9 +21,9 @@ bool telemetrySendBaro(uint32_t timestamp, BARO_data data);
 bool telemetrySendState(uint32_t timestamp, bool id, float value, uint8_t av_state);
 bool telemetrySendMotorPressure(uint32_t timestamp, uint32_t pressure);
 bool telemetrySendAirbrakesAngle(uint32_t timestamp, int32_t angle);
+bool telemetrySendPropulsionData(uint32_t timestamp, PropulsionData* payload);
 
-bool telemetryReceiveOrder(uint32_t timestamp, uint8_t *payload);
-bool telemetryReceiveIgnition(uint32_t timestamp, uint8_t *payload);
+bool telemetryReceivePropulsionCommand(uint32_t timestamp, uint8_t* payload);
 
 #ifdef __cplusplus
 }

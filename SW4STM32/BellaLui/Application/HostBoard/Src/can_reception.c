@@ -41,7 +41,6 @@ BARO_data BARO_buffer[CIRC_BUFFER_SIZE];
 
 float kalman_z  = 0;
 float kalman_vz = 0;
-float motor_pressure = 0;
 int32_t ab_angle = 42;
 
 
@@ -125,11 +124,9 @@ bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
 	return true;
 }
 
-bool handleMotorPressureData(uint32_t timestamp, float pressure) {
+bool handlePropulsionData(uint32_t timestamp, PropulsionData* data) {
 	#ifdef XBEE
-	if (motor_pressure > MAX_MOTOR_PRESSURE) {
-		telemetrySendState(timestamp, WARNING_MOTOR_PRESSURE, motor_pressure, current_state);
-	}
+	telemetrySendPropulsionData(timestamp, data);
 	#endif
 
 	return true;
@@ -177,6 +174,7 @@ void TK_can_reader() {
 	IMU_data  imu [MAX_BOARD_NUMBER] = {0};
 	BARO_data baro[MAX_BOARD_NUMBER] = {0};
 	GPS_data  gps [MAX_BOARD_NUMBER] = {0};
+	PropulsionData prop_data;
 	uint8_t state = 0;
 
 	int total_gps_fixes = 0;
@@ -185,7 +183,7 @@ void TK_can_reader() {
 	bool new_imu [MAX_BOARD_NUMBER] = {0};
 	bool new_gps [MAX_BOARD_NUMBER] = {0};
 	bool new_ab = 0;
-	bool new_motor_pressure = 0;
+	bool new_prop_data = 0;
 	bool new_state = 0;
 	int idx = 0;
 	uint32_t shell_command;
@@ -285,9 +283,33 @@ void TK_can_reader() {
 				ab_angle = ((int32_t) msg.data); // keep in deg
 				// new_ab = true;
 				break;
-			case DATA_ID_MOTOR_PRESSURE:
-				motor_pressure = (float32_t) msg.data;
-				new_motor_pressure = true;
+			case DATA_ID_PROP_PRESSURE1:
+				prop_data.pressure1 = msg.data & 0xFFFF;
+				new_prop_data = true;
+				break;
+			case DATA_ID_PROP_PRESSURE2:
+				prop_data.pressure2 = msg.data & 0xFFFF;
+				new_prop_data = true;
+				break;
+			case DATA_ID_PROP_TEMPERATURE1:
+				prop_data.temperature1 = msg.data & 0xFFFF;
+				new_prop_data = true;
+				break;
+			case DATA_ID_PROP_TEMPERATURE2:
+				prop_data.temperature2 = msg.data & 0xFFFF;
+				new_prop_data = true;
+				break;
+			case DATA_ID_PROP_TEMPERATURE3:
+				prop_data.temperature3 = msg.data & 0xFFFF;
+				new_prop_data = true;
+				break;
+			case DATA_ID_PROP_STATUS:
+				prop_data.status = msg.data & 0xFFFF;
+				new_prop_data = true;
+				break;
+			case DATA_ID_PROP_MOTOR_POSITION:
+				prop_data.motor_position = msg.data & 0xFFFF;
+				new_prop_data = true;
 				break;
 			case DATA_ID_SHELL_CONTROL:
 				shell_command = msg.data & 0xFF000000;
@@ -321,7 +343,7 @@ void TK_can_reader() {
 		}
 
 		// check if new/non-handled full sensor packets are present
-		for (int i=0; i<MAX_BOARD_NUMBER ; i++) {
+		for (int i=0; i < MAX_BOARD_NUMBER ; i++) {
 			if (new_gps[i]) {
 				// check if the new gps data has a fix
 				if (gps[i].altitude == GPS_DEFAULT) { // will make some launch locations impossible (depending on the default value the altitude might be valid)
@@ -360,8 +382,8 @@ void TK_can_reader() {
 			new_state = !handleStateUpdate(msg.timestamp, state);
 		}
 
-		if (new_motor_pressure) {
-			new_motor_pressure = !handleMotorPressureData(msg.timestamp, motor_pressure);
+		if (new_prop_data) {
+			new_prop_data = !handlePropulsionData(msg.timestamp, &prop_data);
 		}
 
 		end_profiler();

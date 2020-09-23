@@ -2,6 +2,12 @@
 
 #include "debug/led.h"
 #include "debug/console.h"
+
+extern "C" {
+	#include "debug/profiler.h"
+	#include "debug/monitor.h"
+}
+
 #include "can_transmission.h"
 
 #include "storage/flash_logging.h"
@@ -38,6 +44,18 @@ void gps_init(UART_HandleTypeDef* gpsHuart) {
 int8_t send_gps_data() {
 	uint8_t sats = gpsParser.satellites.isValid() ? static_cast<uint8_t>(gpsParser.satellites.value()) : 0;
 
+	if(enter_monitor(GPS_MONITOR)) {
+		rocket_log(" ------- GPS acquisition -------\x1b[K\n");
+		rocket_log(" Available satellites: %d\x1b[K\n", sats);
+		rocket_log(" Longitude: %d [µdeg]\x1b[K\n", (uint32_t) (1000000 * gpsParser.location.lng()));
+		rocket_log(" Latitude: %d [µdeg]\x1b[K\n", (uint32_t) (1000000 * gpsParser.location.lat()));
+		rocket_log(" Altitude: %d [m]\x1b[K\n", (uint32_t) (gpsParser.altitude.value()));
+		rocket_log(" HDOP: %d%%\x1b[K\n", (uint32_t) (100 * gpsParser.hdop.hdop()));
+		rocket_log(" -------------------------------\x1b[K\n");
+
+		exit_monitor(GPS_MONITOR);
+	}
+
 	can_setFrame((int32_t) sats, DATA_ID_GPS_SATS, HAL_GetTick());
 
 	if(gpsParser.location.isValid()) {
@@ -62,16 +80,17 @@ int8_t send_gps_data() {
 void TK_GPS_board(void const* argument) {
 	uint8_t gps_led = led_register_TK();
 
-	start_logging();
-
 	uint32_t last_transmission = HAL_GetTick();
 
 	HAL_UART_Receive_DMA(gps_huart, gpsRxBuffer, GPS_RX_BUFFER_SIZE);
 
 	while(true) {
+		start_profiler(1);
+
 		endGpsDmaStreamIndex = GPS_RX_BUFFER_SIZE - gps_huart->hdmarx->Instance->NDTR;
 
 		while(lastGpsDmaStreamIndex < endGpsDmaStreamIndex) {
+			// rocket_log("%c", gpsRxBuffer[lastGpsDmaStreamIndex]);
 			gpsParser.encode(gpsRxBuffer[lastGpsDmaStreamIndex++]);
 		}
 
@@ -91,7 +110,9 @@ void TK_GPS_board(void const* argument) {
 			last_transmission = HAL_GetTick();
 		}
 
-		osDelay (10);
+		end_profiler();
+
+		osDelay(10);
 	}
 }
 
