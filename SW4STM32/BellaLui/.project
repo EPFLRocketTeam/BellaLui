@@ -27,6 +27,11 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>Libraries/tim.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/tim.c</locationURI>
+		</link>
+		<link>
 			<name>Application/SW4STM32/startup_stm32f446xx.s</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/startup_stm32f446xx.s</locationURI>
@@ -320,11 +325,6 @@
 			<name>Application/User/Core/stm32f4xx_it.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/stm32f4xx_it.c</locationURI>
-		</link>
-		<link>
-			<name>Application/User/Core/tim.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/tim.c</locationURI>
 		</link>
 		<link>
 			<name>Application/User/Core/usart.c</name>

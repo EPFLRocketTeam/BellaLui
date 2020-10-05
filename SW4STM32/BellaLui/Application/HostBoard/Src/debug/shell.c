@@ -16,12 +16,13 @@
 static void (*__shell_terminal)(ShellCommand* cmd, int (*respond)(const char* format, ...));
 static UART_HandleTypeDef* __shell_uart;
 
+static uint8_t dma_buffer[CMD_BUFFER_SIZE];
+
 static char command_buffer[CMD_BUFFER_SIZE];
 static uint8_t can_buffer[8];
 static uint8_t can_index = 0;
 
 static uint8_t command_index;
-static uint8_t cbuf;
 
 static ShellCommand cmd;
 
@@ -32,7 +33,6 @@ void shell_init(UART_HandleTypeDef* uart, void (*terminal)(ShellCommand* cmd, in
 	__shell_terminal = terminal;
 
 	cmd.components[0].component = command_buffer; // Bind command structure to buffer
-	HAL_UART_Receive_IT(__shell_uart, &cbuf, 1);
 }
 
 void shell_bridge(int8_t board_id) {
@@ -43,10 +43,19 @@ int8_t get_shell_bridge() {
 	return bridge;
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-	if (huart == __shell_uart) {
-		shell_receive_byte((char) cbuf, bridge);
-		HAL_UART_Receive_IT(__shell_uart, &cbuf, 1);
+void TK_shell(const void *args) {
+	uint32_t lastDmaStreamIndex = 0;
+	uint32_t endDmaStreamIndex = 0;
+
+	HAL_UART_Receive_DMA(__shell_uart, dma_buffer, CMD_BUFFER_SIZE);
+
+	while(true) {
+		endDmaStreamIndex = CMD_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(__shell_uart->hdmarx);
+
+		while(lastDmaStreamIndex != endDmaStreamIndex) {
+			shell_receive_byte(dma_buffer[lastDmaStreamIndex], bridge);
+			lastDmaStreamIndex = (lastDmaStreamIndex + 1) % CMD_BUFFER_SIZE;
+		}
 	}
 }
 
@@ -63,17 +72,19 @@ static void __bridge_receive(uint8_t* buffer, uint8_t length) {
 }
 
 void shell_receive_byte(char cbuf, int32_t bridge) {
+	static CAN_msg message = { 0 };
+
 	if(has_io_mode(IO_CAN & IO_INPUT & IO_PIPE)) {
 		can_buffer[can_index++] = cbuf;
 
 		if(can_index == 8) {
-			CAN_msg message = { 0 };
 
 			message.id = can_buffer[0];
 			message.timestamp = (can_buffer[1] << 16) | (can_buffer[2] << 8) | (can_buffer[3] << 0);
 			message.data = (can_buffer[4] << 24) | (can_buffer[5] << 16) | (can_buffer[6] << 8) | (can_buffer[7] << 0);
 
 			can_addMsg(message);
+	    	flash_log(message);
 
 			can_index = 0;
 		}

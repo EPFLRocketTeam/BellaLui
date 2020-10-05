@@ -244,7 +244,6 @@ void TK_sensor_board(void const * argument) {
 
 
 		if(enter_monitor(SENSOR_MONITOR)) {
-			rocket_log(" ----- Sensor acquisition -----\x1b[K\n");
 			rocket_log(" Available barometers: %d\x1b[K\n", num_barometer_data);
 			rocket_log(" Available accelerometers: %d\x1b[K\n", num_accelerometer_data);
 			rocket_log(" Temperature: %d [m°C]\x1b[K\n", (uint32_t) (barometer_data.temperature * 10));
@@ -255,7 +254,6 @@ void TK_sensor_board(void const * argument) {
 			rocket_log(" Rotation X: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.x));
 			rocket_log(" Rotation Y: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.y));
 			rocket_log(" Rotation Z: %d [mrad/s]\x1b[K\n\x1b[K\n", (uint32_t) (1000 * accelerometer_data.gyro.z));
-			rocket_log(" ------------------------------\x1b[K\n");
 
 			exit_monitor(SENSOR_MONITOR);
 		}

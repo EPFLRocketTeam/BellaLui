@@ -10,7 +10,7 @@
 
 #define OS_STKCHECK
 #define LED
-#define TELEMETRY_BOARD
+#define DEBUG_BOARD
 
 #ifdef GPS_BOARD
 #define CAN_ID CAN_ID_GPS_BOARD
@@ -56,6 +56,9 @@
 #define BOARD_LED_G (50)
 #define BOARD_LED_B (50)
 #define FLASH_LOGGING
+#define ROCKET_FSM
+#define KALMAN
+#define AB_CONTROL
 #endif
 
 #ifdef FLASH_DUMP_BOARD

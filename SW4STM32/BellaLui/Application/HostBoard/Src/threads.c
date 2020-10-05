@@ -12,6 +12,7 @@
 
 #include <sync.h>
 #include <debug/led.h>
+#include <debug/shell.h>
 #include <storage/flash_logging.h>
 #include <storage/heavy_io.h>
 #include <debug/console.h>
@@ -22,6 +23,7 @@
 
 
 osThreadId loggingHandle;
+osThreadId task_ShellHandle;
 osThreadId sdWriteHandle;
 osThreadId task_ABHandle;
 osThreadId sensorBoardHandle;
@@ -46,6 +48,10 @@ void create_threads() {
 	osThreadDef(task_LED, TK_led_handler, osPriorityNormal, 0, 256);
 	task_LEDHandle = osThreadCreate(osThread(task_LED), NULL);
 	rocket_boot_log("LED thread started.\n");
+
+	osThreadDef(task_shell, TK_shell, osPriorityNormal, 0, 256);
+	task_ShellHandle = osThreadCreate(osThread(task_shell), NULL);
+	rocket_boot_log("Shell thread started.\n");
 
 	osThreadDef(0can_reader, TK_can_reader, osPriorityNormal, 0, 1024);
 	canReaderHandle = osThreadCreate(osThread(0can_reader), NULL);

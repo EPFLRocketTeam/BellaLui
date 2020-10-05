@@ -27,6 +27,7 @@ typedef struct {
 } ShellCommand;
 
 void shell_init(UART_HandleTypeDef* uart, void (*terminal)(ShellCommand* cmd, int (*respond)(const char* format, ...)));
+void TK_shell(const void *args);
 void shell_bridge(int8_t board_id);
 void shell_receive_byte(char cbuf, int32_t bridge);
 int8_t get_shell_bridge();

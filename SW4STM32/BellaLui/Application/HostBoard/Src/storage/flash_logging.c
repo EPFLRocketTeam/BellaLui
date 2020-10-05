@@ -176,11 +176,9 @@ void TK_logging_thread(void const *pvArgs) {
 			if(enter_monitor(FLASH_MONITOR)) {
 				uint32_t time = HAL_GetTick();
 
-				rocket_log(" -------- Flash logging -------\x1b[K\n");
 				rocket_log(" Throughput: %dKB/s\x1b[K\n", bytes_written / (time - last_update));
 				rocket_log(" Log file size: %dKB\x1b[K\n", flight_data->length / 1000);
 				rocket_log(" Device capacity: %d%%\x1b[K\n", 100 - (100 * flight_data->length / fs->addressable_space));
-				rocket_log(" ------------------------------\x1b[K\n");
 				exit_monitor(FLASH_MONITOR);
 
 				bytes_written = 0;

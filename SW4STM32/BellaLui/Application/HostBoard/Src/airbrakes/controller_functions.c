@@ -11,10 +11,11 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include <airbrakes/ab_algorithm.h>
-#include <can_transmission.h>
+#include "airbrakes/ab_algorithm.h"
+#include "debug/monitor.h"
+#include "can_transmission.h"
 
-
+#define SIMULATE_AIRBRAKES
 
 #define MAX_OPENING_DEG 210 // deg
 #define MIN_OPENING_DEG 0
@@ -103,11 +104,13 @@ char* do_string_command (char first, char second, int number)
 
 void motor_goto_position_inc (int position_inc)
 {
+#ifndef SIMULATE_AIRBRAKES
   char command[15];
   transmit_command("EN\n", 3);
   do_string_command ('L', 'A', position_inc);
   sprintf(command, "%s%s", command_string, "M\n");
   transmit_command(command, strlen(command));
+#endif
 
   can_setFrame(position_inc, DATA_ID_AB_INC, HAL_GetTick());
   can_setFrame(feedback_received, DATA_ID_AB_STATE, HAL_GetTick());
@@ -125,6 +128,7 @@ void controller_test (void)
 
 int aerobrakes_control_init (void)
 {
+#ifndef SIMULATE_AIRBRAKES
 	char command[64];
 	char buffer[64] = {0};
 
@@ -147,6 +151,10 @@ int aerobrakes_control_init (void)
 	can_setFrame(feedback_received, DATA_ID_AB_STATE, HAL_GetTick());
 
 	return feedback_received;
+#else
+	return true;
+#endif
+
 }
 
 void full_open (void)
@@ -167,9 +175,13 @@ void full_close (void)
 
 void command_aerobrake_controller (float altitude, float speed)
 {
-  float opt_act_position_deg = bellalui_angle_tab(altitude, speed);
+  float opt_act_position_deg = angle_tab(altitude, speed);
 
-  if((int) opt_act_position_deg != -190) {
+  if((int32_t) opt_act_position_deg != -190) {
+#ifdef SIMULATE_AIRBRAKES
+	  rocket_log("Airbrakes angle is %d° at %dms\x1b[K\n", (int32_t) opt_act_position_deg, HAL_GetTick());
+#endif
+
 	 int command_inc = deg2inc(opt_act_position_deg);
 	 motor_goto_position_inc(command_inc);
   }
@@ -180,7 +192,7 @@ float angle_final;
 void test_ab() {
 	for(int i = 1000; i < 2000; i++) {
 		for(int j = 0; j < 500; j++) {
-			float angle = bellalui_angle_tab((float) i, (float) j);
+			float angle = angle_tab((float) i, (float) j);
 
 			if((int) angle != -190) {
 				command_aerobrake_controller((float) i, (float) j);

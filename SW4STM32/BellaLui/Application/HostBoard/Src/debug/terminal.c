@@ -105,6 +105,8 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 			respond("> BellaLui Terminal v1.0 by Arion Zimmermann\n");
 		} else if(EQUALS(0, "reset")) {
 			HAL_NVIC_SystemReset();
+		} else if(EQUALS(0, "time")) {
+			respond("%d\n", HAL_GetTick());
 		} else if(EQUALS(0, "clear")) {
 			respond("\x1b[2J\x1b[H\e7");
 		} else if(EQUALS(0, "id")) {
@@ -164,8 +166,11 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 				} else if(EQUALS(2, "gps")) {
 					enable_monitor(GPS_MONITOR, location, refresh_rate);
 					respond("> GPS monitor enabled with %dHz frequency\n", refresh_rate);
+				} else if(EQUALS(2, "airbrakes")) {
+					enable_monitor(AIRBRAKES_MONITOR, location, refresh_rate);
+					respond("> Airbrakes monitor enabled with %dHz frequency\n", refresh_rate);
 				} else {
-					respond("> Usage: monitor enable { sensor | state | kalman | flash | can | telemetry } location [refresh rate; default: 1Hz]\n");
+					respond("> Usage: monitor enable { sensor | state | kalman | flash | can | telemetry | airbrakes } location [refresh rate; default: 1Hz]\n");
 				}
 			} else if(EQUALS(1, "disable") && cmd->num_components == 3) {
 				respond("\x1b[2J");
@@ -191,11 +196,14 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 				} else if(EQUALS(2, "gps")) {
 					disable_monitor(GPS_MONITOR);
 					respond("> GPS monitor disabled\n");
+				} else if(EQUALS(2, "airbrakes")) {
+					disable_monitor(AIRBRAKES_MONITOR);
+					respond("> Airbrakes monitor disabled\n");
 				} else {
-					respond("> Usage: monitor disable { sensor | state | kalman | flash | can | telemetry }\n");
+					respond("> Usage: monitor disable { sensor | state | kalman | flash | can | telemetry | airbrakes }\n");
 				}
 			} else {
-				respond("> Usage: monitor { enable | disable } { sensor | state | kalman | flash | can | telemetry } [location] [refresh rate; default: 10]\n");
+				respond("> Usage: monitor { enable | disable } { sensor | state | kalman | flash | can | telemetry | airbrakes } [location] [refresh rate; default: 10]\n");
 			}
 		} else if(EQUALS(0, "bridge")) {
 			if(EQUALS(1, "create")) {

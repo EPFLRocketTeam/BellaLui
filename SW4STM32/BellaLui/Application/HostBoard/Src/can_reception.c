@@ -108,14 +108,11 @@ bool handleABData(uint32_t timestamp, int32_t new_angle) {
 }
 
 bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
-	rocket_log("State updated: %d\n", state);
 	if(state == STATE_LIFTOFF) {
     	start_logging();
-		rocket_log("Logging started.\n");
     	liftoff_time = timestamp;
 	} else if(state == STATE_TOUCHDOWN) {
 		stop_logging();
-		rocket_log("Logging stopped.\n");
         on_dump_request();
 	}
 
@@ -197,8 +194,8 @@ void TK_can_reader() {
 		while (can_msgPending()) { // check if new data
 			msg = can_readBuffer();
 
-			if(HAL_GetTick() - msg.timestamp > 10000) {
-				rocket_log("Erroneous CAN frame received with ID %d\n", msg.id);
+			if((int32_t) (HAL_GetTick() - msg.timestamp) > 100000) {
+				rocket_log("CAN RX Error %d@%d vs %d\n", msg.id, msg.timestamp, HAL_GetTick());
 				continue;
 			}
 
@@ -278,6 +275,12 @@ void TK_can_reader() {
 				break;
 			case DATA_ID_KALMAN_VZ:
 				kalman_vz = ((float32_t) ((int32_t) msg.data))/1e3; // from mm/s to m/s
+				break;
+			case DATA_ID_AB_STATE:
+				break;
+			case DATA_ID_AB_AIRSPEED:
+				break;
+			case DATA_ID_AB_ALT:
 				break;
 			case DATA_ID_AB_INC:
 				ab_angle = ((int32_t) msg.data); // keep in deg

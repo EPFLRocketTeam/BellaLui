@@ -25,6 +25,7 @@
 #include "debug/profiler.h"
 #include "debug/console.h"
 #include "debug/monitor.h"
+#include "misc/common.h"
 
 
 #include <stdbool.h>
@@ -155,6 +156,9 @@ void TK_kalman() {
 		IMUb[j] = 0;
 	}
 
+	int32_t altimax = 0;
+	uint32_t altimax_time = 0;
+
 	start_time = HAL_GetTick();
 
 
@@ -251,12 +255,23 @@ void TK_kalman() {
 			int32_t velocity = (int32_t) (1000 * ekf.x[5]);
 
 			if(enter_monitor(KALMAN_MONITOR)) {
-				rocket_log(" ----------- Kalman -----------\x1b[K\n");
 				rocket_log(" Altitude: %d [mm]\x1b[K\n", altitude);
-				rocket_log(" Vertical velocity: %d [mm/s]\x1b[K\n\n", velocity);
-				rocket_log(" ------------------------------\x1b[K\n\x1b[40;0H");
-
+				rocket_log(" Vertical velocity: %d [mm/s]\x1b[K\n", velocity);
 				exit_monitor(KALMAN_MONITOR);
+			}
+
+			if(altitude > altimax && liftoff_time != 0) {
+				if(altimax_time == 0) {
+					rocket_log("Initial altitude is %dmm at %dms\n", altitude, HAL_GetTick());
+				}
+
+				altimax = altitude;
+				altimax_time = HAL_GetTick();
+			}
+
+			if(HAL_GetTick() - altimax_time > 5000 && altimax_time != 0) {
+				rocket_log("Maximal altitude of %dmm reached after %dms\n", altimax, altimax_time - liftoff_time);
+				altimax_time = 0;
 			}
 
 

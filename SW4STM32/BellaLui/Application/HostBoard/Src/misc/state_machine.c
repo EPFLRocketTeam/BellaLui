@@ -79,11 +79,8 @@ void TK_state_machine(void const *argument) {
 		}
 
 		if(enter_monitor(STATE_MONITOR) && current_state < NUM_STATES) {
-			rocket_log(" ------- State machine -------\x1b[K\n");
 			rocket_log(" Current state: %s\x1b[K\n", state_names[current_state]);
-			rocket_log(" -----------------------------\x1b[K\n\x1b[40;0H");
-
-			exit_monitor(KALMAN_MONITOR);
+			exit_monitor(STATE_MONITOR);
 		}
 
 		// State Machine

@@ -45,13 +45,11 @@ int8_t send_gps_data() {
 	uint8_t sats = gpsParser.satellites.isValid() ? static_cast<uint8_t>(gpsParser.satellites.value()) : 0;
 
 	if(enter_monitor(GPS_MONITOR)) {
-		rocket_log(" ------- GPS acquisition -------\x1b[K\n");
 		rocket_log(" Available satellites: %d\x1b[K\n", sats);
 		rocket_log(" Longitude: %d [µdeg]\x1b[K\n", (uint32_t) (1000000 * gpsParser.location.lng()));
 		rocket_log(" Latitude: %d [µdeg]\x1b[K\n", (uint32_t) (1000000 * gpsParser.location.lat()));
 		rocket_log(" Altitude: %d [m]\x1b[K\n", (uint32_t) (gpsParser.altitude.value()));
 		rocket_log(" HDOP: %d%%\x1b[K\n", (uint32_t) (100 * gpsParser.hdop.hdop()));
-		rocket_log(" -------------------------------\x1b[K\n");
 
 		exit_monitor(GPS_MONITOR);
 	}

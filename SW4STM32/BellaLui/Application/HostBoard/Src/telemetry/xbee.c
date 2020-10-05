@@ -159,23 +159,21 @@ void TK_xBeeReceive(const void *args) {
 
 	HAL_UART_Receive_DMA(xBee_huart, rxBuffer, XBEE_RX_BUFFER_SIZE);
 
+	led_set_TK_rgb(led_xbee_rx_id, 0xFF, 0x3F, 0x00);
+
 	while(true) {
 		start_profiler(1);
 
-		endDmaStreamIndex = XBEE_RX_BUFFER_SIZE - xBee_huart->hdmarx->Instance->NDTR;
+		endDmaStreamIndex = XBEE_RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(xBee_huart->hdmarx);
 
-		while(lastDmaStreamIndex < endDmaStreamIndex) {
+		while(lastDmaStreamIndex != endDmaStreamIndex) {
 			led_set_TK_rgb(led_xbee_rx_id, 0x00, 0xFF, 0x00);
 
 			if(has_io_mode(IO_TELEMETRY & IO_INPUT & IO_AUTO)) {
-				processReceivedByte(rxBuffer[lastDmaStreamIndex++]);
+				processReceivedByte(rxBuffer[lastDmaStreamIndex]);
+				lastDmaStreamIndex = (lastDmaStreamIndex + 1) % XBEE_RX_BUFFER_SIZE;
 			}
 		}
-
-		led_set_TK_rgb(led_xbee_rx_id, 0xFF, 0x3F, 0x00);
-
-		endDmaStreamIndex = 0;
-		lastDmaStreamIndex = 0;
 
 		end_profiler();
 
