@@ -32,7 +32,7 @@ uint8_t escapedCharacter (uint8_t byte);
 
 void TK_xBeeReceive (const void* args);
 
-void xBee_rxCpltCallback ();
+void xBee_RxCpltCallback ();
 
 void processReceivedPacket ();
 

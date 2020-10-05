@@ -57,21 +57,35 @@ void TK_ignition_control(void const * argument)
 			 ignition_order = can_getIgnitionOrder();
 			 switch (ignition_order)
 			 {
-				case 0x22: //Main Ignition
+				case MAIN_IGNITION_ON: //Main Ignition On
 				{
 					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
 					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
 						can_setFrame(GPIO_PIN_SET, DATA_ID_MAIN_IGNITION_STATE, HAL_GetTick());
 					break;
 				}
-				case 0x44: //Secondary Ignition
+				case MAIN_IGNITION_OFF: //Main Ignition Off
+				{
+					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
+					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET)
+						can_setFrame(GPIO_PIN_RESET, DATA_ID_MAIN_IGNITION_STATE, HAL_GetTick());
+					break;
+				}
+				case SECONDARY_IGNITION_ON: //Secondary Ignition On
 				{
 					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);
 					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1) == GPIO_PIN_SET)
 						can_setFrame(GPIO_PIN_SET, DATA_ID_SEC_IGNITION_STATE, HAL_GetTick());
 					break;
 				}
-				case 0x00:
+				case SECONDARY_IGNITION_OFF: //Secondary Ignition Off
+				{
+					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
+					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1) == GPIO_PIN_RESET)
+						can_setFrame(GPIO_PIN_RESET, DATA_ID_SEC_IGNITION_STATE, HAL_GetTick());
+					break;
+				}
+				case 0x00: //TEST
 				{
 					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
 					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11) == GPIO_PIN_SET)

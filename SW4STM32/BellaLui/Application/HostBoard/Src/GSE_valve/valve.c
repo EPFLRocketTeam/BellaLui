@@ -54,56 +54,56 @@ void TK_GSE_valve_control(void const * argument)
 		 valve_order = can_getOrder();
 		 switch (valve_order)
 			{
-				case STATE_OPEN_FILL_VALVE:
+				case OPEN_FILL_VALVE:
 				{
 					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
 					if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7) == GPIO_PIN_SET)
 						can_setFrame(GPIO_PIN_SET, DATA_ID_FILL_VALVE_STATE, HAL_GetTick());
 					break;
 				}
-				case STATE_CLOSE_FILL_VALVE:
+				case CLOSE_FILL_VALVE:
 				{
 					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
 					if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7) == GPIO_PIN_RESET)
 						can_setFrame(GPIO_PIN_RESET, DATA_ID_FILL_VALVE_STATE, HAL_GetTick());
 					break;
 				}
-				case STATE_OPEN_PURGE_VALVE:
+				case OPEN_PURGE_VALVE:
 				{
 					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
 					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) == GPIO_PIN_SET)
 						can_setFrame(GPIO_PIN_SET, DATA_ID_PURGE_VALVE_STATE, HAL_GetTick());
 					break;
 				}
-				case STATE_CLOSE_PURGE_VALVE:
+				case CLOSE_PURGE_VALVE:
 				{
 					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_RESET);
 					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) == GPIO_PIN_RESET)
 						can_setFrame(GPIO_PIN_RESET, DATA_ID_PURGE_VALVE_STATE, HAL_GetTick());
 					break;
 				}
-				case STATE_OPEN_FILL_VALVE_BACKUP:
+				case OPEN_FILL_VALVE_BACKUP:
 				{
 					HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 					if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET)
 						can_setFrame(GPIO_PIN_SET, DATA_ID_FILL_VALVE_STATE, HAL_GetTick());
 					break;
 				}
-				case STATE_CLOSE_FILL_VALVE_BACKUP:
+				case CLOSE_FILL_VALVE_BACKUP:
 				{
 					HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 					if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET)
 						can_setFrame(GPIO_PIN_RESET, DATA_ID_FILL_VALVE_STATE, HAL_GetTick());
 					break;
 				}
-				case STATE_OPEN_PURGE_VALVE_BACKUP:
+				case OPEN_PURGE_VALVE_BACKUP:
 				{
 					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
 					if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9) == GPIO_PIN_SET)
 						can_setFrame(GPIO_PIN_SET, DATA_ID_PURGE_VALVE_STATE, HAL_GetTick());
 					break;
 				}
-				case STATE_CLOSE_PURGE_VALVE_BACKUP:
+				case CLOSE_PURGE_VALVE_BACKUP:
 				{
 					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
 					if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9) == GPIO_PIN_RESET)

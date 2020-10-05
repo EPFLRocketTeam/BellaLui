@@ -67,6 +67,7 @@ void DMA2_Stream7_IRQHandler(void);
 void QUADSPI_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
+DMA_HandleTypeDef hdma_usart1_rx;
 /* USER CODE END EFP */
 
 #ifdef __cplusplus

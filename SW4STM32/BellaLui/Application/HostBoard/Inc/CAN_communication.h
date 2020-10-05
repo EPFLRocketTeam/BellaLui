@@ -78,6 +78,7 @@ typedef struct
 #define DATA_ID_IN_HOSE_TEMPERATURE 65
 #define DATA_ID_TANK_TEMPERATURE 66
 #define DATA_ID_ROCKET_WEIGHT 67
+#define DATA_ID_BATTERY_LEVEL 68
 
 //Propulsion Data
 #define DATA_ID_MOTOR_PRESSURE 55

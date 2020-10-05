@@ -16,12 +16,12 @@
 #include <telemetry/telemetry_protocol.h>
 #include <telemetry/xbee.h>
 #include <debug/console.h>
+#include <stm32f4xx_it.h>
 
 osMessageQId xBeeQueueHandle;
 osSemaphoreId xBeeTxBufferSemHandle;
 
 UART_HandleTypeDef* xBee_huart;
-
 // UART settings
 #define XBEE_UART_TIMEOUT 30
 #define XBEE_SEND_FRAME_LONG_TIMEOUT_MS 1000
@@ -44,10 +44,11 @@ UART_HandleTypeDef* xBee_huart;
 
 uint8_t packetSize = 64; // Size of the datagram received
 uint8_t rxPacketBuffer[RX_PACKET_SIZE];  // Buffer with one datagram to process only
-uint32_t lastDmaStreamIndex = 0, endDmaStreamIndex = 0;
 uint8_t rxBuffer[XBEE_RX_BUFFER_SIZE];  // Buffer with all data received
 uint32_t preambleCnt, packetCnt, currentChecksum;
 
+uint32_t lastDmaStreamIndex = 0;
+uint32_t endDmaStreamIndex = 0;
 
 enum DECODING_STATE
 {
@@ -150,7 +151,7 @@ void TK_xBeeTransmit (const void* args)
     }
 }
 
-void receiveData ()
+void receiveData()
 {
 	// do nothing
 }
@@ -164,7 +165,7 @@ void sendData (uint8_t* txData, uint16_t txDataSize)
 
   if (currentXbeeTxBufPos + txDataSize >= XBEE_PAYLOAD_MAX_SIZE)
     {
-      sendXbeeFrame ();
+      sendXbeeFrame();
     }
 
   if (currentXbeeTxBufPos + txDataSize < XBEE_PAYLOAD_MAX_SIZE)
@@ -174,11 +175,11 @@ void sendData (uint8_t* txData, uint16_t txDataSize)
   // send the XBee frame if there remains less than 20 bytes available in the txDataBuffer
   if (XBEE_PAYLOAD_MAX_SIZE - currentXbeeTxBufPos < 20)
     {
-      sendXbeeFrame ();
+      sendXbeeFrame();
     }
 }
 
-inline void addToBuffer (uint8_t* txData, uint16_t txDataSize)
+inline void addToBuffer(uint8_t* txData, uint16_t txDataSize)
 {
   for (uint16_t i = 0; i < txDataSize; i++)
     {
@@ -278,29 +279,27 @@ inline uint8_t escapedCharacter (uint8_t byte)
     }
 }
 
-void TK_xBeeReceive (const void* args)
-{
-	HAL_UART_Receive_DMA (xBee_huart, rxBuffer, XBEE_RX_BUFFER_SIZE);
-	for (;;)
-	{
-		endDmaStreamIndex = XBEE_RX_BUFFER_SIZE - xBee_huart->hdmarx->Instance->NDTR;
-		while (lastDmaStreamIndex < endDmaStreamIndex)
-		{
-			processReceivedByte (rxBuffer[lastDmaStreamIndex++]);
-		}
+void TK_xBeeReceive (const void* args) {
 
-	osDelay (10);
+    HAL_UART_Receive_DMA(xBee_huart, rxBuffer, XBEE_RX_BUFFER_SIZE);
+
+    for (;;) {
+        endDmaStreamIndex = XBEE_RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(xBee_huart->hdmarx);
+        
+        while(lastDmaStreamIndex != endDmaStreamIndex) {
+            processReceivedByte(rxBuffer[lastDmaStreamIndex]);
+            lastDmaStreamIndex = (lastDmaStreamIndex + 1) % XBEE_RX_BUFFER_SIZE;
+        }
+//        if(lastDmaStreamIndex == endDmaStreamIndex)
+//        	packetCnt=0;
+        
+		osDelay (10);
 	}
 }
 
-void xBee_rxCpltCallback ()
+void xBee_RxCpltCallback (UART_HandleTypeDef *huart)
 {
-  while (lastDmaStreamIndex < XBEE_RX_BUFFER_SIZE)
-    {
-      processReceivedByte (rxBuffer[lastDmaStreamIndex++]);
-    }
-  endDmaStreamIndex = 0;
-  lastDmaStreamIndex = 0;
+	endDmaStreamIndex = 0;
 }
 
 void resetStateMachine ()
@@ -310,31 +309,36 @@ void resetStateMachine ()
   currentChecksum = 0;
 }
 
-void processReceivedPacket ()
+void processReceivedPacket()
 {
 	rocket_log("Received packet!\n");
 	switch (rxPacketBuffer[XBEE_RECEIVED_DATAGRAM_ID_INDEX-1])
 	{
 		case ORDER_PACKET:
 		{
+			led_set_TK_rgb(led_xbee_id, 0, 0, 50);
+			rocket_log("ORDER\n");
 			uint8_t* RX_Order_Packet = rxPacketBuffer + START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE + XBEE_RECEIVED_OPTIONS_SIZE + DATAGRAM_ID_SIZE + PREFIXE_EPFL_SIZE;
 			telemetry_receiveOrderPacket(RX_Order_Packet);
 			break;
 		}
 		case IGNITION_PACKET:
 		{
+			rocket_log("IGNITION\n");
+			led_set_TK_rgb(led_xbee_id, 50, 25, 0);
 			uint8_t* RX_Ignition_Packet = rxPacketBuffer + START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE + XBEE_RECEIVED_OPTIONS_SIZE + DATAGRAM_ID_SIZE + PREFIXE_EPFL_SIZE;
 			telemetry_receiveIgnitionPacket(RX_Ignition_Packet);
 			break;
 		}
 		default :
 		{
+			rocket_log("UNKNOWN\n");
 			break;
 		}
 	}
 }
 
-inline void processReceivedByte (uint8_t rxByte)
+void processReceivedByte (uint8_t rxByte)
 {
   switch (currentRxState)
     {
@@ -345,7 +349,7 @@ inline void processReceivedByte (uint8_t rxByte)
         	currentChecksum += rxByte;
         }
         if (packetCnt == XBEE_RECEIVED_DATAGRAM_ID_INDEX) {
-        	set_packet_size(rxPacketBuffer[packetCnt-1]);
+        	set_packet_size(rxPacketBuffer[(packetCnt-1)]);
         }
         if (packetCnt == (packetSize-CHECKSUM_SIZE) )
         {
@@ -384,26 +388,19 @@ void set_packet_size(uint8_t datagram_id) {
 	{
 		case ORDER_PACKET:
 	    {
+			rocket_log("Order Size set\n");
 	    	packetSize = ORDER_PACKET_SIZE;
-			rocket_log("ORDER\n");
 	    	break;
 	    }
 		case IGNITION_PACKET:
 		{
+			rocket_log("Ignition Size set\n");
 			packetSize = IGNITION_PACKET_SIZE;
-			rocket_log("IGNITION\n");
 	    	break;
-		}
-		case TELEMETRY_PACKET:
-		{
-			packetSize = TELEMETRY_PACKET_SIZE;
-			rocket_log("TELEMETRY\n");
-
-			break;
 		}
 		default :
 		{
-			rocket_log("Unknown packet\n");
+			rocket_log("Unknown packet size\n");
 	    	break;
 		}
 	}

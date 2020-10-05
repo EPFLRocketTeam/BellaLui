@@ -46,7 +46,7 @@ BARO_data BARO_buffer[CIRC_BUFFER_SIZE];
 float kalman_z  = 0;
 float kalman_vz = 0;
 float motor_pressure = 0;
-GSE_state GSE = {1111,0,0,0,0};
+GSE_state GSE = {0,0,0,0,0,1111,0,0,0,0,0,0,0};
 uint8_t order = 0;
 uint8_t ignition_order = 0;
 uint8_t GST_code = 0;
@@ -333,7 +333,7 @@ void TK_can_reader() {
 				new_GSE_state = true;
 				break;
 			case DATA_ID_HOSE_DISCONNECT_STATE:
-				GSE.host_disconnect_state = msg.data;
+				GSE.hose_disconnect_state = msg.data;
 				new_GSE_state = true;
 				break;
 			case DATA_ID_MAIN_IGNITION_STATE:
@@ -418,7 +418,7 @@ void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart)
 	} else if (huart == ab_gethuart()) {
 		AB_RxCpltCallback();
 	} else if (huart == xbee_gethuart()){
-		xBee_rxCpltCallback();
+		xBee_RxCpltCallback();
 	}
 
 }

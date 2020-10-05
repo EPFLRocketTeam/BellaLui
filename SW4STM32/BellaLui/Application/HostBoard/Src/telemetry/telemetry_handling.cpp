@@ -55,6 +55,7 @@ extern osMessageQId xBeeQueueHandle;
 
 uint32_t telemetrySeqNumber = 0;
 uint8_t current_state = STATE_IDLE;
+uint8_t current_GSE_order = 0;
 
 IMU_data imu = {{0,0,0},{0,0,0}, 0};
 BARO_data baro = {0,0,0};
@@ -175,6 +176,7 @@ Telemetry_Message createGSEStateDatagram(GSE_state* GSE, uint32_t time_stamp, ui
 	builder.write8 (GSE->main_ignition_state);
 	builder.write8 (GSE->sec_ignition_state);
 	builder.write8 (GSE->hose_disconnect_state);
+	builder.write32<float32_t>(GSE->battery_level);
 	builder.write32<float32_t>(GSE->hose_pressure);
 	builder.write32<float32_t>(GSE->hose_temperature);
 	builder.write32<float32_t>(GSE->tank_temperature);
@@ -426,65 +428,70 @@ bool telemetry_receiveOrderPacket(uint8_t* RX_Order_Packet) {
 	uint32_t packet_nbr = RX_Order_Packet[7] | (RX_Order_Packet[6] << 8) | (RX_Order_Packet[5] << 16) | (RX_Order_Packet[4] << 24);
 	switch (RX_Order_Packet[8])
 	{
-		case STATE_OPEN_FILL_VALVE:
+		case OPEN_FILL_VALVE:
 		{
-			current_state = STATE_OPEN_FILL_VALVE;
+			current_GSE_order = OPEN_FILL_VALVE;
 			break;
 		}
-		case STATE_CLOSE_FILL_VALVE:
+		case CLOSE_FILL_VALVE:
 		{
-		current_state = STATE_CLOSE_FILL_VALVE;
+			current_GSE_order = CLOSE_FILL_VALVE;
 			break;
 		}
-		case STATE_OPEN_PURGE_VALVE:
+		case OPEN_PURGE_VALVE:
 		{
-			current_state = STATE_OPEN_PURGE_VALVE;
+			current_GSE_order = OPEN_PURGE_VALVE;
 			break;
 		}
-		case STATE_CLOSE_PURGE_VALVE:
+		case CLOSE_PURGE_VALVE:
 		{
-			current_state = STATE_CLOSE_PURGE_VALVE;
+			current_GSE_order = CLOSE_PURGE_VALVE;
 			break;
 		}
-		case STATE_OPEN_FILL_VALVE_BACKUP:
+		case OPEN_FILL_VALVE_BACKUP:
 		{
-			current_state = STATE_OPEN_FILL_VALVE_BACKUP;
+			current_GSE_order = OPEN_FILL_VALVE_BACKUP;
 			break;
 		}
-		case STATE_CLOSE_FILL_VALVE_BACKUP:
+		case CLOSE_FILL_VALVE_BACKUP:
 		{
-			current_state = STATE_CLOSE_FILL_VALVE_BACKUP;
+			current_GSE_order = CLOSE_FILL_VALVE_BACKUP;
 			break;
 		}
-		case STATE_OPEN_PURGE_VALVE_BACKUP:
+		case OPEN_PURGE_VALVE_BACKUP:
 		{
-			current_state = STATE_OPEN_PURGE_VALVE_BACKUP;
+			current_GSE_order = OPEN_PURGE_VALVE_BACKUP;
 			break;
 		}
-		case STATE_CLOSE_PURGE_VALVE_BACKUP:
+		case CLOSE_PURGE_VALVE_BACKUP:
 		{
-			current_state = STATE_CLOSE_PURGE_VALVE_BACKUP;
+			current_GSE_order = CLOSE_PURGE_VALVE_BACKUP;
 			break;
 		}
-		case STATE_DISCONNECT_HOSE:
+		case DISCONNECT_HOSE:
 		{
-			current_state = STATE_DISCONNECT_HOSE;
+			current_GSE_order = DISCONNECT_HOSE;
 			break;
 		}
 	}
-	can_setFrame((int32_t) current_state, DATA_ID_ORDER , ts);
+	can_setFrame((uint32_t) current_GSE_order, DATA_ID_ORDER , ts);
 	return 0;
 }
 
 bool telemetry_receiveIgnitionPacket(uint8_t* RX_Ignition_Packet) {
 	uint32_t ts = RX_Ignition_Packet[3] | (RX_Ignition_Packet[2] << 8) | (RX_Ignition_Packet[1] << 16) | (RX_Ignition_Packet[0] << 24);
 	uint32_t packet_nbr = RX_Ignition_Packet[7] | (RX_Ignition_Packet[6] << 8) | (RX_Ignition_Packet[5] << 16) | (RX_Ignition_Packet[4] << 24);
-	if( RX_Ignition_Packet[8] == 0x22) {
-		//TODO: define more robust ignition process in collaboration with GS
-		can_setFrame((int32_t) 0x22, DATA_ID_IGNITION, ts);
+	if( RX_Ignition_Packet[8] == MAIN_IGNITION_ON) {
+		can_setFrame((uint32_t) MAIN_IGNITION_ON, DATA_ID_IGNITION, ts);
 	}
-	else if( RX_Ignition_Packet[8] == 0x44) {
-		can_setFrame((int32_t) 0x44, DATA_ID_IGNITION, ts);
+	else if( RX_Ignition_Packet[8] == MAIN_IGNITION_OFF) {
+			can_setFrame((uint32_t) MAIN_IGNITION_OFF, DATA_ID_IGNITION, ts);
+	}
+	else if( RX_Ignition_Packet[8] == SECONDARY_IGNITION_ON) {
+		can_setFrame((uint32_t) SECONDARY_IGNITION_ON, DATA_ID_IGNITION, ts);
+	}
+	else if( RX_Ignition_Packet[8] == SECONDARY_IGNITION_OFF) {
+		can_setFrame((uint32_t) SECONDARY_IGNITION_OFF, DATA_ID_IGNITION, ts);
 	}
 	return 0;
 }
