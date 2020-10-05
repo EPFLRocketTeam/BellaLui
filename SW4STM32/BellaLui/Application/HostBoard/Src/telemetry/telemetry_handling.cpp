@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <telemetry/simpleCRC.h>
 #include <telemetry/telemetry_protocol.h>
+#include <GSE_code/code.h>
 
 extern "C" {
 	#include <CAN_communication.h>
@@ -200,11 +201,14 @@ Telemetry_Message createOrderDatagram(uint8_t order, uint32_t time_stamp, uint32
 
 Telemetry_Message createIgnitionDatagram(uint8_t GSE_ignition, uint32_t time_stamp, uint32_t seqNumber)
 {
+	bool GST_code_result = verify_security_code(can_getGSTCode());
+
 	DatagramBuilder builder = DatagramBuilder (GSE_IGNITION_DATAGRAM_PAYLOAD_SIZE, IGNITION_PACKET, seqNumber++);
 
 	builder.write32<uint32_t> (time_stamp);
 	builder.write32<uint32_t> (Packet_Number++);
 	builder.write8 (GSE_ignition);
+	builder.write8(GST_code_result);
 	return builder.finalizeDatagram();
 
 }
@@ -493,6 +497,7 @@ bool telemetry_receiveIgnitionPacket(uint8_t* RX_Ignition_Packet) {
 	else if( RX_Ignition_Packet[8] == SECONDARY_IGNITION_OFF) {
 		can_setFrame((uint32_t) SECONDARY_IGNITION_OFF, DATA_ID_IGNITION, ts);
 	}
+	can_setFrame((uint32_t) RX_Ignition_Packet[9], DATA_ID_GST_CODE, ts);
 	return 0;
 }
 

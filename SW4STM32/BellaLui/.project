@@ -27,11 +27,6 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>Application/SW4STM32/startup_stm32f446xx.s</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/startup_stm32f446xx.s</locationURI>
-		</link>
-		<link>
 			<name>Drivers/CMSIS/system_stm32f4xx.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/system_stm32f4xx.c</locationURI>
@@ -330,21 +325,6 @@
 			<name>Application/User/Core/usart.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/usart.c</locationURI>
-		</link>
-		<link>
-			<name>Application/User/FATFS/App/fatfs.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/FATFS/App/fatfs.c</locationURI>
-		</link>
-		<link>
-			<name>Application/User/FATFS/Target/bsp_driver_sd.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/FATFS/Target/bsp_driver_sd.c</locationURI>
-		</link>
-		<link>
-			<name>Application/User/FATFS/Target/sd_diskio.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/FATFS/Target/sd_diskio.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
