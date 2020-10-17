@@ -46,7 +46,7 @@ BARO_data BARO_buffer[CIRC_BUFFER_SIZE];
 float kalman_z  = 0;
 float kalman_vz = 0;
 float motor_pressure = 0;
-GSE_state GSE = {0,0,0,0,0,1111,0,0,0,0,0,0,0};
+GSE_state GSE = {0,0,0,0,0,1111,0,0,0,0,0,0,0,0};
 uint8_t order = 0;
 uint8_t ignition_order = 0;
 uint8_t GST_code = 0;
@@ -142,14 +142,6 @@ bool handleOrderData(uint8_t order) {
 bool handleIgnitionData(uint8_t GSE_ignition) {
 #ifdef XBEE
 	return telemetry_sendIgnitionData(GSE_ignition);
-#endif
-	return true;
-}
-
-bool handleGSTCodeData(uint8_t GST_code) {
-	GST_code_result = verify_security_code(GST_code);
-#ifdef XBEE
-	return telemetry_sendGSTCodeData(GST_code_result);
 #endif
 	return true;
 }
@@ -324,6 +316,9 @@ void TK_can_reader() {
 				GST_code = msg.data;
 				new_GST_code = true;
 				break;
+			case DATA_ID_BATTERY_LEVEL:
+				GSE.battery_level = msg.data;
+				new_GSE_state = true;
 			case DATA_ID_FILL_VALVE_STATE:
 				GSE.fill_valve_state = msg.data;
 				new_GSE_state = true;
@@ -344,6 +339,9 @@ void TK_can_reader() {
 				GSE.sec_ignition_state = msg.data;
 				new_GSE_state = true;
 				break;
+			case DATA_ID_WIND_SPEED:
+				GSE.wind_speed = msg.data;
+				new_GSE_state = true;
 			}
 		}
 
@@ -398,14 +396,12 @@ void TK_can_reader() {
 			new_GSE_ignition_order = !handleIgnitionData(ignition_order);
 		}
 		if(new_GST_code) {
-			new_GST_code = !handleGSTCodeData(GST_code);
+			new_GST_code = !handleIgnitionData(ignition_order);
 		}
 		//Handle new GSE states
 		if(new_GSE_state){
 			new_GSE_state = !handleGSEStateData(GSE);
 		}
-
-
 		osDelay (10);
 	}
 }

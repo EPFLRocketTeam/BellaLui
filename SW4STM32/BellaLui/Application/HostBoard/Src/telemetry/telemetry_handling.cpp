@@ -32,7 +32,7 @@ extern "C" {
 #define GSE_STATE_TIMEMIN 20
 #define ORDER_TIMEMIN 20
 #define GSE_IGNITION_TIMEMIN 20
-#define GST_CODE_TIMEMIN 20
+#define ECHO_TIMEMIN 20
 //#define TELE_RAW_TIMEMIN 100
 
 volatile static uint32_t Packet_Number = 0;
@@ -47,7 +47,7 @@ extern "C" bool telemetry_sendABData();
 extern "C" bool telemetry_sendGSEStateData(GSE_state data);
 extern "C" bool telemetry_sendOrderData(uint8_t order);
 extern "C" bool telemetry_sendIgnitionData(uint8_t GSE_ignition);
-extern "C" bool telemetry_sendGSTCodeData(uint8_t GST_code_result);
+extern "C" bool telemetry_sendEcho(uint8_t GST_code_result);
 
 extern "C" bool telemetry_receiveOrderPacket(uint8_t* RX_Order_Packet);
 extern "C" bool telemetry_receiveIgnitionPacket(uint8_t* RX_Ignition_Packet);
@@ -68,7 +68,7 @@ uint32_t last_airbrakes_update = 0;
 uint32_t last_GSE_state_update = 0;
 uint32_t last_order_update = 0;
 uint32_t last_GSE_ignition_update = 0;
-uint32_t last_GST_code_update = 0;
+uint32_t last_echo = 0;
 //uint32_t last_sensor_raw_update = 0;
 Telemetry_Message m1;
 Telemetry_Message m2;
@@ -184,6 +184,7 @@ Telemetry_Message createGSEStateDatagram(GSE_state* GSE, uint32_t time_stamp, ui
 	builder.write32<float32_t>(GSE->rocket_weight);
 	builder.write32<float32_t>(GSE->ignition1_current);
 	builder.write32<float32_t>(GSE->ignition2_current);
+	builder.write32<float32_t>(GSE->wind_speed);
 
 	return builder.finalizeDatagram();
 }
@@ -201,7 +202,7 @@ Telemetry_Message createOrderDatagram(uint8_t order, uint32_t time_stamp, uint32
 
 Telemetry_Message createIgnitionDatagram(uint8_t GSE_ignition, uint32_t time_stamp, uint32_t seqNumber)
 {
-	bool GST_code_result = verify_security_code(can_getGSTCode());
+	uint8_t GST_code_result = verify_security_code(can_getGSTCode());
 
 	DatagramBuilder builder = DatagramBuilder (GSE_IGNITION_DATAGRAM_PAYLOAD_SIZE, IGNITION_PACKET, seqNumber++);
 
@@ -213,14 +214,16 @@ Telemetry_Message createIgnitionDatagram(uint8_t GSE_ignition, uint32_t time_sta
 
 }
 
-Telemetry_Message createGSTCodeDatagram(uint8_t GST_code_result, uint32_t time_stamp, uint32_t seqNumber)
+Telemetry_Message createEchoDatagram(uint32_t time_stamp, uint32_t seqNumber)
 {
-	DatagramBuilder builder = DatagramBuilder (GST_CODE_DATAGRAM_PAYLOAD_SIZE, IGNITION_PACKET, seqNumber++);
+
+	DatagramBuilder builder = DatagramBuilder (GSE_IGNITION_DATAGRAM_PAYLOAD_SIZE, IGNITION_PACKET, seqNumber++);
 
 	builder.write32<uint32_t> (time_stamp);
 	builder.write32<uint32_t> (Packet_Number++);
-	builder.write8 (GST_code_result);
+	builder.write8(0xCA);
 	return builder.finalizeDatagram();
+
 }
 
 /*
@@ -407,17 +410,17 @@ bool telemetry_sendIgnitionData(uint8_t GSE_ignition)
 	return handled;
 }
 
-bool telemetry_sendGSTCodeData(uint8_t GST_code_result)
+bool telemetry_sendEcho()
 {
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
 
-	if (now - last_GST_code_update > GST_CODE_TIMEMIN) {
-		m10 = createGSTCodeDatagram(GST_code_result, now, telemetrySeqNumber++);
+	if (now - last_echo > ECHO_TIMEMIN) {
+		m10 = createEchoDatagram(now, telemetrySeqNumber++);
 		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m10, 10) != osOK) {
 			vPortFree(m10.ptr); // free the datagram if we couldn't queue it
 		}
-		last_GST_code_update = now;
+		last_echo = now;
 		handled = true;
 
 	}

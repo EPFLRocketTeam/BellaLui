@@ -22,7 +22,7 @@ bool telemetry_sendCodeData();
 bool telemetry_sendGSEStateData(GSE_state data);
 bool telemetry_sendOrderData(uint8_t order);
 bool telemetry_sendIgnitionData(uint8_t GSE_ignition);
-bool telemetry_sendGSTCodeData(uint8_t GST_code_result);
+bool telemetry_sendEchoData();
 
 
 bool telemetry_receiveIgnitionPacket(uint8_t* rxPacketBuffer);

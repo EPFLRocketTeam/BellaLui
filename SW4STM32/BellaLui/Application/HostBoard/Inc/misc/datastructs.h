@@ -68,6 +68,7 @@ typedef struct
 	float rocket_weight;
 	float ignition1_current;
 	float ignition2_current;
+	float wind_speed;
 
 }GSE_state;
 typedef struct
