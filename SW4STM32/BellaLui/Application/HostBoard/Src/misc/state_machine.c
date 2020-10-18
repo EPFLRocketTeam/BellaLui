@@ -26,8 +26,8 @@ void TK_state_machine(void const *argument) {
 	uint32_t time_tmp = 0;
 
 	// Declare sensor variables
-	IMU_data *imu_data;
-	BARO_data *baro_data;
+	IMU_data *imu_data = 0;
+	BARO_data *baro_data = 0;
 	uint32_t lastImuSeqNumber = 0, lastBaroSeqNumber = 0;
 	uint8_t imuIsReady = 0, baroIsReady = 0;
 
@@ -73,13 +73,19 @@ void TK_state_machine(void const *argument) {
 			baroIsReady = 0; // set new data flag to false
 		}
 
-		if (liftoff_time != 0 && (HAL_GetTick() - liftoff_time) > 5 * 60 * 1000) {
+		if (liftoff_time != 0 && ((int32_t) HAL_GetTick() - (int32_t) liftoff_time) > 5 * 60 * 1000) {
 			current_state = STATE_TOUCHDOWN;
 			flight_status = 40;
 		}
 
 		if(enter_monitor(STATE_MONITOR) && current_state < NUM_STATES) {
+			rocket_log(" Time: %dms\x1b[K\n", HAL_GetTick());
 			rocket_log(" Current state: %s\x1b[K\n", state_names[current_state]);
+			if (baro_data != 0) {
+				rocket_log(" Altitude: %d\x1b[K\n", (int32_t) (1000 * (baro_data->altitude - baro_data->base_altitude)));
+			} else {
+				rocket_log(" Altitude unavailable\x1b[K\n");
+			}
 			exit_monitor(STATE_MONITOR);
 		}
 
@@ -209,6 +215,7 @@ void TK_state_machine(void const *argument) {
 				if (baroIsReady) {
 					// save time of check
 					time_tmp = HAL_GetTick();
+
 					// check if the altitude hasn't varied of more than a given amount since last time
 					if (abs_fl32(baro_data->altitude - td_last_alt) > TOUCHDOWN_ALT_DIFF) {
 						// if the altitude difference is still large, this means the rocket is descending and so the touch down counter is kept to zero
@@ -235,7 +242,6 @@ void TK_state_machine(void const *argument) {
 		}
 
 		case STATE_TOUCHDOWN:
-			osDelay(2000);
 			break;
 		}
 

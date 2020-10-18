@@ -82,7 +82,7 @@ bool handleBaroData(uint32_t timestamp, BARO_data data) {
 	data.base_pressure = 938.86;
 	#endif
 
-	if (data.base_pressure > 0) {
+	if (data.base_pressure > 0) { // Warning: terrible HOTFIX, I know
 		data.base_altitude = altitudeFromPressure(data.base_pressure);
 	}
 
@@ -295,15 +295,15 @@ void TK_can_reader() {
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_TEMPERATURE1:
-				prop_data.temperature1 = msg.data & 0xFFFF;
+				prop_data.temperature1 = (int32_t) (msg.data & 0xFFFF);
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_TEMPERATURE2:
-				prop_data.temperature2 = msg.data & 0xFFFF;
+				prop_data.temperature2 = (int32_t) (msg.data & 0xFFFF);
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_TEMPERATURE3:
-				prop_data.temperature3 = msg.data & 0xFFFF;
+				prop_data.temperature3 = (int32_t) (msg.data & 0xFFFF);
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_STATUS:
@@ -311,7 +311,7 @@ void TK_can_reader() {
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_MOTOR_POSITION:
-				prop_data.motor_position = msg.data & 0xFFFF;
+				prop_data.motor_position = (int32_t) msg.data;
 				new_prop_data = true;
 				break;
 			case DATA_ID_SHELL_CONTROL:
@@ -370,6 +370,10 @@ void TK_can_reader() {
 				}
 			}
 			if (new_baro[i]) {
+				if(baro[i].base_pressure == 0) {
+					baro[i].base_pressure = baro[i].pressure; // Terrible HOTFIX, I know.
+				}
+
 				new_baro[i] = !handleBaroData(msg.timestamp, baro[i]);
 			}
 			if (new_imu[i]) {

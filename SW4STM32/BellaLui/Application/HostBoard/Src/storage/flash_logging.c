@@ -46,9 +46,7 @@ void start_logging() {
 }
 
 void stop_logging() {
-	acquire_flash_lock();
 	is_logging = false;
-	release_flash_lock();
 }
 
 void flash_log(CAN_msg message) {
@@ -355,7 +353,10 @@ int32_t dump_file_on_sd(void* arg) {
 		total_bytes_read += bytes_read;
 		total_bytes_written += bytes_written;
 
-		rocket_log("\x1b[40;0HDumping file... %d%%\x1b[K", 100 * total_bytes_written / flash_file->length);
+		rocket_log_lock();
+		rocket_log("\e7\x1b[40;0HDumping file... %d%%\x1b[K\e8", 100 * total_bytes_written / flash_file->length);
+		rocket_log_release();
+
 
 		if(bytes_written < 64) {
 			// TODO: Disk full: delete old files.
@@ -438,7 +439,9 @@ int32_t dump_everything_on_sd(void* arg) {
 
 		total_bytes_written += bytes_written;
 
-		rocket_log("\x1b[40;0HDumping memory... %d%%\x1b[K", 100 * total_bytes_written / (4096 * 4096));
+		rocket_log_lock();
+		rocket_log("\e7\x1b[40;0HDumping memory... %d%%\x1b[K\e8", 100 * total_bytes_written / (4096 * 4096));
+		rocket_log_release();
 
 		if(bytes_written < 2048) {
 			// TODO: Disk full: delete old files.

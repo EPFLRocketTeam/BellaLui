@@ -58,7 +58,6 @@
 #define FLASH_LOGGING
 #define ROCKET_FSM
 #define KALMAN
-#define AB_CONTROL
 #endif
 
 #ifdef FLASH_DUMP_BOARD
