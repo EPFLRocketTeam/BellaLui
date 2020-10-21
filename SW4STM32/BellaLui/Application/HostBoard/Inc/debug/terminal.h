@@ -17,6 +17,7 @@
 #define SHELL_ACK				2 << 24
 #define SHELL_ERR				3 << 24
 
+bool is_verbose();
 void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...));
 
 

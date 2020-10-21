@@ -21,6 +21,7 @@
 
 #define EQUALS(index, str) (cmd->num_components > (index) && component_matches(&cmd->components[(index)], (str)))
 
+bool verbose;
 
 uint8_t __parse_hex_char(char c) {
 	if(c >= '0' && c <= '9') {
@@ -130,6 +131,16 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 			} else {
 				respond("> Usage: profiler { enable | disable }\n");
 			}
+		} else if(EQUALS(0, "verbose")) {
+			if(EQUALS(1, "on")) {
+				verbose = true;
+				respond("> Verbose mode enabled\n");
+			} else if(EQUALS(1, "off")) {
+				verbose = false;
+				respond("> Verbose mode disabled\n");
+			} else {
+				respond("> Usage: verbose { on | off }\n");
+			}
 		} else if(EQUALS(0, "monitor")) {
 			if(EQUALS(1, "enable") && cmd->num_components >= 3) {
 				uint8_t location = 0;
@@ -169,6 +180,9 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 				} else if(EQUALS(2, "airbrakes")) {
 					enable_monitor(AIRBRAKES_MONITOR, location, refresh_rate);
 					respond("> Airbrakes monitor enabled with %dHz frequency\n", refresh_rate);
+				} else if(EQUALS(2, "propulsion")) {
+					enable_monitor(PROPULSION_MONITOR, location, refresh_rate);
+					respond("> Propulsion monitor enabled with %dHz frequency\n", refresh_rate);
 				} else {
 					respond("> Usage: monitor enable { sensor | state | kalman | flash | can | telemetry | airbrakes } location [refresh rate; default: 1Hz]\n");
 				}
@@ -199,6 +213,9 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 				} else if(EQUALS(2, "airbrakes")) {
 					disable_monitor(AIRBRAKES_MONITOR);
 					respond("> Airbrakes monitor disabled\n");
+				} else if(EQUALS(2, "propulsion")) {
+					disable_monitor(PROPULSION_MONITOR);
+					respond("> Propulsion monitor disabled\n");
 				} else {
 					respond("> Usage: monitor disable { sensor | state | kalman | flash | can | telemetry | airbrakes }\n");
 				}
@@ -328,6 +345,10 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 			respond("> %.*s: command not found\n", cmd->components[0].length, cmd->components[0].component);
 		}
 	}
+}
+
+bool is_verbose() {
+	return verbose;
 }
 
 #undef EQUALS

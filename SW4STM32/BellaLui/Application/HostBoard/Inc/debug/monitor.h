@@ -21,6 +21,7 @@
 #define TELEMETRY_MONITOR     5
 #define GPS_MONITOR 		  6
 #define AIRBRAKES_MONITOR 	  7
+#define PROPULSION_MONITOR 	  8
 
 bool enter_monitor(uint8_t id);
 bool exit_monitor(uint8_t id);

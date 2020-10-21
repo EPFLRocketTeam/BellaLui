@@ -11,6 +11,7 @@
 #include "telemetry/xbee.h"
 
 #include "debug/profiler.h"
+#include "debug/terminal.h"
 #include "debug/console.h"
 #include "debug/board_io.h"
 #include "debug/led.h"
@@ -280,13 +281,13 @@ void sendXbeeFrame() {
 	//send the data buffer to the xBee module
 
 	if(has_io_mode(IO_OUTPUT & IO_DIRECT & IO_TELEMETRY)) {
-		rocket_log("----- XBEE frame begins -----\n");
+		rocket_log("----- XBEE TX frame begins -----\n");
 
 		for(uint8_t i = 0; i < pos; i++) {
 			rocket_log("%02x", txDmaBuffer[i]);
 		}
 
-		rocket_log("\n----- XBEE frame ends -----\n");
+		rocket_log("\n----- XBEE TX frame ends -----\n");
 	}
 
 	if(has_io_mode(IO_TELEMETRY & IO_OUTPUT & (IO_AUTO | IO_PIPE | IO_DIRECT))) {
@@ -333,6 +334,16 @@ void processReceivedPacket(struct RxPacket *packet) {
 		rocket_boot_log("Packet Seqnumber: %d\n", packet->seq_number);
 		rocket_boot_log("Packet Checksum: %d\n", packet->checksum);
 		return;
+	}
+
+	if(is_verbose()) {
+		rocket_boot_log("----- XBEE RX frame begins -----\n");
+		rocket_boot_log("Packet ID: %d\n", packet->packet_id);
+		rocket_boot_log("Packet UID: %.*s\n", 4, packet->uid);
+		rocket_boot_log("Packet Timestamp: %d\n", packet->timestamp);
+		rocket_boot_log("Packet Seqnumber: %d\n", packet->seq_number);
+		rocket_boot_log("Packet Checksum: %d\n", packet->checksum);
+		rocket_boot_log("----- XBEE RX frame ends -----\n");
 	}
 
 	switch(packet->packet_id) {

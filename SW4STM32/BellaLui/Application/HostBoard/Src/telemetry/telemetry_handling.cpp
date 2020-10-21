@@ -111,7 +111,7 @@ Telemetry_Message createStateDatagram(uint32_t timestamp, uint8_t id, float valu
 }
 
 Telemetry_Message createPropulsionDatagram(uint32_t timestamp, PropulsionData* data) {
-	DatagramBuilder builder = DatagramBuilder(PROPULSION_DATAGRAM_PAYLOAD_SIZE, MOTOR_PACKET, timestamp, telemetrySeqNumber++);
+	DatagramBuilder builder = DatagramBuilder(PROPULSION_DATAGRAM_PAYLOAD_SIZE, PROPULSION_DATA_PACKET, timestamp, telemetrySeqNumber++);
 
 	builder.write16<uint16_t>(data->pressure1);
 	builder.write16<uint16_t>(data->pressure2);
@@ -119,7 +119,7 @@ Telemetry_Message createPropulsionDatagram(uint32_t timestamp, PropulsionData* d
 	builder.write16<int16_t>(data->temperature2);
 	builder.write16<int16_t>(data->temperature3);
 	builder.write16<uint16_t>(data->status);
-	builder.write32<int32_t>(data->motor_position);
+	builder.write16<int16_t>(data->motor_position);
 
 	return builder.finalizeDatagram();
 }
