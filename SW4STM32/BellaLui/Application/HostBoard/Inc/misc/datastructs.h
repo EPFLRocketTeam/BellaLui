@@ -45,7 +45,7 @@ typedef struct
   int16_t temperature2;
   int16_t temperature3;
   uint16_t status;
-  int32_t motor_position;
+  int16_t motor_position;
 } PropulsionData;
 
 typedef struct

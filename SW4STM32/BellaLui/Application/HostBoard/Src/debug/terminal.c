@@ -73,7 +73,7 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 					}
 				}
 
-				can_addMsg(message);
+				can_setFrame(message.data, message.id, message.timestamp);
 			} else if(has_io_mode(IO_INPUT & IO_DIRECT & IO_TELEMETRY)) {
 				const char* packet_buffer = cmd->components[0].component;
 

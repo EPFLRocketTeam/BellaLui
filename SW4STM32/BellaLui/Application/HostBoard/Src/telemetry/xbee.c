@@ -92,7 +92,7 @@ void xbee_freertos_init(UART_HandleTypeDef *huart) {
 	osSemaphoreDef(xBeeTxBufferSem);
 	xBeeTxBufferSemHandle = osSemaphoreCreate(osSemaphore(xBeeTxBufferSem), 1);
 
-	osMessageQDef(xBeeQueue, 16, Telemetry_Message);
+	osMessageQDef(xBeeQueue, 64, Telemetry_Message);
 	xBeeQueueHandle = osMessageCreate(osMessageQ(xBeeQueue), NULL);
 	vQueueAddToRegistry(xBeeQueueHandle, "xBee incoming queue");
 
@@ -358,6 +358,7 @@ void processReceivedPacket(struct RxPacket *packet) {
 
 void processReceivedByte(uint8_t rxByte) {
 	if(rxByte == XBEE_START) {
+		// rocket_boot_log("Parsing xBee packet...\n");
 		currentRxPacket.state = PARSING_PREAMBLE;
 		rxIndex = 0;
 	}
@@ -379,12 +380,13 @@ void processReceivedByte(uint8_t rxByte) {
 		currentRxPacket.checksum += rxByte;
 
 		if(rxIndex == START_DELIMITER_SIZE + MSB_SIZE + LSB_SIZE - 1) {
-			currentRxPacket.size = MSB_SIZE + LSB_SIZE + (((uint16_t) rxBuffer[1]) << 8 | rxBuffer[2]);
+			currentRxPacket.size = MSB_SIZE + LSB_SIZE + (((uint16_t) rxBuffer[1]) << 8 | rxBuffer[2]) + 2; // Because 2 is magic (TODO)
 			currentRxPacket.checksum = 0; // Resets the checksum
 		}
 
 		if(rxIndex == XBEE_RX_HEADER_PACKETID_INDEX - 1) {
 			currentRxPacket.state = PARSING_HEADER;
+			// rocket_boot_log("Parsing header... (packet size is %d)\n", currentRxPacket.size);
 		}
 
 		break;
@@ -410,6 +412,8 @@ void processReceivedByte(uint8_t rxByte) {
 
 		if(rxIndex == XBEE_RX_PAYLOAD_INDEX - 1) {
 			currentRxPacket.state = PARSING_PAYLOAD;
+			currentRxPacket.payload = rxBuffer + rxIndex + 1;
+			// rocket_boot_log("Parsing payload...\n");
 		}
 
 		break;
@@ -419,6 +423,7 @@ void processReceivedByte(uint8_t rxByte) {
 
 		if(rxIndex == currentRxPacket.size - 2) {
 			currentRxPacket.state = PARSING_CHECKSUM;
+			// rocket_boot_log("Parsing checksum...\n");
 		}
 
 		break;
@@ -430,6 +435,7 @@ void processReceivedByte(uint8_t rxByte) {
 
 		if(checksum != 0xFF - currentRxPacket.checksum) {
 			currentRxPacket.state = PARSING_ERROR;
+			// rocket_boot_log("Failed to parse checksum! Parsed: %d; Expected: %d\n", (uint32_t) checksum, checksum, (uint32_t) (0xFF - currentRxPacket.checksum));
 		}
 
 		if(currentRxPacket.uid[0] != 'E') {

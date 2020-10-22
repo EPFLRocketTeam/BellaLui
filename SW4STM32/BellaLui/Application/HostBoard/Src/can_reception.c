@@ -125,12 +125,12 @@ bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
 bool handlePropulsionData(uint32_t timestamp, PropulsionData* data) {
 	if(enter_monitor(PROPULSION_MONITOR)) {
 		rocket_log(" Status: %x\x1b[K\n", data->status);
-		rocket_log(" Temperature 1: %d\x1b[K\n", 100 * data->temperature1);
-		rocket_log(" Temperature 2: %d [m°C]\x1b[K\n", 100 * data->temperature2);
-		rocket_log(" Temperature 3: %d [m°C]\x1b[K\n", 100 * data->temperature3);
-		rocket_log(" Pressure 1: %d [mBar]\x1b[K\n", data->pressure1);
-		rocket_log(" Pressure 2: %d [mBar]\x1b[K\n", data->pressure1);
-		rocket_log(" Motor position: %d [mdeg]\x1b[K\n", 100 * data->motor_position);
+		rocket_log(" Temperature 1: %d\x1b[K\n", 100 * (int32_t) data->temperature1);
+		rocket_log(" Temperature 2: %d [m°C]\x1b[K\n", 100 * (int32_t) data->temperature2);
+		rocket_log(" Temperature 3: %d [m°C]\x1b[K\n", 100 * (int32_t) data->temperature3);
+		rocket_log(" Pressure 1: %d [mBar]\x1b[K\n", (int32_t) data->pressure1);
+		rocket_log(" Pressure 2: %d [mBar]\x1b[K\n", (int32_t) data->pressure1);
+		rocket_log(" Motor position: %d [mdeg]\x1b[K\n", 100 * (int32_t) data->motor_position);
 
 		exit_monitor(PROPULSION_MONITOR);
 	}
@@ -207,10 +207,10 @@ void TK_can_reader() {
 		while (can_msgPending()) { // check if new data
 			msg = can_readBuffer();
 
-			if((int32_t) (HAL_GetTick() - msg.timestamp) > 100000) {
+			/*if((int32_t) (HAL_GetTick() - msg.timestamp) > 100000) {
 				rocket_log("CAN RX Error %d@%d vs %d\n", msg.id, msg.timestamp, HAL_GetTick());
 				continue;
-			}
+			}*/
 
 			if(is_verbose()) {
 				rocket_log("----- CAN RX frame begins -----\n");
@@ -317,15 +317,15 @@ void TK_can_reader() {
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_TEMPERATURE1:
-				prop_data.temperature1 = (int32_t) (msg.data & 0xFFFF);
+				prop_data.temperature1 = (int16_t) (msg.data & 0xFFFF);
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_TEMPERATURE2:
-				prop_data.temperature2 = (int32_t) (msg.data & 0xFFFF);
+				prop_data.temperature2 = (int16_t) (msg.data & 0xFFFF);
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_TEMPERATURE3:
-				prop_data.temperature3 = (int32_t) (msg.data & 0xFFFF);
+				prop_data.temperature3 = (int16_t) (msg.data & 0xFFFF);
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_STATUS:
@@ -333,7 +333,7 @@ void TK_can_reader() {
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_MOTOR_POSITION:
-				prop_data.motor_position = (int32_t) msg.data;
+				prop_data.motor_position = (int16_t) (msg.data & 0xFFFF);
 				new_prop_data = true;
 				break;
 			case DATA_ID_SHELL_CONTROL:

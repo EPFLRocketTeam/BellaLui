@@ -26,10 +26,10 @@ extern "C" {
 	#include "storage/sd_card.h"
 }
 
-#define TELE_TIMEMIN 20
-#define GPS_TIMEMIN 100
-#define STATE_TIMEMIN 100
-#define PROP_DATA_TIMEMIN 50
+#define TELE_TIMEMIN 200
+#define GPS_TIMEMIN 200
+#define STATE_TIMEMIN 200
+#define PROP_DATA_TIMEMIN 100
 #define AB_TIMEMIN 100
 //#define TELE_RAW_TIMEMIN 100
 
@@ -90,7 +90,6 @@ Telemetry_Message createAirbrakesDatagram(uint32_t timestamp, float angle) {
 Telemetry_Message createGPSDatagram(uint32_t timestamp, GPS_data gpsData) {
 	DatagramBuilder builder = DatagramBuilder(GPS_DATAGRAM_PAYLOAD_SIZE, GPS_PACKET, timestamp, telemetrySeqNumber++);
 
-	builder.write32<uint32_t>(timestamp);
 	builder.write8(gpsData.sats);
 	builder.write32<float32_t>(gpsData.hdop);
 	builder.write32<float32_t>(gpsData.lat);
@@ -204,10 +203,10 @@ bool telemetrySendAirbrakesAngle(uint32_t timestamp, float angle) {
 	bool handled = false;
 
 	if (now - last_airbrakes_update > AB_TIMEMIN) {
-		m6 = createAirbrakesDatagram(timestamp, angle);
+		m4 = createAirbrakesDatagram(timestamp, angle);
 
-		if (osMessagePut(xBeeQueueHandle, (uint32_t) &m6, 10) != osOK) {
-			vPortFree(m6.ptr); // free the datagram if we couldn't queue it
+		if (osMessagePut(xBeeQueueHandle, (uint32_t) &m4, 10) != osOK) {
+			vPortFree(m4.ptr); // free the datagram if we couldn't queue it
 		}
 		last_airbrakes_update = now;
 		handled = true;
@@ -235,9 +234,9 @@ bool telemetrySendPropulsionData(uint32_t timestamp, PropulsionData* data) {
 	bool handled = false;
 
 	if (now - last_propulsion_update > PROP_DATA_TIMEMIN) {
-		m5 = createPropulsionDatagram(timestamp, data);
-		if (osMessagePut(xBeeQueueHandle, (uint32_t) &m5, 10) != osOK) {
-			vPortFree(m5.ptr); // free the datagram if we couldn't queue it
+		m6 = createPropulsionDatagram(timestamp, data);
+		if (osMessagePut(xBeeQueueHandle, (uint32_t) &m6, 10) != osOK) {
+			vPortFree(m6.ptr); // free the datagram if we couldn't queue it
 		}
 		last_propulsion_update = now;
 		handled = true;
