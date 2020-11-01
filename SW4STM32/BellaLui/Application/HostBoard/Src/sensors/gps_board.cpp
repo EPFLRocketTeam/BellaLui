@@ -1,4 +1,12 @@
-#include "sensors/GPS/TinyGPS++.h"
+/*
+ *
+ * GPS IS DEPRECATED SINCE 2020 DESIGN AND HAS BEEN DISABLED SINCE 2021 DESIGN
+ * THIS FILE
+ *
+ */
+
+
+//#include "sensors/GPS/TinyGPS++.h"
 
 #include "debug/led.h"
 #include "debug/console.h"
@@ -29,7 +37,7 @@ volatile uint32_t endGpsDmaStreamIndex = 0;
 
 uint8_t gpsRxBuffer[GPS_RX_BUFFER_SIZE];
 
-TinyGPSPlus gpsParser;
+// TinyGPSPlus gpsParser;
 
 
 void gps_init(UART_HandleTypeDef* gpsHuart) {
@@ -41,7 +49,7 @@ void gps_init(UART_HandleTypeDef* gpsHuart) {
  * Returns 1 if the GPS is connected to satellites but could not determine any location
  * Returns 2 if the GPS is not connected to any satellite
  */
-int8_t send_gps_data() {
+/*int8_t send_gps_data() {
 	uint8_t sats = gpsParser.satellites.isValid() ? static_cast<uint8_t>(gpsParser.satellites.value()) : 0;
 
 	if(enter_monitor(GPS_MONITOR)) {
@@ -73,10 +81,10 @@ int8_t send_gps_data() {
 	} else {
 		return 2;
 	}
-}
+}*/
 
 void TK_GPS_board(void const* argument) {
-	uint8_t gps_led = led_register_TK();
+	/*uint8_t gps_led = led_register_TK();
 
 	uint32_t last_transmission = HAL_GetTick();
 
@@ -111,14 +119,14 @@ void TK_GPS_board(void const* argument) {
 		end_profiler();
 
 		osDelay(10);
-	}
+	}*/
 }
 
 void GPS_RxCpltCallback() {
-	while(lastGpsDmaStreamIndex < GPS_RX_BUFFER_SIZE) {
+	/*while(lastGpsDmaStreamIndex < GPS_RX_BUFFER_SIZE) {
 		gpsParser.encode(gpsRxBuffer[lastGpsDmaStreamIndex++]);
 	}
 
 	endGpsDmaStreamIndex = 0;
-	lastGpsDmaStreamIndex = 0;
+	lastGpsDmaStreamIndex = 0;*/
 }

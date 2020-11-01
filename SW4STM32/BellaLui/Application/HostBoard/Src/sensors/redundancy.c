@@ -40,13 +40,13 @@ uint8_t combinations[] = {
 	0b1011,
 	0b1101,
 	0b1110,
-	0b0011,
+	/*0b0011,
 	0b0101,
 	0b0110,
 	0b1100,
 	0b1010,
 	0b1001,
-	/*0b1000,	The last combinations would mean that 3/4 sensors have ceased functioning
+	0b1000,	The last combinations would mean that 2/4 sensors have ceased functioning
 	0b0100,
 	0b0010,
 	0b0001,
@@ -62,13 +62,13 @@ float get_filtered_sensor_output(float* values, uint8_t num_sensors) {
 	for(uint8_t i = 0; i < sizeof(combinations); i++) {
 		uint8_t mask = combinations[i];
 
-		for(uint8_t i = 0; i < num_sensors; i++) {
+		for(uint8_t j = 0; j < num_sensors; j++) {
 			if(within_conf_interval(i, values, mask, num_sensors)) {
-				validated_values[num_validated_values++] = values[i]; // Validates as many sensors as possible
+				validated_values[num_validated_values++] = values[j]; // Validates as many sensors as possible
 			}
 		}
 
-		if(num_validated_values >= num_sensors / 2) {
+		if(num_validated_values >= num_sensors) {
 			break; // Values are now validated!
 		} else {
 			num_validated_values = 0; // Otherwise, reset.
