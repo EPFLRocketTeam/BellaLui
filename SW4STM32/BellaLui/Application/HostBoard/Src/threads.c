@@ -67,13 +67,6 @@ void create_threads() {
 	 rocket_boot_log("Logging thread started.\n");
 	#endif
 
-	#ifdef GPS
-	  osThreadDef(3task_GPSHandle, TK_GPS_board, osPriorityNormal, 0, 256);
-	  task_GPSHandle = osThreadCreate(osThread(3task_GPSHandle), NULL);
-	  rocket_boot_log("GPS thread started.\n");
-	  gps_init(&huart6);
-	#endif
-
 	#ifdef AB_CONTROL
 	  ab_init(&huart1);
 

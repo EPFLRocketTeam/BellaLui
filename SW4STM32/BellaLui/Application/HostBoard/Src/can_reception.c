@@ -21,7 +21,6 @@ typedef float float32_t;
 #include "debug/monitor.h"
 #include "telemetry/telemetry_handling.h"
 #include "airbrakes/airbrake.h"
-#include "sensors/gps_board.h"
 #include "sensors/sensor_board.h"
 #include "misc/datastructs.h"
 #include <misc/common.h>
@@ -53,17 +52,6 @@ int board2Idx(uint32_t board) {
 		// to avoid fatal crash return a default value
 		return MAX_BOARD_ID;
 	}
-}
-
-bool handleGPSData(uint32_t timestamp, GPS_data data) {
-	#ifdef XBEE
-	return telemetrySendGPS(timestamp, data);
-	#elif defined(KALMAN)
-	if (data.lat < 1e3) {
-		return kalman_handleGPSData(data);
-	}
-	#endif
-	return false;
 }
 
 bool handleIMUData(uint32_t timestamp, IMU_data data) {
@@ -183,15 +171,11 @@ void TK_can_reader() {
 
 	IMU_data  imu [MAX_BOARD_NUMBER] = {0};
 	BARO_data baro[MAX_BOARD_NUMBER] = {0};
-	GPS_data  gps [MAX_BOARD_NUMBER] = {0};
 	PropulsionData prop_data;
 	uint8_t state = 0;
 
-	int total_gps_fixes = 0;
-	bool gps_fix [MAX_BOARD_NUMBER] = {0};
 	bool new_baro[MAX_BOARD_NUMBER] = {0};
 	bool new_imu [MAX_BOARD_NUMBER] = {0};
-	bool new_gps [MAX_BOARD_NUMBER] = {0};
 	bool new_ab = 0;
 	bool new_prop_data = 0;
 	bool new_state = 0;
@@ -258,26 +242,6 @@ void TK_can_reader() {
 				break;
 			case DATA_ID_GYRO_Z:
 				imu[idx].eulerAngles.z = ((float32_t) ((int32_t) msg.data));
-				break;
-			case DATA_ID_GPS_HDOP:
-				gps[idx].hdop = ((float32_t) ((int32_t) msg.data)) / 1e3; // from mm to m
-				if (!gps_fix[idx]) {
-					gps_fix[idx] = true;
-					total_gps_fixes++;
-				}
-				break;
-			case DATA_ID_GPS_LAT:
-				gps[idx].lat = ((float32_t) ((int32_t) msg.data))  / 1e6; // from udeg to deg
-				break;
-			case DATA_ID_GPS_LONG:
-				gps[idx].lon = ((float32_t) ((int32_t) msg.data))  / 1e6; // from udeg to deg
-				break;
-			case DATA_ID_GPS_ALTITUDE:
-				gps[idx].altitude = ((int32_t) msg.data) / 1; // keep in cm
-				break;
-			case DATA_ID_GPS_SATS:
-				gps[idx].sats = ((uint8_t) ((int32_t) msg.data));
-				new_gps[idx] = true;
 				break;
 			case DATA_ID_STATE:
 				if(msg.data > state && msg.data < NUM_STATES) {
@@ -369,28 +333,6 @@ void TK_can_reader() {
 
 		// check if new/non-handled full sensor packets are present
 		for (int i=0; i < MAX_BOARD_NUMBER ; i++) {
-			if (new_gps[i]) {
-				// check if the new gps data has a fix
-				if (gps[i].altitude == GPS_DEFAULT) { // will make some launch locations impossible (depending on the default value the altitude might be valid)
-					if (gps_fix[i]) { // todo: implement timeout on gps_fix if no message received for extended time
-						total_gps_fixes--;
-						gps_fix[i] = false;
-					}
-				}
-
-				if (gps_fix[i] || total_gps_fixes<1) { // filter packets
-					// only allow packets without fix if there exist globally no gps fixes
-					if (handleGPSData(msg.timestamp, gps[i])) { // handle packet
-						// reset all the data
-						gps[i].hdop     = GPS_DEFAULT;
-						gps[i].lat      = GPS_DEFAULT;
-						gps[i].lon      = GPS_DEFAULT;
-						gps[i].altitude = GPS_DEFAULT;
-						gps[i].sats     = (uint8_t) GPS_DEFAULT;
-						new_gps[i] = false;
-					}
-				}
-			}
 			if (new_baro[i]) {
 				if(baro[i].base_pressure == 0) {
 					baro[i].base_pressure = baro[i].pressure; // Terrible HOTFIX, I know.
