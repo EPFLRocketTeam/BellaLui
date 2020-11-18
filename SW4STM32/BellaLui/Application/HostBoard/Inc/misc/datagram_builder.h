@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 #include <stm32f4xx_hal.h>
-#include "../../../HostBoard/Inc/Misc/datastructs.h"
+#include "../../../HostBoard/Inc/misc/datastructs.h"
 
 #if defined __GNUC__
 #define bswap16(x) __builtin_bswap16(x)

@@ -9,7 +9,7 @@
 
 #include <stdbool.h>
 
-#include "../../../HostBoard/Inc/Misc/datastructs.h"
+#include "../../../HostBoard/Inc/misc/datastructs.h"
 
 #ifdef __cplusplus
 extern "C" {
