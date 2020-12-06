@@ -22,14 +22,14 @@ public:
 	static void reset();
 };
 
-class StandardI2CDriver : I2CDriver {
+class StandardI2CDriver : public I2CDriver {
 public:
 	static int8_t read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
 	static int8_t write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
 	static void reset();
 };
 
-class FastI2CDriver : I2CDriver {
+class FastI2CDriver : public I2CDriver {
 public:
 	static int8_t read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
 	static int8_t write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);

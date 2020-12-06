@@ -111,6 +111,10 @@ bool IMU::fetch(IMUData* data) {
 		gyro_counter = 0;
 	}
 
+	if(result != BNO055_SUCCESS) {
+		return false;
+	}
+
 	data->accel.x = (float) ((((int16_t) ((int8_t) accel_data[1]) << 8) | accel_data[0]) / BNO055_ACCEL_DIV_MG);
 	data->accel.y = (float) ((((int16_t) ((int8_t) accel_data[3]) << 8) | accel_data[2]) / BNO055_ACCEL_DIV_MG);
 	data->accel.z = (float) ((((int16_t) ((int8_t) accel_data[5]) << 8) | accel_data[4]) / BNO055_ACCEL_DIV_MG);
@@ -118,5 +122,5 @@ bool IMU::fetch(IMUData* data) {
 	data->gyro.y = (float) ((((int16_t) ((int8_t) gyro_data[3]) << 8) | gyro_data[2]) / BNO055_GYRO_DIV_RPS);
 	data->gyro.z = (float) ((((int16_t) ((int8_t) gyro_data[5]) << 8) | gyro_data[4]) / BNO055_GYRO_DIV_RPS);
 
-	return result;
+	return true;
 }

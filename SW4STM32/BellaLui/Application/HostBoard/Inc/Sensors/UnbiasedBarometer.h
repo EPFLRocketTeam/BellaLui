@@ -12,9 +12,10 @@
 #include "Sensors/Barometer.h"
 
 
-class UnbiasedBarometer : public UnbiasedSensor<Barometer> {
+class UnbiasedBarometer : public UnbiasedSensor<BarometerData> {
 public:
-	void filterData(BarometerData* measurements, uint8_t count, BarometerData* output);
+	UnbiasedBarometer(const char* identifier, std::initializer_list<Sensor<BarometerData>*> sensors);
+	uint16_t filterData(BarometerData* measurements, uint8_t count, BarometerData* output);
 };
 
 

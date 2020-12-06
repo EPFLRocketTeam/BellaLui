@@ -7,23 +7,18 @@
 
 #include <Sensors/UnbiasedSensor.h>
 
-#include <cstdarg>
 #include <cmsis_os.h>
 
 template<class T>
-UnbiasedSensor<T>::UnbiasedSensor(const char* identifier, uint8_t count, ...) : Sensor<T>(identifier), count(count) {
-	va_list args;
+UnbiasedSensor<T>::UnbiasedSensor(const char* identifier, std::initializer_list<Sensor<T>*> sensors) : Sensor<T>(identifier) {
+	this->count = 0;
+
+	for(Sensor<T>* sensor : sensors) {
+		this->sensors[count++] = sensor;
+	}
 
 	this->sensors = (Sensor<T>**) pvPortMalloc(sensors * sizeof(Sensor<T>*));
 	this->measurements = (T*) pvPortMalloc(count * sizeof(T));
-
-	va_start(args, sensors);
-
-	for(uint8_t i = 0; i < count; i++) {
-		this->sensors[i] = va_arg(args, Sensor<T>*);
-	}
-
-	va_end(args);
 }
 
 template<class T>
@@ -62,13 +57,13 @@ bool UnbiasedSensor<T>::fetch(T* data) {
 		status |= this->sensors[i]->fetch(&measurements[i]);
 	}
 
-	filterData(measurements, count, data);
+	this->excludedCount = filterData(measurements, count, data);
 
 	return status;
 }
 
 template<class T>
-void UnbiasedSensor<T>::removeOutsiders(float** data) {
+uint8_t UnbiasedSensor<T>::removeOutsiders(float** data) {
 	// TODO
 }
 

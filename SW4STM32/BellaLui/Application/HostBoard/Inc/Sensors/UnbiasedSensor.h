@@ -11,26 +11,28 @@
 #include <Sensors/Sensor.h>
 
 #include <stdint.h>
-
+#include <initializer_list>
 
 template<class T>
 class UnbiasedSensor : public Sensor<T> {
 public:
-	UnbiasedSensor(const char* identifier, uint8_t count, ...);
+	UnbiasedSensor(const char* identifier, std::initializer_list<Sensor<T>*> sensors);
 	~UnbiasedSensor();
 	bool load();
 	bool reset();
 	bool fetch(T* data);
+	uint16_t getExcludedCount() { return excludedCount; }
 
 protected:
-	void filterData(T* measurements, uint8_t count, T* output);
-	void removeOutsiders(float** data);
+	uint16_t filterData(T* measurements, uint8_t count, T* output);
+	uint8_t removeOutsiders(float** data);
 	float mean(float** data);
 
 private:
 	uint8_t count;
 	Sensor<T>** sensors;
 	T* measurements;
+	uint16_t excludedCount;
 };
 
 

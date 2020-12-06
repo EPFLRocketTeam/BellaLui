@@ -21,14 +21,14 @@ bool Barometer::load() {
 
 	if(result != BME280_OK) {
 		// rocket_log("Barometer %u failed to initialise with error code %d\n", sensor_id, result);
-		return result;
+		return false;
 	}
 	//Always read the current settings before writing
 	result = bme280_get_sensor_settings(&dev);
 
 	if(result != BME280_OK) {
 		// rocket_log("Barometer %u failed to fetch sensor settings with error code %d\n", sensor_id, result);
-		return result;
+		return false;
 	}
 	//Overwrite the desired settings
 	dev.settings.filter = BME280_FILTER_COEFF_OFF;
@@ -41,7 +41,7 @@ bool Barometer::load() {
 
 	if(result != BME280_OK) {
 		// rocket_log("Barometer %u failed to change sensor settings with error code %d\n", sensor_id, result);
-		return result;
+		return false;
 	}
 
 	//Always set the power mode after setting the configuration
@@ -49,10 +49,10 @@ bool Barometer::load() {
 
 	if(result != BME280_OK) {
 		// rocket_log("Barometer %u failed to change power mode with error code %d\n", sensor_id, result);
-		return result;
+		return false;
 	}
 
-	return BME280_OK;
+	return true;
 }
 
 bool Barometer::reset() {
@@ -68,5 +68,5 @@ bool Barometer::fetch(BarometerData* data) {
 	data->temperature = (float) raw_data.temperature;
 	data->pressure = (float) raw_data.pressure / 100;
 
-	return result;
+	return result == BME280_OK;
 }

@@ -18,6 +18,7 @@ public:
 	virtual bool load() = 0;
 	virtual bool reset() = 0;
 	virtual bool fetch(T* data) = 0;
+	const char* name() { return identifier; }
 private:
 	const char* identifier;
 };

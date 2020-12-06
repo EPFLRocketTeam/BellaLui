@@ -11,8 +11,14 @@
 
 #define NUM_IMU_OUTPUTS 6
 
-void UnbiasedIMU::filterData(IMUData* measurements, uint8_t count, IMUData* output) {
+
+UnbiasedIMU::UnbiasedIMU(const char* identifier, std::initializer_list<Sensor<IMUData>*> sensors) : UnbiasedSensor(identifier, sensors) {
+
+}
+
+uint16_t UnbiasedIMU::filterData(IMUData* measurements, uint8_t count, IMUData* output) {
 	float*** matrix = (float***) pvPortMalloc(NUM_IMU_OUTPUTS * sizeof(float**));
+	uint16_t excludedCount = 0;
 
 	for(uint8_t i = 0; i < count; i++) {
 		matrix[0][i] = &measurements[i].accel.x;
@@ -24,7 +30,7 @@ void UnbiasedIMU::filterData(IMUData* measurements, uint8_t count, IMUData* outp
 	}
 
 	for(uint8_t i = 0; i < NUM_IMU_OUTPUTS; i++) {
-		removeOutsiders(matrix[i]);
+		excludedCount += removeOutsiders(matrix[i]);
 	}
 
 	output->accel.x = mean(matrix[0]);
@@ -35,4 +41,6 @@ void UnbiasedIMU::filterData(IMUData* measurements, uint8_t count, IMUData* outp
 	output->gyro.z = mean(matrix[5]);
 
 	vPortFree(matrix);
+
+	return excludedCount;
 }

@@ -14,7 +14,8 @@
 
 class UnbiasedIMU : public UnbiasedSensor<IMUData> {
 public:
-	void filterData(IMUData* measurements, uint8_t count, IMUData* output);
+	UnbiasedIMU(const char* identifier, std::initializer_list<Sensor<IMUData>*> sensors);
+	uint16_t filterData(IMUData* measurements, uint8_t count, IMUData* output);
 };
 
 
