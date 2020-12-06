@@ -14,16 +14,10 @@
   */
 
 
-#include "sensors/sensor_board.h"
-#include "sensors/sensors.h"
-#include "sensors/redundancy.h"
-
 #include "debug/profiler.h"
 #include "debug/led.h"
 #include "debug/console.h"
 #include "debug/monitor.h"
-#include "sensors/BME280/bme280.h"
-#include "sensors/BNO055/bno055.h"
 #include "can_transmission.h"
 #include "sync.h"
 
@@ -32,6 +26,12 @@
 #include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
+
+#include <sensors_old/BME280/bme280.h>
+#include <sensors_old/BNO055/bno055.h>
+#include <sensors_old/redundancy.h>
+#include <sensors_old/sensor_board.h>
+#include <sensors_old/sensors.h>
 
 
 #define I2C_TIMEOUT 3
@@ -338,7 +338,7 @@ int8_t init_accelerometer(uint8_t sensor_id) {
 
 	accelerometers[sensor_id].bus_write = &bno_i2c_write;
 	accelerometers[sensor_id].bus_read = &bno_i2c_read;
-	accelerometers[sensor_id].delay_msec = &delay_ms;
+	accelerometers[sensor_id].delay_msec = (void(*)(u32)) &delay_ms;
 
 	int8_t result = bno055_init(&accelerometers[sensor_id]); // Returns 1 if error
 

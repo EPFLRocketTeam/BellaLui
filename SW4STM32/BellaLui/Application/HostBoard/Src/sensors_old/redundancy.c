@@ -5,10 +5,9 @@
  *      Author: Quentin Delfosse
  */
 
-#include "sensors/redundancy.h"
-#include "sensors/sensors.h"
-
 #include <math.h>
+#include <sensors_old/redundancy.h>
+#include <sensors_old/sensors.h>
 
 /*
  * sensor_elimination :

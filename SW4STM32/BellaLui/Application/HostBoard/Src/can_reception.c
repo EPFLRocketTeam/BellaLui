@@ -21,7 +21,7 @@ typedef float float32_t;
 #include "debug/monitor.h"
 #include "telemetry/telemetry_handling.h"
 #include "airbrakes/airbrake.h"
-#include "sensors/sensor_board.h"
+#include <sensors_old/sensor_board.h>
 #include "misc/datastructs.h"
 #include <misc/common.h>
 #include "storage/flash_logging.h"

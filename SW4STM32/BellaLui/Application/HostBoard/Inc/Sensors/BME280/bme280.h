@@ -62,7 +62,7 @@ extern "C" {
 #endif
 
 /* Header includes */
-#include <sensors/BME280/bme280_defs.h>
+#include <Sensors/BME280/bme280_defs.h>
 
 /*!
  *  @brief This API is the entry point.
