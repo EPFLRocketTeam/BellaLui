@@ -12,6 +12,7 @@
 template<class T>
 UnbiasedSensor<T>::UnbiasedSensor(const char* identifier, std::initializer_list<Sensor<T>*> sensors) : Sensor<T>(identifier) {
 	this->count = 0;
+	this->excludedCount = 0;
 
 	for(Sensor<T>* sensor : sensors) {
 		this->sensors[count++] = sensor;
