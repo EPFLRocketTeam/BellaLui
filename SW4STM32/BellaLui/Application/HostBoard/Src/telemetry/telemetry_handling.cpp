@@ -23,11 +23,10 @@ extern "C" {
 	#include <debug/console.h>
 }
 
-
-#define TELE_TIMEMIN 20
-#define GPS_TIMEMIN 100
-#define MOTOR_TIMEMIN 100
-#define WARNING_TIMEMIN 50
+#define TELE_TIMEMIN 200
+#define GPS_TIMEMIN 200
+#define STATE_TIMEMIN 200
+#define PROP_DATA_TIMEMIN 100
 #define AB_TIMEMIN 100
 #define GSE_STATE_TIMEMIN 20
 #define ORDER_TIMEMIN 20
@@ -65,6 +64,11 @@ uint32_t last_sensor_update = 0;
 uint32_t last_motor_update = 0;
 uint32_t last_warning_update = 0;
 uint32_t last_airbrakes_update = 0;
+uint32_t last_state_update = 0;
+uint8_t current_GSE_order = 0;
+
+GSE_state GSE_states = {0,0,0,0,0,1111,0,0,0,0,0,0,0,0};
+uint8_t sec_GST_code = 0;
 uint32_t last_GSE_state_update = 0;
 uint32_t last_order_update = 0;
 uint32_t last_GSE_ignition_update = 0;
@@ -80,6 +84,7 @@ Telemetry_Message m7;
 Telemetry_Message m8;
 Telemetry_Message m9;
 Telemetry_Message m10;
+
 
 Telemetry_Message event;
 
@@ -162,8 +167,11 @@ Telemetry_Message createWarningPacketDatagram(uint32_t time_stamp, uint8_t id, f
 	builder.write32 (value);
 	builder.write8(av_state); // flight status
 
-	return builder.finalizeDatagram();
-}
+	builder.write8(gpsData.sats);
+	builder.write32<float32_t>(gpsData.hdop);
+	builder.write32<float32_t>(gpsData.lat);
+	builder.write32<float32_t>(gpsData.lon);
+	builder.write32<int32_t>(gpsData.altitude);
 
 
 Telemetry_Message createGSEStateDatagram(GSE_state* GSE, uint32_t time_stamp, uint32_t seqNumber)
@@ -224,6 +232,52 @@ Telemetry_Message createEchoDatagram(uint32_t time_stamp, uint32_t seqNumber)
 	builder.write8(0xCA);
 	return builder.finalizeDatagram();
 
+}
+Telemetry_Message createGSEStateDatagram(GSE_state* GSE, uint32_t time_stamp) {
+	DatagramBuilder builder = DatagramBuilder(GSE_STATE_DATAGRAM_PAYLOAD_SIZE, GSE_STATE_PACKET, time_stamp, telemetrySeqNumber++);
+
+	builder.write8 (GSE->fill_valve_state);
+	builder.write8 (GSE->purge_valve_state);
+	builder.write8 (GSE->main_ignition_state);
+	builder.write8 (GSE->sec_ignition_state);
+	builder.write8 (GSE->hose_disconnect_state);
+	builder.write32<float32_t>(GSE->battery_level);
+	builder.write32<float32_t>(GSE->hose_pressure);
+	builder.write32<float32_t>(GSE->hose_temperature);
+	builder.write32<float32_t>(GSE->tank_temperature);
+	builder.write32<float32_t>(GSE->rocket_weight);
+	builder.write32<float32_t>(GSE->ignition1_current);
+	builder.write32<float32_t>(GSE->ignition2_current);
+	builder.write32<float32_t>(GSE->wind_speed);
+
+	return builder.finalizeDatagram();
+}
+
+Telemetry_Message createOrderDatagram(uint8_t order, uint32_t time_stamp)
+{
+	DatagramBuilder builder = DatagramBuilder(ORDER_DATAGRAM_PAYLOAD_SIZE, ORDER_PACKET, time_stamp, telemetrySeqNumber++);
+
+	builder.write8 (order);
+	return builder.finalizeDatagram();
+
+}
+
+Telemetry_Message createIgnitionDatagram(uint8_t GSE_ignition, uint32_t time_stamp)
+{
+	DatagramBuilder builder = DatagramBuilder(GSE_IGNITION_DATAGRAM_PAYLOAD_SIZE, IGNITION_PACKET, time_stamp, telemetrySeqNumber++);
+
+	builder.write8 (GSE_ignition);
+	//builder.write8(sec_GST_code);
+	return builder.finalizeDatagram();
+
+}
+
+Telemetry_Message createEchoDatagram(uint32_t time_stamp)
+{
+	DatagramBuilder builder = DatagramBuilder(ECHO_DATAGRAM_PAYLOAD_SIZE, ECHO_PACKET, time_stamp, telemetrySeqNumber++);
+
+	builder.write8 (0xCA);
+	return builder.finalizeDatagram();
 }
 
 /*
@@ -347,9 +401,10 @@ bool telemetry_sendABData() {
 	bool handled = false;
 
 	if (now - last_airbrakes_update > AB_TIMEMIN) {
-		m6 = createAirbrakesDatagram (now, telemetrySeqNumber++);
-		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m6, 10) != osOK) {
-			vPortFree(m6.ptr); // free the datagram if we couldn't queue it
+		m4 = createAirbrakesDatagram(timestamp, angle);
+
+		if (osMessagePut(xBeeQueueHandle, (uint32_t) &m4, 10) != osOK) {
+			vPortFree(m4.ptr); // free the datagram if we couldn't queue it
 		}
 		last_airbrakes_update = now;
 		handled = true;
@@ -381,8 +436,42 @@ bool telemetry_sendOrderData(uint8_t order)
 	uint32_t now = HAL_GetTick();
 	bool handled = false;
 
+	if (now - last_propulsion_update > PROP_DATA_TIMEMIN) {
+		m6 = createPropulsionDatagram(timestamp, data);
+		if (osMessagePut(xBeeQueueHandle, (uint32_t) &m6, 10) != osOK) {
+			vPortFree(m6.ptr); // free the datagram if we couldn't queue it
+		}
+		last_order_update = now;
+		handled = true;
+
+	}
+	return handled;
+}
+
+bool telemetry_sendGSEStateData(GSE_state data)
+{
+	uint32_t now = HAL_GetTick();
+	bool handled = false;
+
+	if (now - last_GSE_state_update > GSE_STATE_TIMEMIN) {
+		m7 = createGSEStateDatagram(&data, now);
+		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m7, 10) != osOK) {
+			vPortFree(m7.ptr); // free the datagram if we couldn't queue it
+		}
+		last_GSE_state_update = now;
+		handled = true;
+
+	}
+	return handled;
+}
+
+bool telemetry_sendOrderData(uint8_t order)
+{
+	uint32_t now = HAL_GetTick();
+	bool handled = false;
+
 	if (now - last_order_update > ORDER_TIMEMIN) {
-		m8 = createOrderDatagram(order, now, telemetrySeqNumber++);
+		m8 = createOrderDatagram(order, now);
 		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m8, 10) != osOK) {
 			vPortFree(m8.ptr); // free the datagram if we couldn't queue it
 		}
@@ -399,7 +488,7 @@ bool telemetry_sendIgnitionData(uint8_t GSE_ignition)
 	bool handled = false;
 
 	if (now - last_GSE_ignition_update > GSE_IGNITION_TIMEMIN) {
-		m9 = createIgnitionDatagram(GSE_ignition, now, telemetrySeqNumber++);
+		m9 = createIgnitionDatagram(GSE_ignition, now);
 		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m9, 10) != osOK) {
 			vPortFree(m9.ptr); // free the datagram if we couldn't queue it
 		}
@@ -416,7 +505,7 @@ bool telemetry_sendEcho()
 	bool handled = false;
 
 	if (now - last_echo > ECHO_TIMEMIN) {
-		m10 = createEchoDatagram(now, telemetrySeqNumber++);
+		m10 = createEchoDatagram(now);
 		if (osMessagePut (xBeeQueueHandle, (uint32_t) &m10, 10) != osOK) {
 			vPortFree(m10.ptr); // free the datagram if we couldn't queue it
 		}
@@ -501,6 +590,79 @@ bool telemetry_receiveIgnitionPacket(uint8_t* RX_Ignition_Packet) {
 		can_setFrame((uint32_t) SECONDARY_IGNITION_OFF, DATA_ID_IGNITION, ts);
 	}
 	can_setFrame((uint32_t) RX_Ignition_Packet[9], DATA_ID_GST_CODE, ts);
+	return 0;
+}
+
+// Received Packet Handling
+
+bool telemetry_receiveOrderPacket(uint32_t ts, uint8_t* payload) {
+
+	switch (payload[0])
+	{
+		case OPEN_FILL_VALVE:
+		{
+			current_GSE_order = OPEN_FILL_VALVE;
+			break;
+		}
+		case CLOSE_FILL_VALVE:
+		{
+			current_GSE_order = CLOSE_FILL_VALVE;
+			break;
+		}
+		case OPEN_PURGE_VALVE:
+		{
+			current_GSE_order = OPEN_PURGE_VALVE;
+			break;
+		}
+		case CLOSE_PURGE_VALVE:
+		{
+			current_GSE_order = CLOSE_PURGE_VALVE;
+			break;
+		}
+		case OPEN_FILL_VALVE_BACKUP:
+		{
+			current_GSE_order = OPEN_FILL_VALVE_BACKUP;
+			break;
+		}
+		case CLOSE_FILL_VALVE_BACKUP:
+		{
+			current_GSE_order = CLOSE_FILL_VALVE_BACKUP;
+			break;
+		}
+		case OPEN_PURGE_VALVE_BACKUP:
+		{
+			current_GSE_order = OPEN_PURGE_VALVE_BACKUP;
+			break;
+		}
+		case CLOSE_PURGE_VALVE_BACKUP:
+		{
+			current_GSE_order = CLOSE_PURGE_VALVE_BACKUP;
+			break;
+		}
+		case DISCONNECT_HOSE:
+		{
+			current_GSE_order = DISCONNECT_HOSE;
+			break;
+		}
+	}
+	can_setFrame((uint32_t) current_GSE_order, DATA_ID_ORDER , ts);
+	return 0;
+}
+
+bool telemetry_receiveIgnitionPacket(uint32_t ts, uint8_t* payload) {
+	if(payload[0] == MAIN_IGNITION_ON) {
+		can_setFrame((uint32_t) MAIN_IGNITION_ON, DATA_ID_IGNITION, ts);
+	}
+	else if(payload[0] == MAIN_IGNITION_OFF) {
+			can_setFrame((uint32_t) MAIN_IGNITION_OFF, DATA_ID_IGNITION, ts);
+	}
+	else if(payload[0] == SECONDARY_IGNITION_ON) {
+		can_setFrame((uint32_t) SECONDARY_IGNITION_ON, DATA_ID_IGNITION, ts);
+	}
+	else if(payload[0] == SECONDARY_IGNITION_OFF) {
+		can_setFrame((uint32_t) SECONDARY_IGNITION_OFF, DATA_ID_IGNITION, ts);
+	}
+	can_setFrame((uint32_t) payload[1], DATA_ID_GST_CODE, ts);
 	return 0;
 }
 

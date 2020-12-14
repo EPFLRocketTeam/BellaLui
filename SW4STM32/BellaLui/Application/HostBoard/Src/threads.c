@@ -42,7 +42,6 @@ osThreadId GSECodeHandle;
 osThreadId GSESensorHandle;
 osThreadId GSETelemetryHandle;
 
-
 void create_semaphores() {
 	init_heavy_scheduler();
 	init_logging();
@@ -133,29 +132,36 @@ void create_threads() {
 	  rocket_log("Valve control thread started. \n");
 	#endif
 
+	#ifdef VALVE
+	  valve_init();
+	  osThreadDef(GSE_valves, TK_GSE_valve_control, osPriorityNormal, 0, 128);
+	  GSEValveHandle = osThreadCreate(osThread(GSE_valves), NULL);
+	  rocket_log("Valve control thread started. \n");
+	#endif
+
 	#ifdef IGNITION
 	  ignition_sys_init();
 	  osThreadDef(ignition, TK_ignition_control, osPriorityNormal, 0, 128);
-	  	  GSEIgnitionHandle = osThreadCreate(osThread(ignition), NULL);
+		  GSEIgnitionHandle = osThreadCreate(osThread(ignition), NULL);
 	  rocket_log("Ignition control thread started.\n");
 	#endif
 
 	#ifdef SECURITY_CODE
 	  code_init();
 	  osThreadDef(security_code, TK_code_control, osPriorityNormal, 0, 128);
-	  	  GSECodeHandle = osThreadCreate(osThread(security_code), NULL);
+		  GSECodeHandle = osThreadCreate(osThread(security_code), NULL);
 	  rocket_log("Security Code control thread started.\n");
 	#endif
 
 
-	#ifdef SENSOR_TELEMETRY
+#ifdef SENSOR_TELEMETRY
 //	  	telemetry_init();
 //	  	sensors_init();
-	  	osThreadDef(GSE_telemetry, TK_telemetry_control, osPriorityNormal, 0, 128);
-	  		  	  GSETelemetryHandle = osThreadCreate(osThread(GSE_telemetry), NULL);
-	  	rocket_log("GSE Telemetry thread started.\n");
+  	osThreadDef(GSE_telemetry, TK_telemetry_control, osPriorityNormal, 0, 128);
+  		  	  GSETelemetryHandle = osThreadCreate(osThread(GSE_telemetry), NULL);
+  	rocket_log("GSE Telemetry thread started.\n");
 //		osThreadDef(GSE_sensor, TK_sensors_control, osPriorityNormal, 0, 128);
 //				  GSESensorHandle = osThreadCreate(osThread(GSE_sensor), NULL);
 //		rocket_log("GSE Sensors thread started.\n");
-	#endif
+#endif
 }

@@ -11,7 +11,9 @@
 
 #define OS_STKCHECK
 #define LED
-//#define DEBUG
+//#define TELEMETRY_BOARD
+//#define VALVE_BOARD
+//#define CODE_BOARD
 #define SENSOR_TELEMETRY_BOARD
 
 
@@ -85,8 +87,9 @@
 //todo #define MOTOR_VALVE_CONTROL
 #endif
 
+//GSE Boards
 #ifdef VALVE_BOARD
-#define CAN_ID CAN_ID_VALVE_BOARD
+#define CAN_ID CAN_ID_GSE_VALVE_BOARD
 #define VALVE
 #define IGNITION
 #define IGNITION_1
@@ -97,7 +100,7 @@
 #endif
 
 #ifdef CODE_BOARD
-#define CAN_ID CAN_ID_CODE_BOARD
+#define CAN_ID CAN_ID_GSE_CODE_BOARD
 #define SECURITY_CODE
 #define IGNITION
 #define DISCONNECT
@@ -108,11 +111,16 @@
 #endif
 
 #ifdef SENSOR_TELEMETRY_BOARD
-#define CAN_ID CAN_ID_SENSOR_TELEMETRY_BOARD
+#define CAN_ID CAN_ID_GSE_SENSOR_TELEMETRY_BOARD
 #define SENSOR_TELEMETRY
 #define XBEE
-#define IGNITION
-#define IGNITION_2
+
+//########################################## TEST ##########################################
+//#define VALVE
+//########################################## TEST ##########################################
+
+//#define IGNITION
+//#define IGNITION_2
 
 #define BOARD_LED_R (0)
 #define BOARD_LED_G (0)
@@ -148,22 +156,22 @@
 #include <propulsion/pressure_monitor.h>
 #endif
 
+//GSE Defs
 #ifdef VALVE
-#include <GSE_valve/valve.h>
+#include <GSE/valve.h>
 #endif
 
 #ifdef IGNITION
-#include <GSE_ignition/ignition.h>
+#include <GSE/ignition.h>
 #endif
 
 #ifdef SECURITY_CODE
-#include <GSE_code/code.h>
+#include <GSE/code.h>
 #endif
 
 #ifdef SENSOR_TELEMETRY
-#include <GSE_sensor_telemetry/sensor_telemetry.h>
+#include <GSE/sensor_telemetry.h>
 #endif
-
 
 void create_semaphores();
 void create_threads();

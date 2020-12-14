@@ -106,7 +106,6 @@ int main(void) {
 	/* USER CODE BEGIN SysInit */
 
 	/* USER CODE END SysInit */
-
 	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
 	MX_DMA_Init();
@@ -137,6 +136,12 @@ int main(void) {
 	MX_USART6_UART_Init();
 #endif
 
+
+	// Outdated: Semi-hosting has to be enabled in eclipse, otherwise the program will sigtrap at the instruction initialise_monitor_handler() in main.c
+	rocket_log_init(&huart3);
+	shell_init(&huart3, &terminal_execute);
+	rocket_boot_log("BellaLui v1.0\n\n");
+
 	led_init();
 	led_set_rgb(127, 255, 255);
 
@@ -162,7 +167,7 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 		/* USER CODE END WHILE */
-
+		osDelay(10);
 		/* USER CODE BEGIN 3 */
 	}
 	/* USER CODE END 3 */
