@@ -8,6 +8,9 @@
 #ifndef APPLICATION_HOSTBOARD_INC_SENSORS_UNBIASEDSENSOR_H_
 #define APPLICATION_HOSTBOARD_INC_SENSORS_UNBIASEDSENSOR_H_
 
+#define THE_FURTHER_INDEX(data_ptr, sort_arr_ptr, index_small, index_large, central_value) ( abs(*data_ptr[sort_arr_ptr[index_large]]-central_value) > abs(*data_ptr[sort_arr_ptr[index_small]]-central_value) ? index_large : index_small )
+#define IS_IN_INTERVAL(test_value, value_min, value_max) (test_value >= value_min && test_value <= value_max)
+
 #include <Sensors/Sensor.h>
 
 #include <stdint.h>
@@ -33,6 +36,9 @@ private:
 	Sensor<T>** sensors;
 	T* measurements;
 	uint16_t excludedCount;
+	void sorting_network(float** data, uint_8* sorting_array);
+	float standard_deviation(float** data);
+
 };
 
 
