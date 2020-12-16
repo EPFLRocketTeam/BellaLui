@@ -13,10 +13,28 @@ Sets values for temperature and pressure at ground level.
 To be executed only once
 Inputs: temperature and pressure, addresses of T0 and P0
 Outputs: -*/
+
 void setConstants(float temperature, float pressure, float* T0, float* P0)
 {
-	*T0 = temperature;
-	*P0 = pressure;
+	if (constants_iterator >= N_ITERATIONS_AVERAGE)
+		{
+			*T0 = T0_averaged;
+			*P0 = P0_averaged;
+			constants_set = true;
+		}
+
+	//first time we set the first ever read value
+	if (constants_iterator == 0){
+		*T0 = temperature;
+		*P0 = pressure;
+	}
+
+	//we set the ground values to be the average of the first N_ITERATIONS_AVERAGE values
+	if (constants_iterator < N_ITERATIONS_AVERAGE){
+		T0_averaged += temperature/N_ITERATIONS_AVERAGE;
+		P0_averaged += pressure/N_ITERATIONS_AVERAGE;
+		constants_iterator++;
+	}
 }
 
 /*getPresFromALt
@@ -61,7 +79,6 @@ float altitudeComputation(float raw_temperature, float raw_pressure)
 	//set constants
 	if (constants_set == false){
 		setConstants(raw_temperature, raw_pressure, &T0, &P0);
-		constants_set = true;
 	}
 
 	//altitude (first approximation)
@@ -71,10 +88,12 @@ float altitudeComputation(float raw_temperature, float raw_pressure)
 	temperature1 = getTempFromAlt(altitude1);
 
 	//increase in temperature
-	temp_increase = (raw_temperature - temperature1)/raw_temperature;
+	temp_increase = (raw_temperature - temperature1)/T0; //barometric formula with temperature
+	//temp_increase = (raw_temperature - temperature1)/raw_temperature; //barometric formula with temperature 2
+	//temp_increase = (raw_temperature - temperature1)/temperature1; //barometric formula with temperature 3
 
 	//decrease in pressure
-	pressure2 = raw_pressure*(1 - temp_increase);
+	pressure2 = raw_pressure*(1 + temp_increase*TEMPERATURE_CORRECTION_FACTOR);
 
 	return getAltFromPres(pressure2);
 }
@@ -86,7 +105,8 @@ int main(void)
 	float altitude = 0;
 
 	altitude= altitudeComputation(285, 900);
-	printf("%f\n", T0);
+	altitude= altitudeComputation(284, 850);
+	printf("%f\n", altitude);
 	#endif
 
 	return 0;
