@@ -122,12 +122,12 @@ uint8_t UnbiasedSensor<T>::removeOutsiders(float** data) {
 }
 
 template<class T>
-void UnbiasedSensor<T>::sorting_network(float** data, uint_8* sorting_array) { //TODO: can use sorting network? fixed amount of sensors?
-    if(*data[0] < *data[2])		swap(sorting_array[0],sorting_array[2]);
-    if(*data[1] < *data[3]) 	swap(sorting_array[1],sorting_array[3]);
-    if(*data[0] < *data[1])		swap(sorting_array[0],sorting_array[1]);
-    if(*data[2] < *data[3]) 	swap(sorting_array[2],sorting_array[3]);
-    if(*data[1] < *data[2])		swap(sorting_array[1],sorting_array[2]);
+void UnbiasedSensor<T>::sorting_network(float** data, uint8_t* sorting_array) { //TODO: can use sorting network? fixed amount of sensors?
+    if(*data[sorting_array[0]] > *data[sorting_array[2]])		swap(sorting_array[0],sorting_array[2]);
+    if(*data[sorting_array[1]] > *data[sorting_array[3]]) 		swap(sorting_array[1],sorting_array[3]);
+    if(*data[sorting_array[0]] > *data[sorting_array[1]])		swap(sorting_array[0],sorting_array[1]);
+    if(*data[sorting_array[2]] > *data[sorting_array[3]]) 		swap(sorting_array[2],sorting_array[3]);
+    if(*data[sorting_array[1]] > *data[sorting_array[2]])		swap(sorting_array[1],sorting_array[2]);
 }
 
 template<class T>

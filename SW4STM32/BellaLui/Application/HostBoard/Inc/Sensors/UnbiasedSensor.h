@@ -36,7 +36,7 @@ private:
 	Sensor<T>** sensors;
 	T* measurements;
 	uint16_t excludedCount;
-	void sorting_network(float** data, uint_8* sorting_array);
+	void sorting_network(float** data, uint8_t* sorting_array);
 	float standard_deviation(float** data);
 
 };
