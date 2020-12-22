@@ -6,7 +6,7 @@
  */
 
 #include "misc/state_machine.h"
-
+#include "misc/state_machine_helpers.h"
 #include "can_transmission.h"
 #include "misc/rocket_constants.h"
 #include "debug/monitor.h"
@@ -126,12 +126,8 @@ void TK_state_machine(void const *argument) {
 		}
 
 		case STATE_LIFTOFF: {
-			flight_status = 10;
-			uint32_t currentTime = HAL_GetTick();
-			// determine motor burn-out based on lift-off detection
-			if ((currentTime - time_tmp) > ROCKET_CST_MOTOR_BURNTIME) {
-				current_state = STATE_COAST; // switch to coast state
-			}
+			flight_status = 10; // TODO: flight_status numbers should be defined as consts
+			current_state = state_machine_helpers::handleLiftoffState(HAL_GetTick(), time_tmp) ? STATE_COAST : STATE_LIFTOFF;
 			break;
 		}
 
