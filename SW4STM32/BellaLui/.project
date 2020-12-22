@@ -27,9 +27,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>Libraries/tim.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/tim.c</locationURI>
+			<name>Test</name>
+			<type>2</type>
+			<locationURI>$%7BPARENT-2-PROJECT_LOC%7D/Test</locationURI>
 		</link>
 		<link>
 			<name>Application/SW4STM32/startup_stm32f446xx.s</name>
