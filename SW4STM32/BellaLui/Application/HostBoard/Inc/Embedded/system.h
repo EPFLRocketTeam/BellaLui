@@ -11,6 +11,7 @@
 
 #ifdef TESTING
 #define pvPortMalloc malloc
+#define vPortFree free
 #else
 #include <cmsis_os.h>
 #endif
