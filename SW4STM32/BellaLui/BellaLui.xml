@@ -13,6 +13,7 @@
   <board id="bellalui">
     <name>BellaLui</name>
     <dbgIF>SWD</dbgIF>
+    <dbgIF>JTAG</dbgIF>
     <dbgDEV>ST-Link</dbgDEV>
     <mcuId>stm32f446retx</mcuId>
   </board>
