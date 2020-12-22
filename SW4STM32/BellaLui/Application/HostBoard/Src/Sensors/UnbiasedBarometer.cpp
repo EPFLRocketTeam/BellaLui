@@ -7,6 +7,9 @@
 
 #include "Sensors/UnbiasedBarometer.h"
 
+#include "Embedded/system.h"
+
+
 #define NUM_BAROMETER_OUTPUTS 2
 
 

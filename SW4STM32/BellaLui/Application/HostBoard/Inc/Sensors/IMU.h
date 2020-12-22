@@ -12,18 +12,9 @@
 #include <Sensors/BNO055/bno055.h>
 #include <Sensors/I2CDriver.h>
 #include <Sensors/Sensor.h>
+#include <Sensors/DataStructures.h>
 
 
-struct Vector {
-	float x;
-	float y;
-	float z;
-};
-
-struct IMUData {
-	Vector accel;
-	Vector gyro;
-};
 
 class IMU : public Sensor<IMUData> {
 public:

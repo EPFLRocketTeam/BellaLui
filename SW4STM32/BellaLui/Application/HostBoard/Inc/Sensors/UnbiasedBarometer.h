@@ -9,12 +9,14 @@
 #define APPLICATION_HOSTBOARD_INC_SENSORS_UNBIASEDBAROMETER_H_
 
 #include "Sensors/UnbiasedSensor.h"
-#include "Sensors/Barometer.h"
+
 
 
 class UnbiasedBarometer : public UnbiasedSensor<BarometerData> {
 public:
 	UnbiasedBarometer(const char* identifier, std::initializer_list<Sensor<BarometerData>*> sensors);
+
+protected:
 	uint16_t filterData(BarometerData* measurements, uint8_t count, BarometerData* output);
 };
 

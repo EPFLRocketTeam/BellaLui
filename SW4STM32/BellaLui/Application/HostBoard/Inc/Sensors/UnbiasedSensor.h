@@ -13,6 +13,8 @@
 #include <stdint.h>
 #include <initializer_list>
 
+
+
 template<class T>
 class UnbiasedSensor : public Sensor<T> {
 public:
@@ -24,7 +26,7 @@ public:
 	uint16_t getExcludedCount() { return excludedCount; }
 
 protected:
-	uint16_t filterData(T* measurements, uint8_t count, T* output);
+	virtual uint16_t filterData(T* measurements, uint8_t count, T* output) = 0;
 	uint8_t removeOutsiders(float** data);
 	float mean(float** data);
 
@@ -34,6 +36,9 @@ private:
 	T* measurements;
 	uint16_t excludedCount;
 };
+
+
+
 
 
 #endif /* APPLICATION_HOSTBOARD_INC_SENSORS_UNBIASEDSENSOR_H_ */

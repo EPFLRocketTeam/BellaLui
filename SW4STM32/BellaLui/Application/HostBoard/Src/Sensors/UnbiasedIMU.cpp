@@ -7,10 +7,10 @@
 
 #include "Sensors/UnbiasedIMU.h"
 
-#include <cmsis_os.h>
+#include "Embedded/system.h"
+
 
 #define NUM_IMU_OUTPUTS 6
-
 
 UnbiasedIMU::UnbiasedIMU(const char* identifier, std::initializer_list<Sensor<IMUData>*> sensors) : UnbiasedSensor(identifier, sensors) {
 

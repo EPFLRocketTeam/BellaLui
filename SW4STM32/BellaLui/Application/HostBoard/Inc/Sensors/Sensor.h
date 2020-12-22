@@ -10,6 +10,9 @@
 
 #include <stdbool.h>
 
+#include <Sensors/DataStructures.h>
+
+
 template<class T>
 class Sensor {
 public:

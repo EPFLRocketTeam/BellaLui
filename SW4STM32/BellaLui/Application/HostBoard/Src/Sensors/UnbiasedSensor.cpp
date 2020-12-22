@@ -5,9 +5,9 @@
  *      Author: Arion
  */
 
+#include <Embedded/system.h>
 #include <Sensors/UnbiasedSensor.h>
 
-#include <cmsis_os.h>
 
 template<class T>
 UnbiasedSensor<T>::UnbiasedSensor(const char* identifier, std::initializer_list<Sensor<T>*> sensors) : Sensor<T>(identifier) {
@@ -65,7 +65,7 @@ bool UnbiasedSensor<T>::fetch(T* data) {
 
 template<class T>
 uint8_t UnbiasedSensor<T>::removeOutsiders(float** data) {
-	// TODO
+	return 0;
 }
 
 template<class T>

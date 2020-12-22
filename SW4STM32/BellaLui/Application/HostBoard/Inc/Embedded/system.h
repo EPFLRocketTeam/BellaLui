@@ -10,6 +10,7 @@
 
 
 #ifdef TESTING
+#include <stdlib.h>
 #define pvPortMalloc malloc
 #define vPortFree free
 #else
