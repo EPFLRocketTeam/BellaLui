@@ -5,6 +5,8 @@
  *      Author: Arion
  */
 
+#include <gtest/gtest.h>
+
 #include "MockIMU.h"
 #include "MockBarometer.h"
 
@@ -12,7 +14,7 @@
 #include "Sensors/UnbiasedBarometer.h"
 
 
-void test() {
+TEST(SensorTest, MainSensorTest) {
 	MockIMU imu1("IMU 1");
 	MockIMU imu2("IMU 2");
 	MockIMU imu3("IMU 3");
@@ -26,25 +28,25 @@ void test() {
 	UnbiasedIMU imu("Unbiased IMU", {&imu1, &imu2, &imu3, &imu4});
 	UnbiasedBarometer barometer("Unbiased Barometer", {&barometer1, &barometer2, &barometer3, &barometer4});
 
+
 	imu.load();
 	barometer.load();
 
 	IMUData imuData;
 	BarometerData barometerData;
 
-	while(true) {
+	if(imu.fetch(&imuData)) {
 
-		if(imu.fetch(&imuData)) {
-
-		} else {
-			imu.reset();
-		}
-
-
-		if(!barometer.fetch(&barometerData)) {
-
-		} else {
-			barometer.reset();
-		}
+	} else {
+		imu.reset();
 	}
+
+
+	/*if(!barometer.fetch(&barometerData)) {
+
+	} else {
+		barometer.reset();
+	}*/
+
+	ASSERT_EQ(1, 1);
 }
