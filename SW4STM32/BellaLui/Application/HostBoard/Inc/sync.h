@@ -9,7 +9,10 @@
 #define APPLICATION_HOSTBOARD_INC_SYNC_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
-void sync_logic(uint8_t identifier);
+void sync_logic(uint16_t period);
+bool do_privileged_io();
+bool end_privileged_io();
 
 #endif /* APPLICATION_HOSTBOARD_INC_SYNC_H_ */

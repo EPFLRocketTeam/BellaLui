@@ -5,13 +5,13 @@
  *      Author: Clément Nussbaumer
  */
 
-#include <misc/Common.h>
 #include <misc/datastructs.h>
 #include <stdbool.h>
 #include <cmsis_os.h>
 #include <fatfs.h>
 #include <string.h>
 #include <debug/led.h>
+#include <misc/common.h>
 #include <misc/datastructs.h>
 
 #include <rocket_fs.h>

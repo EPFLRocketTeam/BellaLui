@@ -55,7 +55,7 @@ const double h_tab[15] = { 0, 0.00376, 0.00745, 0.01104, 0.0145, 0.01781,
 const double CD0 = 1.17;
 
 
-const double target_altitude = 1300; //altitude that we are targeting
+const double target_altitude = 5000; //altitude that we are targeting
 const double target_speed = 1; // speed we are targeting at that altitude
 const double upper_bound = -1.3090E-04; // DR E (0.5*ro*S*Cmax)/M (AB completely closed)// upper bound for the research algorithm function of CD/air density -
 const double lower_bound = -2.1194E-04; // DR E (0.5*ro*S*Cmax)/M (AB completely open) // lower bound for the research algorithm
@@ -160,6 +160,7 @@ float bellalui_angle_tab(float altitude, float speed) {
 
 		found_solution = false;
 		solution = 10000;
+
 
 		double theta = -190; //keep old angle (en mÈmoire)
 		// break;

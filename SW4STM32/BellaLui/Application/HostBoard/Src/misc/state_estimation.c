@@ -5,11 +5,11 @@
  *      Author: Cl�ment Nussbaumer
  */
 
+#include <can_transmission.h>
 #include <cmsis_os.h>
-#include <misc/Common.h>
+#include <misc/common.h>
 #include <misc/rocket_constants.h>
 #include <misc/state_machine.h>
-#include "../../../HostBoard/Inc/CAN_communication.h"
 
 volatile float32_t air_speed_state_estimate, altitude_estimate;
 #define ALTITUDE_BUFFER_SIZE 8
@@ -22,7 +22,7 @@ void TK_state_estimation ()
 
   uint32_t lastBaroSeqNumber = 0;
 
-  while (LIFTOFF_TIME == 0)
+  while (liftoff_time == 0)
     {
       if (lastBaroSeqNumber < currentBaroSeqNumber)
         {

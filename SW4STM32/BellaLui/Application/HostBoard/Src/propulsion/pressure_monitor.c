@@ -5,14 +5,14 @@
  *      Author: Robin
  */
 
+#include <can_reception.h>
+#include <can_transmission.h>
 #include "stm32f4xx_hal.h"
 #include <cmsis_os.h>
 
 #include <propulsion/pressure_monitor.h>
-#include <misc/Common.h>
-#include <CAN_communication.h>
-#include <CAN_handling.h>
 #include <debug/led.h>
+#include <misc/common.h>
 
 #define PRESSURE_MONITOR_PERIOD_MS (50)
 
@@ -32,7 +32,7 @@ void TK_pressure_monitor (void const * argument)
 		  data = *((uint32_t*)(&pressure_data));
 		  timestamp = HAL_GetTick();
 		  // send data over can bus
-		  can_setFrame(data, DATA_ID_MOTOR_PRESSURE,timestamp);
+		  // can_setFrame(data, DATA_ID_MOTOR_PRESSURE,timestamp);
 		  osDelay(PRESSURE_MONITOR_PERIOD_MS);
 
 	  }

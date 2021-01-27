@@ -17,6 +17,7 @@
 
 
 void xbee_freertos_init(UART_HandleTypeDef *huart);
+void xbee_change_uart(UART_HandleTypeDef *huart);
 void initXbee ();
 void TK_xBeeTransmit (const void* args);
 
@@ -32,17 +33,14 @@ uint8_t escapedCharacter (uint8_t byte);
 
 void TK_xBeeReceive (const void* args);
 
-void xBee_RxCpltCallback ();
+void xBee_rxCpltCallback ();
 
 void processReceivedPacket ();
 
-inline void processReceivedByte (uint8_t rxByte);
+void processReceivedByte(uint8_t rxByte);
 
 void resetStateMachine ();
 
-void set_packet_size(uint8_t datagram_id);
-
-UART_HandleTypeDef* xbee_gethuart();
-
+void setPacketSize(uint8_t datagram_id);
 
 #endif /* TELEMETRY_XBEE_XBEE_H_ */

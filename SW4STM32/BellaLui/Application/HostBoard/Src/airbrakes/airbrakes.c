@@ -5,14 +5,17 @@
  *      Author: Alexandre
  */
 
-#include "stm32f4xx_hal.h"
-#include <cmsis_os.h>
+#include "airbrakes/airbrake.h"
 
-#include <airbrakes/airbrake.h>
-#include <misc/Common.h>
-#include <CAN_communication.h>
-#include <CAN_handling.h>
-#include <debug/led.h>
+#include "can_reception.h"
+#include "can_transmission.h"
+#include "debug/led.h"
+
+
+#include <stm32f4xx_hal.h>
+#include <cmsis_os.h>
+#include <misc/common.h>
+#include <stdbool.h>
 
 #define AB_PERIOD_MS (50)
 
@@ -22,48 +25,34 @@
 //extern volatile uint32_t flight_status;
 int led_AB_id;
 
+void TK_ab_controller(void const *argument) {
+	osDelay(2000);
 
+	led_AB_id = led_register_TK();
 
-void TK_ab_controller (void const * argument)
-{
-  uint32_t start_time = 0;
-  uint32_t now = 0;
-  currentState = STATE_CALIBRATION;
+	while (!aerobrakes_control_init()) {
+		led_set_TK_rgb(led_AB_id, 500, 50, 0);
+		osDelay(1000);
+	}
 
+	led_set_TK_rgb(led_AB_id, 20, 50, 0);
 
-  osDelay (2000);
+	aerobrake_helloworld();
 
-  led_AB_id = led_register_TK();
+	osDelay(1000);
 
-  while (!aerobrakes_control_init()) {
-	  led_set_TK_rgb(led_AB_id, 500,50,0);
-	  osDelay (1000);
-  }
+	while (true) {
+		if (current_state < STATE_COAST) {
+			full_close();
+			led_set_TK_rgb(led_AB_id, 0, 10, 0);
+		} else if (current_state == STATE_COAST) {
+			command_aerobrake_controller(can_getAltitude(), can_getSpeed());
+			led_set_TK_rgb(led_AB_id, 50, 50, 50);
+		} else if (current_state >= STATE_PRIMARY) {
+			full_close();
+			led_set_TK_rgb(led_AB_id, 50, 50, 0);
+		}
 
-  led_set_TK_rgb(led_AB_id, 20,50,0);
-
-  aerobrake_helloworld();
-
-  osDelay (1000);
-
-  for (;;)
-    {
-	  if (currentState < STATE_COAST) {
-		  full_close();
-		  led_set_TK_rgb(led_AB_id, 0, 10,0);
-
-	  }
-	  else if (currentState == STATE_COAST) // actual control
-      {
-          command_aerobrake_controller (can_getAltitude(), can_getSpeed());
-		  led_set_TK_rgb(led_AB_id, 50,50,50);
-      }
-      else if (currentState >= STATE_PRIMARY)
-      {
-          full_close();
-		  led_set_TK_rgb(led_AB_id, 50,50,0);
-      }
-
-	  osDelay(AB_PERIOD_MS);
-    }
+		osDelay(AB_PERIOD_MS);
+	}
 }

@@ -8,8 +8,8 @@
  * MIT License
  */
 
-#ifndef TINY_EKF_H_
-#define TINY_EFK_H_
+#ifndef TINY_EKF_CONFIG__H_
+#define TINY_EKF_CONFIG__H_
 
 /* states */
 #define Nsta 9

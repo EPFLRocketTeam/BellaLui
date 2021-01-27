@@ -149,6 +149,17 @@ BNO055_RETURN_FUNCTION_TYPE bno055_init (struct bno055_t *bno055)
 
   return com_rslt;
 }
+
+/*
+ * CUSTOM FUNCTION
+ * WARNING: THIS FUNCTION FORCES THE DRIVER TO SWITCH DEVICES BETWEEN MEASUREMENTS
+ */
+BNO055_RETURN_FUNCTION_TYPE bno055_force_device(struct bno055_t *bno055) {
+	p_bno055 = bno055;
+	return BNO055_SUCCESS;
+}
+
+
 /*!
  *	@brief
  *	This API gives data to the given register and
@@ -2966,6 +2977,7 @@ BNO055_RETURN_FUNCTION_TYPE bno055_convert_float_accel_xyz_mg (struct bno055_acc
       com_rslt += bno055_read_accel_xyz (&reg_accel_xyz);
       if (com_rslt == BNO055_SUCCESS)
         {
+
           /*Convert the accel raw xyz to millig */
           accel_xyz->x = (float) (reg_accel_xyz.x / BNO055_ACCEL_DIV_MG);
           accel_xyz->y = (float) (reg_accel_xyz.y / BNO055_ACCEL_DIV_MG);

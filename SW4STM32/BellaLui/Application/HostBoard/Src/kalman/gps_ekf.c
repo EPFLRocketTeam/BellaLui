@@ -18,18 +18,21 @@
  * MIT License
  */
 
-#include <kalman/tiny_ekf.h>
-#include <kalman/tinyekf_config.h>
-#include <string.h>
-#include <stdlib.h>
+#include "kalman/tiny_ekf.h"
+#include "kalman/tinyekf_config.h"
+
+#include "can_transmission.h"
+#include "debug/profiler.h"
+#include "debug/console.h"
+#include "debug/monitor.h"
+#include "misc/common.h"
+
+
 #include <stdbool.h>
 #include <strings.h>
 #include <math.h>
 
-#include "cmsis_os.h"
-
-#include "../../../HostBoard/Inc/CAN_communication.h"
-#include "../../../HostBoard/Inc/misc/datastructs.h"
+#include <cmsis_os.h>
 
 
 #define EKF_PERIOD_MS (100) // [ms] step period
@@ -67,7 +70,7 @@ bool kalman_handleGPSData(GPS_data gps) {
 	return true;
 }
 
-bool kalman_handleIMUData(IMU_data imu) {
+bool kalmanProcessIMU(IMU_data imu) {
 	IMUb[0] = imu.acceleration.x * 9.81;
 	IMUb[1] = imu.acceleration.y * 9.81;
 	IMUb[2] = imu.acceleration.z * 9.81;
@@ -75,10 +78,11 @@ bool kalman_handleIMUData(IMU_data imu) {
 	IMUb[4] = 0*imu.eulerAngles.y;
 	IMUb[5] = 0*imu.eulerAngles.z;
 	IMU_avail = 1;
+
 	return true;
 }
 
-bool kalman_handleBaroData(BARO_data data) {
+bool kalmanProcessBaro(BARO_data data) {
 	zdata[3] = data.altitude - data.base_altitude;
 	return true;
 }
@@ -103,6 +107,7 @@ static void init(ekf_t * ekf) {
 			9.8116e-05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0002, 1.4035e-20,
 			8.6736e-21, 0, 0, 0, 0, 0, 0, 2.4938e-21, 0.0002, 0, 0, 0, 0, 0, 0,
 			0, 9.5501e-21, -1.2369e-20, 0.0002 };
+
 	int i, j;
 	for (i = 0; i < 9; i++) {
 		ekf->x[i] = 0;
@@ -151,11 +156,16 @@ void TK_kalman() {
 		IMUb[j] = 0;
 	}
 
+	int32_t altimax = 0;
+	uint32_t altimax_time = 0;
+
 	start_time = HAL_GetTick();
 
 
 	while (1) {
 		rocket_state = can_getState();
+
+		start_profiler(1);
 
 		if (IMU_avail == 1) {
 			IMU_avail = 0;
@@ -238,7 +248,31 @@ void TK_kalman() {
 			}
 
 			ekf_step(&ekf, zdata);
+
 			iter++;
+
+			int32_t altitude = (int32_t) (1000 * ekf.x[2]);
+			int32_t velocity = (int32_t) (1000 * ekf.x[5]);
+
+			if(enter_monitor(KALMAN_MONITOR)) {
+				rocket_log(" Altitude: %d [mm]\x1b[K\n", altitude);
+				rocket_log(" Vertical velocity: %d [mm/s]\x1b[K\n", velocity);
+				exit_monitor(KALMAN_MONITOR);
+			}
+
+			if(altitude > altimax && liftoff_time != 0) {
+				if(altimax_time == 0) {
+					rocket_log("Initial altitude is %dmm at %dms\n", altitude, HAL_GetTick());
+				}
+
+				altimax = altitude;
+				altimax_time = HAL_GetTick();
+			}
+
+			if(HAL_GetTick() - altimax_time > 5000 && altimax_time != 0) {
+				rocket_log("Maximal altitude of %dmm reached after %dms\n", altimax, altimax_time - liftoff_time);
+				altimax_time = 0;
+			}
 
 
 			//send estimate to the CAN
@@ -258,6 +292,8 @@ void TK_kalman() {
 			// no IMU data available :sadface:
 			kalman_state = KALMAN_NO_IMU;
 		}
+
+		end_profiler();
 
 		// ensure periodicity
 		now = HAL_GetTick();

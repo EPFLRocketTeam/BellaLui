@@ -5,14 +5,12 @@
  *      Author: Cl�ment Nussbaumer
  */
 
-#include <misc/datastructs.h>
-#include <sys/_stdint.h>
-
 #ifndef MISC_DATAGRAM_BUILDER_H_
 #define MISC_DATAGRAM_BUILDER_H_
 
 #include <stdint.h>
 #include <stm32f4xx_hal.h>
+#include "../../../HostBoard/Inc/Misc/datastructs.h"
 
 #if defined __GNUC__
 #define bswap16(x) __builtin_bswap16(x)
@@ -35,16 +33,13 @@
 class DatagramBuilder
 {
 public:
-  DatagramBuilder (uint16_t datagramSize, uint8_t datagramType, uint32_t datagramSequenceNumber);
-  void write8 (uint8_t);
+  DatagramBuilder (uint16_t datagramSize, uint8_t datagramType, uint32_t timestamp, uint32_t datagramSequenceNumber);
 
-  template<typename T>
-  void write16 (T val);
+  template<typename T> void write8 (T val);
+  template<typename T> void write16 (T val);
+  template<typename T> void write32 (T val);
 
   Telemetry_Message finalizeDatagram ();
-
-  template<typename T>
-    void write32 (T val);
 
 private:
   void* datagramPtr;
@@ -54,9 +49,16 @@ private:
 
 };
 
+template<typename T> inline void DatagramBuilder::write8 (T val)
+{
+	if (currentIdx + 1 <= datagramSize)
+    {
+		*(uint8_t*) ((uint8_t*) datagramPtr + currentIdx++) = val;
+    }
+}
 
-template<typename T>
-  inline void DatagramBuilder::write16 (T val)
+
+template<typename T> inline void DatagramBuilder::write16 (T val)
   {
     if (currentIdx + 2 <= datagramSize)
       {
@@ -65,8 +67,7 @@ template<typename T>
       }
   }
 
-template<typename T>
-  inline void DatagramBuilder::write32 (T val)
+template<typename T> inline void DatagramBuilder::write32 (T val)
   {
     if (currentIdx + 4 <= datagramSize)
       {

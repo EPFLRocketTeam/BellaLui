@@ -84,24 +84,6 @@ typedef struct
 
 typedef struct
 {
-	uint8_t fill_valve_state;
-	uint8_t purge_valve_state;
-	uint8_t main_ignition_state;
-	uint8_t sec_ignition_state;
-	uint8_t hose_disconnect_state;
-	uint32_t code;
-	float battery_level;
-	float hose_pressure;
-	float hose_temperature;
-	float tank_temperature;
-	float rocket_weight;
-	float ignition1_current;
-	float ignition2_current;
-	float wind_speed;
-
-}GSE_state;
-typedef struct
-{
   void* ptr;
   uint16_t size;
 } String_Message;

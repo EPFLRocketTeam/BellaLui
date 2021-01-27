@@ -5,40 +5,37 @@
  *      Author: Arion
  */
 
-#include <storage/flash_runtime.h>
+#include "storage/flash_runtime.h"
 
-#include <flash.h>
+#include "flash.h"
+#include "debug/console.h"
+
 #include <stdbool.h>
-
-#include <debug/console.h>
-
 
 
 static FileSystem fs = { 0 };
 static volatile bool ready = false;
 
-
-
-
-
 void __debug(const char *message) {
-	rocket_log("%s\n", message);
+	rocket_boot_log("%s\n", message);
 }
 
 void init_filesystem() {
-   rocket_fs_debug(&fs, &__debug);
-   rocket_fs_device(&fs, "NOR Flash", 4096 * 4096, 4096);
-   rocket_fs_bind(&fs, &flash_read, &flash_write, &flash_erase_subsector);
+	flash_init();
 
-   rocket_fs_mount(&fs);
+	rocket_fs_debug(&fs, &__debug);
+	rocket_fs_device(&fs, "NOR Flash", 4096 * 4096, 4096);
+	rocket_fs_bind(&fs, &flash_read, &flash_write, &flash_erase_subsector);
 
-   ready = true;
+	rocket_fs_mount(&fs);
+
+	ready = true;
 }
 
 FileSystem* get_flash_fs() {
-   if(!ready) {
-      return 0;
-   }
+	if(!ready) {
+		return 0;
+	}
 
-   return &fs;
+	return &fs;
 }

@@ -6,10 +6,11 @@
  * MIT License
  */
 
-#include <misc/datastructs.h>
-
 #ifndef TINY_EKF_H_
-#define TINY_EFK_H_
+#define TINY_EKF_H_
+
+#include "misc/datastructs.h"
+
 #include <stdbool.h>
 
 
@@ -59,9 +60,9 @@ enum Kalman_state {
 
 void mat_exp(float F[9][9], float PHI[9][9], int n);
 
-void updateP(float Pmatrix[9][9], float F[9][9], float Q[9][9]);
+void updateP(float Pmatrix[9][9], float F[9][9], float Q[9][9], int n);
 
-void ekf_init(void * ekf, int n, int m);
+void ekf_init(void* ekf, int n, int m);
 
 void TK_kalman();
 
@@ -76,6 +77,6 @@ bool kalman_handleBaroData(BARO_data data);
   * @param z array of measurement (observation) values
   * @return 0 on success, 1 on failure caused by non-positive-definite matrix.
   */
-int ekf_step(void * ekf, float * z);
+int ekf_step(void* ekf, float* z);
 
 #endif

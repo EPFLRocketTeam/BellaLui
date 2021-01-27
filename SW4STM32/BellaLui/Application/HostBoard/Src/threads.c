@@ -9,7 +9,7 @@
 #include <usart.h>
 #include <threads.h>
 
-#include <CAN_handling.h>
+#include <can_reception.h>
 #include <sync.h>
 #include <debug/led.h>
 #include <storage/flash_logging.h>
@@ -123,13 +123,6 @@ void create_threads() {
 	  osThreadDef(pressure_monitor, TK_pressure_monitor, osPriorityNormal, 0, 256);
 	  presureMonitorHandle = osThreadCreate(osThread(pressure_monitor), NULL);
 	  rocket_log("Pressure monitoring thread started.\n");
-	#endif
-
-	#ifdef VALVE
-	  valve_init();
-	  osThreadDef(GSE_valves, TK_GSE_valve_control, osPriorityNormal, 0, 128);
-	  GSEValveHandle = osThreadCreate(osThread(GSE_valves), NULL);
-	  rocket_log("Valve control thread started. \n");
 	#endif
 
 	#ifdef VALVE
