@@ -9,15 +9,15 @@
 
 #include "telemetry/simpleCRC.h"
 #include "telemetry/telemetry_protocol.h"
-#include "debug/console.h"
 
-#include <stm32f4xx_hal.h>
-#include <cmsis_os.h>
+#include "Embedded/system.h"
 
 #define MALLOC_SIZE 256 // same malloc size for all datagrams, otherwise it fragments the memory
 
 DatagramBuilder::DatagramBuilder(uint16_t datagramPayloadSize, uint8_t datagramType, uint32_t timestamp, uint32_t seqNumber) :
 		datagramSize(datagramPayloadSize + TOTAL_DATAGRAM_OVERHEAD) {
+	// TODO: check datagram size < MALLOC_SIZE
+	// TODO: even better => don't need size in constructor...
 	datagramPtr = pvPortMalloc(MALLOC_SIZE);
 	if(datagramPtr != NULL) {
 		currentIdx = 0;
@@ -53,6 +53,7 @@ DatagramBuilder::DatagramBuilder(uint16_t datagramPayloadSize, uint8_t datagramT
 }
 
 Telemetry_Message DatagramBuilder::finalizeDatagram() {
+	// TODO: HEADER_SIZE is the wrong place to start...
 	for(int16_t i = (HEADER_SIZE /*+ PREAMBLE_SIZE + CONTROL_FLAG_SIZE*/); i < currentIdx; i++) {
 		//Calculate checksum for datagram and payload fields
 		datagramCrc = CalculateRemainderFromTable(*((uint8_t*) datagramPtr + i), datagramCrc);

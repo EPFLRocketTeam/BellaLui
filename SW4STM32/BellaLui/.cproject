@@ -502,6 +502,7 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry excluding="BME280/|Barometer.cpp|IMU.cpp|StandardI2CDriver.cpp|FastI2CDriver.cpp|BNO055/|SensorAcquisition.cpp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Application/HostBoard/Src/Sensors"/>
+						<entry excluding="telemetry_handling.cpp|xbee.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Application/HostBoard/Src/telemetry"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

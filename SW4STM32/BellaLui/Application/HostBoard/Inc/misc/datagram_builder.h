@@ -9,7 +9,6 @@
 #define MISC_DATAGRAM_BUILDER_H_
 
 #include <stdint.h>
-#include <stm32f4xx_hal.h>
 #include "../../../HostBoard/Inc/misc/datastructs.h"
 
 #if defined __GNUC__
@@ -30,6 +29,7 @@
                                (((uint32_t) (x) & 0x000000ff) << 24)))
 #endif
 
+// TODO: move file to telemetry folder
 class DatagramBuilder
 {
 public:
