@@ -10,6 +10,10 @@
 
 
 
+struct AltitudeData {
+	float altitude;
+};
+
 
 struct BarometerData {
 	float pressure;

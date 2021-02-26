@@ -7,11 +7,34 @@
 
 #include <gtest/gtest.h>
 
+
+#include "CSV.h"
+
 #include "MockIMU.h"
 #include "MockBarometer.h"
+#include "AltitudeSimulator.h"
 
 #include "Sensors/UnbiasedIMU.h"
 #include "Sensors/UnbiasedBarometer.h"
+#include "Sensors/AltitudeEstimator.h"
+
+
+namespace testing
+{
+ namespace internal
+ {
+  enum GTestColor {
+      COLOR_DEFAULT,
+      COLOR_RED,
+      COLOR_GREEN,
+      COLOR_YELLOW
+  };
+
+  extern void ColoredPrintf(GTestColor color, const char* fmt, ...);
+ }
+}
+#define PRINTF(...)  do { testing::internal::ColoredPrintf(testing::internal::COLOR_GREEN, "[          ] "); testing::internal::ColoredPrintf(testing::internal::COLOR_YELLOW, __VA_ARGS__); } while(0)
+
 
 
 TEST(SensorTest, MainSensorTest) {
@@ -27,26 +50,51 @@ TEST(SensorTest, MainSensorTest) {
 
 	UnbiasedIMU imu("Unbiased IMU", {&imu1, &imu2, &imu3, &imu4});
 	UnbiasedBarometer barometer("Unbiased Barometer", {&barometer1, &barometer2, &barometer3, &barometer4});
-
+	AltitudeEstimator altitude("Altitude Estimator", &barometer);
 
 	imu.load();
-	barometer.load();
+	altitude.load();
 
 	IMUData imuData;
-	BarometerData barometerData;
+	AltitudeData altitudeData;
 
-	if(imu.fetch(&imuData)) {
+	/*if(imu.fetch(&imuData)) {
 
 	} else {
 		imu.reset();
 	}
 
 
-	/*if(!barometer.fetch(&barometerData)) {
+	if(altitude.fetch(&altitudeData)) {
 
 	} else {
-		barometer.reset();
+		altitude.reset();
 	}*/
 
+
+
 	ASSERT_EQ(1, 1);
+}
+
+
+TEST(SensorTest, AltitudeEstimatorTest) {
+	MockBarometer barometer("Barometer");
+
+	//std::vector<std::vector<float>> flight_data = read_csv("Flight.csv");
+
+	AltitudeEstimator altitude("Altitude Estimator", &barometer);
+	AltitudeSimulator simulator("Altitude Simulator");
+
+	altitude.load();
+	simulator.load();
+
+	AltitudeData altitudeData;
+	AltitudeData simulatedData;
+
+	PRINTF("Hello world\n");
+
+	while(altitude.fetch(&altitudeData)) {
+		simulator.fetch(&simulatedData);
+		ASSERT_NEAR(altitudeData.altitude, simulatedData.altitude, 2000.0f);
+	}
 }
