@@ -9,7 +9,6 @@
 #define UNBIASEDIMU_H_
 
 #include "Sensors/UnbiasedSensor.h"
-#include "Sensors/IMU.h"
 
 
 class UnbiasedIMU : public UnbiasedSensor<IMUData> {
