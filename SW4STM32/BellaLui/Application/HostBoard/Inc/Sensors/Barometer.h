@@ -13,18 +13,12 @@
 #include <Sensors/I2CDriver.h>
 #include <Sensors/Sensor.h>
 
-
-struct BarometerData {
-	float pressure;
-	float temperature;
-};
-
 class Barometer : public Sensor<BarometerData> {
 public:
 	Barometer(const char* identifier, I2CDriver* driver, uint8_t address);
 
 	bool load();
-	bool reset();
+	bool unload();
 	bool fetch(BarometerData* data);
 
 private:

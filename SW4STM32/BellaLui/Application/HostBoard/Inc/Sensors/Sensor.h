@@ -10,14 +10,18 @@
 
 #include <stdbool.h>
 
+#include <Sensors/DataStructures.h>
+
+
 template<class T>
 class Sensor {
 public:
 	Sensor(const char* identifier) : identifier(identifier) {}
-	virtual ~Sensor() {}
+	virtual ~Sensor() {};
 	virtual bool load() = 0;
-	virtual bool reset() = 0;
+	virtual bool unload() = 0;
 	virtual bool fetch(T* data) = 0;
+	bool reset() { return unload() && load(); }
 	const char* name() { return identifier; }
 private:
 	const char* identifier;
