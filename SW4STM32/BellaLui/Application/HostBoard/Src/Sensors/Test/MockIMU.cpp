@@ -20,8 +20,8 @@ bool MockIMU::load() {
 	return true;
 }
 
-bool MockIMU::reset() {
-	return load();
+bool MockIMU::unload() {
+	return true;
 }
 
 bool MockIMU::fetch(IMUData* data) {

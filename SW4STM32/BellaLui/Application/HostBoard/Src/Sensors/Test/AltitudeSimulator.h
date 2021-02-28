@@ -14,11 +14,16 @@
 
 class AltitudeSimulator : public Sensor<AltitudeData> {
 public:
-	AltitudeSimulator(const char* identifier);
+	AltitudeSimulator(const char* identifier, uint32_t start, uint32_t end);
+	~AltitudeSimulator() { unload(); }
 
 	bool load();
-	bool reset();
+	bool unload();
 	bool fetch(AltitudeData* data);
+
+private:
+	uint32_t start;
+	uint32_t end;
 };
 
 

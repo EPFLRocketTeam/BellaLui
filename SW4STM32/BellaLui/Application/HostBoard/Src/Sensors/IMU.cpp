@@ -88,9 +88,9 @@ bool IMU::load() {
 	return BNO055_SUCCESS;
 }
 
-bool IMU::reset() {
+bool IMU::unload() {
 	this->driver->reset();
-	return load();
+	return true;
 }
 
 bool IMU::fetch(IMUData* data) {

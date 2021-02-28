@@ -16,7 +16,12 @@
 
 FILE* pflight;
 
-MockBarometer::MockBarometer(const char* identifier) : Sensor(identifier) {
+
+MockBarometer::MockBarometer(const char* identifier) : MockBarometer(identifier, 0, 104) {
+
+}
+
+MockBarometer::MockBarometer(const char* identifier, uint32_t start, uint32_t end) : Sensor(identifier), start(start), end(end) {
 
 }
 
@@ -26,9 +31,9 @@ bool MockBarometer::load() {
 	return true;
 }
 
-bool MockBarometer::reset() {
+bool MockBarometer::unload() {
 	fclose(pflight);
-	return load();
+	return true;
 }
 
 bool MockBarometer::fetch(BarometerData* data) {
@@ -42,9 +47,12 @@ bool MockBarometer::fetch(BarometerData* data) {
 
 	//altitude calculation
 	//read data from simulation
-	fscanf(pflight, "%f,%*f,%f,%f,%*f,%*f,%*f,%*f,%*f,%*f", &time_read, &pressure_read, &temperature_read);
 
-	if(time_read == EOF) {
+	do {
+		fscanf(pflight, "%f,%f,%f", &time_read, &pressure_read, &temperature_read);
+	} while((uint32_t) time_read < start);
+
+	if((uint32_t) time_read >= end) {
 		return false;
 	}
 

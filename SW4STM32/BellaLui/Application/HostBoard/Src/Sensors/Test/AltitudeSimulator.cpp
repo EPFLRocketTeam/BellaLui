@@ -17,7 +17,7 @@
 
 FILE* psimulation;
 
-AltitudeSimulator::AltitudeSimulator(const char* identifier) : Sensor(identifier) {
+AltitudeSimulator::AltitudeSimulator(const char* identifier, uint32_t start, uint32_t end) : Sensor(identifier), start(start), end(end) {
 
 }
 
@@ -27,9 +27,9 @@ bool AltitudeSimulator::load() {
 	return true;
 }
 
-bool AltitudeSimulator::reset() {
+bool AltitudeSimulator::unload() {
 	fclose(psimulation);
-	return load();
+	return true;
 }
 
 bool AltitudeSimulator::fetch(AltitudeData* data) {
@@ -40,12 +40,14 @@ bool AltitudeSimulator::fetch(AltitudeData* data) {
 
 	//altitude calculation
 	//read data from simulation
-	fscanf(psimulation, "%*f,%f", &time_read, &altitude_read);
+	do {
+		fscanf(psimulation, "%f,%*f,%*f,%f,%*f,%*f,%*f,%*f,%*f", &time_read, &altitude_read);
+	} while((uint32_t) time_read < start);
 
-	if(time_read == EOF) {
+
+	if((uint32_t) time_read >= end) {
 		return false;
 	}
-
 
 	data->altitude = altitude_read;
 

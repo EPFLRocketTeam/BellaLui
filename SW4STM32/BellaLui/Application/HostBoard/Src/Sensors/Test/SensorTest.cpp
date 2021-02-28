@@ -19,23 +19,6 @@
 #include "Sensors/AltitudeEstimator.h"
 
 
-namespace testing
-{
- namespace internal
- {
-  enum GTestColor {
-      COLOR_DEFAULT,
-      COLOR_RED,
-      COLOR_GREEN,
-      COLOR_YELLOW
-  };
-
-  extern void ColoredPrintf(GTestColor color, const char* fmt, ...);
- }
-}
-#define PRINTF(...)  do { testing::internal::ColoredPrintf(testing::internal::COLOR_GREEN, "[          ] "); testing::internal::ColoredPrintf(testing::internal::COLOR_YELLOW, __VA_ARGS__); } while(0)
-
-
 
 TEST(SensorTest, MainSensorTest) {
 	MockIMU imu1("IMU 1");
@@ -58,32 +41,23 @@ TEST(SensorTest, MainSensorTest) {
 	IMUData imuData;
 	AltitudeData altitudeData;
 
-	/*if(imu.fetch(&imuData)) {
-
-	} else {
-		imu.reset();
+	if(imu.fetch(&imuData)) {
+		//std::cout << imuData.accel.y << std::endl;
 	}
 
 
-	if(altitude.fetch(&altitudeData)) {
-
-	} else {
-		altitude.reset();
-	}*/
-
-
+	while(altitude.fetch(&altitudeData)) {
+	}
 
 	ASSERT_EQ(1, 1);
 }
 
 
-TEST(SensorTest, AltitudeEstimatorTest) {
-	MockBarometer barometer("Barometer");
-
-	//std::vector<std::vector<float>> flight_data = read_csv("Flight.csv");
+TEST(SensorTest, AltitudeEstimatorFullTest) {
+	MockBarometer barometer("Barometer", 0, 104);
 
 	AltitudeEstimator altitude("Altitude Estimator", &barometer);
-	AltitudeSimulator simulator("Altitude Simulator");
+	AltitudeSimulator simulator("Altitude Simulator", 0, 104);
 
 	altitude.load();
 	simulator.load();
@@ -91,10 +65,44 @@ TEST(SensorTest, AltitudeEstimatorTest) {
 	AltitudeData altitudeData;
 	AltitudeData simulatedData;
 
-	PRINTF("Hello world\n");
+	while(altitude.fetch(&altitudeData)) {
+		simulator.fetch(&simulatedData);
+		ASSERT_NEAR(altitudeData.altitude, simulatedData.altitude, 100.0f);
+	}
+}
+
+TEST(SensorTest, AltitudeEstimatorAscentTest) {
+	MockBarometer barometer("Barometer", 0, 40);
+
+	AltitudeEstimator altitude("Altitude Estimator", &barometer);
+	AltitudeSimulator simulator("Altitude Simulator", 0, 40);
+
+	altitude.load();
+	simulator.load();
+
+	AltitudeData altitudeData;
+	AltitudeData simulatedData;
 
 	while(altitude.fetch(&altitudeData)) {
 		simulator.fetch(&simulatedData);
-		ASSERT_NEAR(altitudeData.altitude, simulatedData.altitude, 2000.0f);
+		ASSERT_NEAR(altitudeData.altitude, simulatedData.altitude, 30.0f);
+	}
+}
+
+TEST(SensorTest, AltitudeEstimatorApogeeTest) {
+	MockBarometer barometer("Barometer", 37, 40);
+
+	AltitudeEstimator altitude("Altitude Estimator", &barometer);
+	AltitudeSimulator simulator("Altitude Simulator", 37, 40);
+
+	altitude.load();
+	simulator.load();
+
+	AltitudeData altitudeData;
+	AltitudeData simulatedData;
+
+	while(altitude.fetch(&altitudeData)) {
+		simulator.fetch(&simulatedData);
+		ASSERT_NEAR(altitudeData.altitude, simulatedData.altitude, 10.0f);
 	}
 }

@@ -15,9 +15,10 @@
 class MockIMU : public Sensor<IMUData> {
 public:
 	MockIMU(const char* identifier);
+	~MockIMU() { unload(); }
 
 	bool load();
-	bool reset();
+	bool unload();
 	bool fetch(IMUData* data);
 };
 

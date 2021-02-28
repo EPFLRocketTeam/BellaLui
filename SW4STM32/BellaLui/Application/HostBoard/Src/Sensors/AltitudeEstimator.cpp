@@ -1,9 +1,8 @@
 /*Using "barometric formula with temperature"
 Ground altitude is 0m */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdbool.h>
+#include <cmath>
+#include <cstdbool>
 #include <Sensors/AltitudeEstimator.h>
 
 //#define DEBUG
@@ -85,8 +84,8 @@ bool AltitudeEstimator::load() {
 	return barometer->load();
 }
 
-bool AltitudeEstimator::reset() {
-	return barometer->reset();
+bool AltitudeEstimator::unload() {
+	return barometer->unload();
 }
 
 bool AltitudeEstimator::fetch(AltitudeData* data) {
@@ -98,18 +97,18 @@ bool AltitudeEstimator::fetch(AltitudeData* data) {
 	} else {
 		return false;
 	}
-
 }
 
-float AltitudeEstimator::altitudeComputation(float raw_temperature, float raw_pressure)
+float AltitudeEstimator::altitudeComputation(float raw_pressure, float raw_temperature)
 {
 	float altitude1;
+	float altitude2;
 	float temperature1;
 	float temp_increase;
 	float pressure2;
 
 	//set constants
-	if (constants_set == false){
+	if (constants_set == false) {
 		setConstants(raw_temperature, raw_pressure, &T0, &P0);
 	}
 
@@ -127,5 +126,7 @@ float AltitudeEstimator::altitudeComputation(float raw_temperature, float raw_pr
 	//decrease in pressure
 	pressure2 = raw_pressure*(1 + temp_increase*TEMPERATURE_CORRECTION_FACTOR);
 
-	return getAltFromPres(pressure2);
+	altitude2 = getAltFromPres(pressure2);
+
+	return altitude2;
 }

@@ -22,7 +22,7 @@ public:
 	UnbiasedSensor(const char* identifier, std::initializer_list<Sensor<T>*> sensors);
 	~UnbiasedSensor();
 	bool load();
-	bool reset();
+	bool unload();
 	bool fetch(T* data);
 	uint16_t getExcludedCount() { return excludedCount; }
 
@@ -70,11 +70,11 @@ bool UnbiasedSensor<T>::load() {
 }
 
 template<class T>
-bool UnbiasedSensor<T>::reset() {
+bool UnbiasedSensor<T>::unload() {
 	bool status = false;
 
 	for(uint8_t i = 0; i < count; i++) {
-		status |= this->sensors[i]->reset();
+		status |= this->sensors[i]->unload();
 	}
 
 	return status;

@@ -21,13 +21,13 @@ Outputs: altitude [m] */
 class AltitudeEstimator : public Sensor<AltitudeData> {
 public:
 	AltitudeEstimator(const char* identifier, Sensor<BarometerData>* sensor);
-
+	~AltitudeEstimator() { unload(); }
 	bool load();
-	bool reset();
+	bool unload();
 	bool fetch(AltitudeData* data);
 
 protected:
-	float altitudeComputation(float raw_temperature, float raw_pressure);
+	float altitudeComputation(float raw_pressure, float raw_temperature);
 
 private:
 	Sensor<BarometerData>* barometer;
