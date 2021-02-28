@@ -12,7 +12,8 @@
 #include "misc/datagram_builder.h"
 #include "telemetry/simpleCRC.h"
 
-void checkVal8(uint8_t *ptr, uint8_t expected, std::string msg) {
+template<typename T>
+void checkVal8(uint8_t *ptr, T expected, std::string msg) {
 	EXPECT_EQ(*ptr, expected) << msg;
 }
 
@@ -22,14 +23,18 @@ void checkVals(uint8_t *ptr, uint8_t *expected, int size, std::string msg) {
 	}
 }
 
-void checkVal16(uint8_t *ptr, uint16_t expected, std::string msg) {
-	uint16_t swappedVal = bswap16(expected);
+template<typename T>
+void checkVal16(uint8_t *ptr, T expected, std::string msg) {
+	uint16_t castVal = *((uint16_t*) &expected);
+	uint16_t swappedVal = bswap16(castVal);
 	uint8_t *arrByte = (uint8_t*) &swappedVal;
 	checkVals(ptr, arrByte, 2, msg);
 }
 
-void checkVal32(uint8_t *ptr, uint32_t expected, std::string msg) {
-	uint32_t swappedVal = bswap32(expected);
+template<typename T>
+void checkVal32(uint8_t *ptr, T expected, std::string msg) {
+	uint32_t castVal = *((uint32_t*) &expected);
+	uint32_t swappedVal = bswap32(castVal);
 	uint8_t *arrByte = (uint8_t*) &swappedVal;
 	checkVals(ptr, arrByte, 4, msg);
 }
