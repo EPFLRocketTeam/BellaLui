@@ -95,24 +95,22 @@ void TK_state_machine(void const *argument) {
 
 		case STATE_IDLE: {
 			if (imuIsReady) {
-
 				const uint32_t currentTime = HAL_GetTick();
 				// Compute lift-off triggers for acceleration
 				uint8_t liftoffAccelTrig = (abs_fl32(imu_data->acceleration.z) > ROCKET_CST_LIFTOFF_TRIG_ACCEL);
 
-				if(liftoff_time == 0 && liftoffAccelTrig){ //detect lift-off
+				uint8_t state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoff_time, liftoffAccelTrig);
+
+				if(state_idle_status == state_machine_helpers::state_idle_false_positive){
+					liftoff_time = 0;
+					time_tmp = 0;
+				}
+				else if (state_idle_status == state_machine_helpers::state_idle_liftoff_detected){
 					liftoff_time = currentTime;
 					time_tmp = currentTime; // Start timer to estimate motor burn out
 				}
-				else if (liftoff_time != 0) {
-					if(!liftoffAccelTrig){ // false positive
-						liftoff_time = 0;
-						time_tmp = 0;
-					}
-					//already detected the acceleration trigger. now we need the trigger for at least 1000ms before trigerring the liftoff.
-					else if (currentTime - liftoff_time > LIFTOFF_DETECTION_DELAY) {
-						current_state = STATE_LIFTOFF; // Switch to lift-off state
-					}
+				else if(state_idle_status == state_machine_helpers::state_idle_switch_to_liftoff_state){
+					current_state = STATE_LIFTOFF; // Switch to lift-off state
 				}
 			}
 			break;
