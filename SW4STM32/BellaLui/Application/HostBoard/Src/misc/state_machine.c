@@ -100,9 +100,13 @@ void TK_state_machine(void const *argument) {
 				// Compute lift-off triggers for acceleration
 				uint8_t liftoffAccelTrig = (abs_fl32(imu_data->acceleration.z) > ROCKET_CST_LIFTOFF_TRIG_ACCEL);
 
-				if (liftoff_time != 0) {
-					//already detected the acceleration trigger. now we need the trigger for at least 1000ms before trigerring the liftoff.
+				if(liftoff_time == 0 && liftoffAccelTrig){ //detect lift-off
+					liftoff_time = currentTime;
+					time_tmp = currentTime; // Start timer to estimate motor burn out
+				}
+				else if (liftoff_time != 0) {
 					if (liftoffAccelTrig)
+						//already detected the acceleration trigger. now we need the trigger for at least 1000ms before trigerring the liftoff.
 					 	if(currentTime - liftoff_time > LIFTOFF_DETECTION_DELAY) {
 							current_state = STATE_LIFTOFF; // Switch to lift-off state
 						}
@@ -112,11 +116,6 @@ void TK_state_machine(void const *argument) {
 						liftoff_time = 0;
 						time_tmp = 0;
 					}
-				}
-				// detect lift-off
-				else if (liftoffAccelTrig) {
-					liftoff_time = currentTime;
-					time_tmp = currentTime; // Start timer to estimate motor burn out
 				}
 			}
 			break;
