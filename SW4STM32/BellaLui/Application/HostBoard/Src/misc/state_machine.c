@@ -104,7 +104,8 @@ void TK_state_machine(void const *argument) {
 					//already detected the acceleration trigger. now we need the trigger for at least 1000ms before trigerring the liftoff.
 					if (liftoffAccelTrig)
 					 	if(currentTime - liftoff_time > LIFTOFF_DETECTION_DELAY) {
-						current_state = STATE_LIFTOFF; // Switch to lift-off state
+							current_state = STATE_LIFTOFF; // Switch to lift-off state
+						}
 					} 
 					else //false positive.
 					{
