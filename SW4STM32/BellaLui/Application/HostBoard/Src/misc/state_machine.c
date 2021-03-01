@@ -110,10 +110,9 @@ void TK_state_machine(void const *argument) {
 						liftoff_time = 0;
 						time_tmp = 0;
 					}
-					break;
 				}
 				// detect lift-off
-				if (liftoffAccelTrig) {
+				else if (liftoffAccelTrig) {
 					liftoff_time = currentTime;
 					time_tmp = currentTime; // Start timer to estimate motor burn out
 				}
