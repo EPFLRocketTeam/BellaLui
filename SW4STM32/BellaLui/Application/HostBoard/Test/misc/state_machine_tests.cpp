@@ -12,3 +12,31 @@ TEST(StateMachineTests, ShouldSwitchFromLiftoffToCoastStateAfterMotorBurnTime){
     //ASSERT_EQ(handleLiftoffState(ROCKET_CST_MOTOR_BURNTIME + 10, 0), STATE_COAST);
     ASSERT_EQ(state_machine_helpers::handleLiftoffState(ROCKET_CST_MOTOR_BURNTIME + 10, 0), true);
 }
+
+TEST(StateMachineTests, ShouldGetCorrectImuStatus){
+    uint8_t imuIsReady = state_machine_helpers::newImuDataIsAvailable(4, 3);
+    EXPECT_EQ(imuIsReady, 1);
+    imuIsReady = state_machine_helpers::newImuDataIsAvailable(3,3);
+    EXPECT_EQ(imuIsReady, 0);
+    imuIsReady = state_machine_helpers::newImuDataIsAvailable(2,3);
+    EXPECT_EQ(imuIsReady, 0);
+}
+
+TEST(StateMachineTests, ShouldGetCorrectBarometerStatus){
+    uint8_t barometerIsReady = state_machine_helpers::newBarometerDataIsAvailable(4, 3);
+    EXPECT_EQ(barometerIsReady, 1);
+    barometerIsReady = state_machine_helpers::newBarometerDataIsAvailable(3,3);
+    EXPECT_EQ(barometerIsReady, 0);
+    barometerIsReady = state_machine_helpers::newBarometerDataIsAvailable(2,3);
+    EXPECT_EQ(barometerIsReady, 0);
+}
+
+TEST(StateMachineTests, ShouldReachTouchdownStateAfterFiveMinutes){
+    uint32_t currentTime = 2*60*1000;
+    uint32_t liftoffTime = 1*60*1000;
+    EXPECT_FALSE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
+    currentTime = 8*60*1000;
+    EXPECT_TRUE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
+    liftoffTime = 0;
+    EXPECT_FALSE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
+}

@@ -53,29 +53,23 @@ void TK_state_machine(void const *argument) {
 		sync_logic(10);
 		can_setFrame(current_state, DATA_ID_STATE, HAL_GetTick());
 
-		// if new imu data is available
-		if (currentImuSeqNumber > lastImuSeqNumber) {
+		imuIsReady = state_machine_helpers::newImuDataIsAvailable(currentImuSeqNumber, lastImuSeqNumber);
+		if (imuIsReady) {
 			// Update accelerometer reading
 			imu_data = getCurrentIMU_data();
 			lastImuSeqNumber = currentImuSeqNumber;
-			imuIsReady = 1; // set new data flag to true
-		} else {
-			imuIsReady = 0; // set new data flag to false
 		}
 
-		// if new barometer data is available
-		if (currentBaroSeqNumber > lastBaroSeqNumber) {
+		baroIsReady = state_machine_helpers::newBarometerDataIsAvailable(currentBaroSeqNumber, lastBaroSeqNumber);
+		if (baroIsReady) {
 			// Update barometer reading
 			baro_data = getCurrentBARO_data();
 			lastBaroSeqNumber = currentBaroSeqNumber;
-			baroIsReady = 1; // set new data flag to true
-		} else {
-			baroIsReady = 0; // set new data flag to false
 		}
 
-		if (liftoff_time != 0 && ((int32_t) HAL_GetTick() - (int32_t) liftoff_time) > 5 * 60 * 1000) {
+		if(state_machine_helpers::touchdownStateIsReached(HAL_GetTick(), liftoff_time)){
 			current_state = STATE_TOUCHDOWN;
-			flight_status = 40;
+			flight_status = 40; // TODO: flight_status numbers should be defined as consts
 		}
 
 		if(enter_monitor(STATE_MONITOR) && current_state < NUM_STATES) {
@@ -91,6 +85,7 @@ void TK_state_machine(void const *argument) {
 
 		// State Machine
 		switch (current_state) {
+
 		case STATE_CALIBRATION: {
 			if (baroIsReady) {
 				current_state = STATE_IDLE;
