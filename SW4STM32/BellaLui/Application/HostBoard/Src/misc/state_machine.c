@@ -96,12 +96,13 @@ void TK_state_machine(void const *argument) {
 		case STATE_IDLE: {
 			if (imuIsReady) {
 
+				const uint32_t currentTime = HAL_GetTick();
 				// Compute lift-off triggers for acceleration
 				uint8_t liftoffAccelTrig = (abs_fl32(imu_data->acceleration.z) > ROCKET_CST_LIFTOFF_TRIG_ACCEL);
 
 				if (liftoff_time != 0) {
 					//already detected the acceleration trigger. now we need the trigger for at least 1000ms before trigerring the liftoff.
-					if (liftoffAccelTrig && HAL_GetTick() - liftoff_time > LIFTOFF_DETECTION_DELAY) {
+					if (liftoffAccelTrig && currentTime - liftoff_time > LIFTOFF_DETECTION_DELAY) {
 						current_state = STATE_LIFTOFF; // Switch to lift-off state
 						break;
 					} else if (!liftoffAccelTrig) //false positive.
@@ -113,8 +114,8 @@ void TK_state_machine(void const *argument) {
 				}
 				// detect lift-off
 				if (liftoffAccelTrig) {
-					liftoff_time = HAL_GetTick();
-					time_tmp = HAL_GetTick(); // Start timer to estimate motor burn out
+					liftoff_time = currentTime;
+					time_tmp = currentTime; // Start timer to estimate motor burn out
 				}
 			}
 			break;
