@@ -11,19 +11,33 @@
 #define GYRO_ACQUISITION_DIVIDER 10
 
 
-MockIMU::MockIMU(const char* identifier) : Sensor(identifier) {
+MockIMU::MockIMU(const char* identifier) : MockIMU(identifier, 0, 100) {
 
 }
 
+MockIMU::MockIMU(const char* identifier, uint32_t start, uint32_t end) : Sensor<IMUData>(identifier), file(nullptr), start(start), end(end) {
+
+}
 
 bool MockIMU::load() {
-	return true;
+	file = fopen(name(), "r");
+	return file != nullptr;
 }
 
 bool MockIMU::unload() {
-	return true;
+	return fclose(file) == 0;
 }
 
 bool MockIMU::fetch(IMUData* data) {
+	float time_read;
+
+	do {
+		fscanf(file, "%f,%f,%f,%f,%f,%f,%f", &time_read, &data->accel.x, &data->accel.y, &data->accel.z, &data->gyro.x, &data->gyro.y, &data->gyro.z);
+	} while((uint32_t) time_read < start);
+
+	if((uint32_t) time_read >= end) {
+		return false;
+	}
+
 	return true;
 }

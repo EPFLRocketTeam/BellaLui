@@ -11,6 +11,7 @@
 
 #include <Sensors/Sensor.h>
 
+#include <iostream>
 #include <cstdint>
 
 class MockBarometer : public Sensor<BarometerData> {
@@ -24,6 +25,7 @@ public:
 	bool fetch(BarometerData* data);
 
 private:
+	FILE* file;
 	uint32_t start;
 	uint32_t end;
 };
