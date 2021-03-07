@@ -18,6 +18,7 @@ FUSED_GTEST_ALL_CC = $(FUSED_GTEST_DIR)/gtest/gtest-all.cc
 # Where to find the tests.
 INC_DIR = ./Application/HostBoard/Inc
 SRC_DIR = ./Application/HostBoard/Src
+BIN_DIR= ./bin
 
 SENSORS_INC_DIR = $(INC_DIR)/Sensors
 SENSORS_SRC_DIR = $(SRC_DIR)/Sensors
@@ -35,13 +36,16 @@ CPPFLAGS += -I$(FUSED_GTEST_DIR) -I$(INC_DIR) -DGTEST_HAS_PTHREAD=0 -DTESTING
 CXX = g++
 CXXFLAGS += -g -std=c++1y
 
-all : sensor_tests
+all : $(BIN_DIR)/sensor_tests
 
 check : all
-	./sensor_tests
+	./$(BIN_DIR)/sensor_tests
+
+fuse_gtest : $(GOOGLETEST_DIR)/scripts/fuse_gtest_files.py
+	python3 $(GOOGLETEST_DIR)/scripts/fuse_gtest_files.py $(FUSED_GTEST_DIR)
 
 clean :
-	rm -rf $(FUSED_GTEST_DIR) sensor_tests *.o
+	rm -rf $(FUSED_GTEST_DIR) $(BIN_DIR)/* *.o
 
 $(FUSED_GTEST_H) :
 	../fuse_gtest_files.py $(FUSED_GTEST_DIR)
@@ -80,5 +84,6 @@ SensorTest.o : $(SENSORS_TESTS_DIR)/SensorTest.cpp \
                      $(SENSORS_INC_DIR)/UnbiasedIMU.h $(SENSORS_INC_DIR)/UnbiasedBarometer.h $(SENSORS_INC_DIR)/AltitudeEstimator.h $(FUSED_GTEST_H)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(SENSORS_TESTS_DIR)/SensorTest.cpp
 
-sensor_tests : MockBarometer.o MockIMU.o UnbiasedIMU.o CSV.o UnbiasedBarometer.o AltitudeSimulator.o AltitudeEstimator.o SensorTest.o gtest-all.o gtest_main.o
+$(BIN_DIR)/sensor_tests : MockBarometer.o MockIMU.o UnbiasedIMU.o CSV.o UnbiasedBarometer.o AltitudeSimulator.o AltitudeEstimator.o SensorTest.o gtest-all.o gtest_main.o
+	mkdir -p $(BIN_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
