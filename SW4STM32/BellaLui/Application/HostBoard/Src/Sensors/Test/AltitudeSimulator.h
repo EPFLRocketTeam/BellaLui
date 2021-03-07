@@ -11,6 +11,7 @@
 #include "Sensors/Sensor.h"
 #include "Sensors/DataStructures.h"
 
+#include <iostream>
 
 class AltitudeSimulator : public Sensor<AltitudeData> {
 public:
@@ -22,6 +23,7 @@ public:
 	bool fetch(AltitudeData* data);
 
 private:
+	FILE* file;
 	uint32_t start;
 	uint32_t end;
 };

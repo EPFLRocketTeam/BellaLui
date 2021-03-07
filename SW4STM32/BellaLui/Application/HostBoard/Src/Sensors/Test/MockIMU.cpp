@@ -25,7 +25,7 @@ bool MockIMU::load() {
 }
 
 bool MockIMU::unload() {
-	return fclose(file) == 0;
+	return file != nullptr && fclose(file) == 0;
 }
 
 bool MockIMU::fetch(IMUData* data) {

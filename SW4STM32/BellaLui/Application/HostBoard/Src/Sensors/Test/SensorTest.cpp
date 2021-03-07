@@ -33,10 +33,10 @@ TEST(SensorTest, IMUFlightDataTest) {
 }
 
 TEST(SensorTest, BarometerFlightDataTest) {
-	MockBarometer barometer1("Flight.csv");
-	MockBarometer barometer2("Flight.csv");
-	MockBarometer barometer3("Flight.csv");
-	MockBarometer barometer4("Flight.csv");
+	MockBarometer barometer1("FakeBarometer1.csv");
+	MockBarometer barometer2("FakeBarometer2.csv");
+	MockBarometer barometer3("FakeBarometer3.csv");
+	MockBarometer barometer4("FakeBarometer4.csv");
 
 	EXPECT_EQ(barometer1.load(), true);
 	EXPECT_EQ(barometer2.load(), true);
@@ -44,12 +44,23 @@ TEST(SensorTest, BarometerFlightDataTest) {
 	EXPECT_EQ(barometer4.load(), true);
 }
 
+TEST(SensorTest, BarometerRedundancyTest) {
+	MockBarometer barometer1("FakeBarometer1.csv");
+	MockBarometer barometer2("FakeBarometer2.csv");
+	MockBarometer barometer3("FakeBarometer3.csv");
+	MockBarometer barometer4("FakeBarometer4.csv");
+
+	UnbiasedBarometer barometer("Unbiased barometer", {&barometer1, &barometer2, &barometer3, &barometer4});
+
+
+	ASSERT_EQ(barometer.load(), true);
+}
 
 TEST(SensorTest, AltitudeEstimatorFullTest) {
-	MockBarometer barometer("Flight.csv", 0, 104);
+	MockBarometer barometer("RealBarometer.csv", 0, 104);
+	AltitudeSimulator simulator("SimulatedFlight.csv", 0, 104);
 
 	AltitudeEstimator altitude("Altitude Estimator", &barometer);
-	AltitudeSimulator simulator("Altitude Simulator", 0, 104);
 
 	ASSERT_EQ(barometer.load(), true);
 	ASSERT_EQ(altitude.load(), true);
@@ -65,10 +76,10 @@ TEST(SensorTest, AltitudeEstimatorFullTest) {
 }
 
 TEST(SensorTest, AltitudeEstimatorAscentTest) {
-	MockBarometer barometer("Flight.csv", 0, 40);
+	MockBarometer barometer("RealBarometer.csv", 0, 40);
+	AltitudeSimulator simulator("SimulatedFlight.csv", 0, 40);
 
 	AltitudeEstimator altitude("Altitude Estimator", &barometer);
-	AltitudeSimulator simulator("Altitude Simulator", 0, 40);
 
 	ASSERT_EQ(barometer.load(), true);
 	ASSERT_EQ(altitude.load(), true);
@@ -84,7 +95,7 @@ TEST(SensorTest, AltitudeEstimatorAscentTest) {
 }
 
 TEST(SensorTest, AltitudeEstimatorApogeeTest) {
-	MockBarometer barometer("Flight.csv", 37, 40);
+	MockBarometer barometer("RealBarometer.csv", 37, 40);
 	AltitudeSimulator simulator("SimulatedFlight.csv", 37, 40);
 
 	AltitudeEstimator altitude("Altitude Estimator", &barometer);

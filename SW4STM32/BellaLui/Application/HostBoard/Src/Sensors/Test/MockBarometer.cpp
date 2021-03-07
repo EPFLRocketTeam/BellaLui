@@ -27,7 +27,7 @@ bool MockBarometer::load() {
 }
 
 bool MockBarometer::unload() {
-	return fclose(file) == 0;
+	return file != nullptr && fclose(file) == 0;
 }
 
 bool MockBarometer::fetch(BarometerData* data) {
