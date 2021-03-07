@@ -33,10 +33,10 @@ TEST(SensorTest, IMUFlightDataTest) {
 }
 
 TEST(SensorTest, BarometerFlightDataTest) {
-	MockBarometer barometer1("FakeBarometer1.csv");
-	MockBarometer barometer2("FakeBarometer2.csv");
-	MockBarometer barometer3("FakeBarometer3.csv");
-	MockBarometer barometer4("FakeBarometer4.csv");
+	MockBarometer barometer1("NoisyBarometer1.csv");
+	MockBarometer barometer2("NoisyBarometer2.csv");
+	MockBarometer barometer3("NoisyBarometer3.csv");
+	MockBarometer barometer4("NoisyBarometer4.csv");
 
 	EXPECT_EQ(barometer1.load(), true);
 	EXPECT_EQ(barometer2.load(), true);
@@ -45,15 +45,119 @@ TEST(SensorTest, BarometerFlightDataTest) {
 }
 
 TEST(SensorTest, BarometerRedundancyTest) {
-	MockBarometer barometer1("FakeBarometer1.csv");
-	MockBarometer barometer2("FakeBarometer2.csv");
-	MockBarometer barometer3("FakeBarometer3.csv");
-	MockBarometer barometer4("FakeBarometer4.csv");
+	MockBarometer barometer1("NoisyBarometer1.csv");
+	MockBarometer barometer2("NoisyBarometer2.csv");
+	MockBarometer barometer3("NoisyBarometer3.csv");
+	MockBarometer barometer4("NoisyBarometer4.csv");
+	MockBarometer realBarometer("RealBarometer.csv");
 
-	UnbiasedBarometer barometer("Unbiased barometer", {&barometer1, &barometer2, &barometer3, &barometer4});
+	BarometerData noisedData;
+	BarometerData realData;
 
+	float accumPress;
+	float accumTemp;
+	uint32_t i;
 
-	ASSERT_EQ(barometer.load(), true);
+	ASSERT_EQ(realBarometer.load(), true);
+	ASSERT_EQ(barometer1.load(), true);
+	ASSERT_EQ(barometer2.load(), true);
+	ASSERT_EQ(barometer3.load(), true);
+	ASSERT_EQ(barometer4.load(), true);
+
+	accumPress = 0.0f;
+	accumTemp = 0.0f;
+	i = 0;
+	while(barometer1.fetch(&noisedData) && realBarometer.fetch(&realData)) {
+		float diffPress = noisedData.pressure - realData.pressure;
+		float diffTemp = noisedData.temperature - realData.temperature;
+		accumPress += diffPress * diffPress;
+		accumTemp += diffTemp * diffTemp;
+		i++;
+	}
+
+	float varPress1 = accumPress/i;
+	float varTemp1 = accumTemp/i;
+
+	ASSERT_EQ(realBarometer.reset(), true);
+
+	accumPress = 0.0f;
+	accumTemp = 0.0f;
+	i = 0;
+	while(barometer2.fetch(&noisedData) && realBarometer.fetch(&realData)) {
+		float diffPress = noisedData.pressure - realData.pressure;
+		float diffTemp = noisedData.temperature - realData.temperature;
+		accumPress += diffPress * diffPress;
+		accumTemp += diffTemp * diffTemp;
+		i++;
+	}
+
+	float varPress2 = accumPress/i;
+	float varTemp2 = accumTemp/i;
+
+	ASSERT_EQ(realBarometer.reset(), true);
+
+	accumPress = 0.0f;
+	accumTemp = 0.0f;
+	i = 0;
+	while(barometer3.fetch(&noisedData) && realBarometer.fetch(&realData)) {
+		float diffPress = noisedData.pressure - realData.pressure;
+		float diffTemp = noisedData.temperature - realData.temperature;
+		accumPress += diffPress * diffPress;
+		accumTemp += diffTemp * diffTemp;
+		i++;
+	}
+
+	float varPress3 = accumPress/i;
+	float varTemp3 = accumTemp/i;
+
+	ASSERT_EQ(realBarometer.reset(), true);
+
+	accumPress = 0.0f;
+	accumTemp = 0.0f;
+	i = 0;
+	while(barometer4.fetch(&noisedData) && realBarometer.fetch(&realData)) {
+		float diffPress = noisedData.pressure - realData.pressure;
+		float diffTemp = noisedData.temperature - realData.temperature;
+		accumPress += diffPress * diffPress;
+		accumTemp += diffTemp * diffTemp;
+		i++;
+	}
+
+	float varPress4 = accumPress/i;
+	float varTemp4 = accumTemp/i;
+
+	ASSERT_EQ(realBarometer.reset(), true);
+	ASSERT_EQ(barometer1.unload(), true);
+	ASSERT_EQ(barometer2.unload(), true);
+	ASSERT_EQ(barometer3.unload(), true);
+	ASSERT_EQ(barometer4.unload(), true);
+
+	UnbiasedBarometer unbiasedBarometer("Unbiased barometer", {&barometer1, &barometer2, &barometer3, &barometer4});
+
+	ASSERT_EQ(unbiasedBarometer.load(), true);
+
+	accumPress = 0.0f;
+	accumTemp = 0.0f;
+	i = 0;
+	while(unbiasedBarometer.fetch(&noisedData) && realBarometer.fetch(&realData)) {
+		float diffPress = noisedData.pressure - realData.pressure;
+		float diffTemp = noisedData.temperature - realData.temperature;
+		accumPress += diffPress * diffPress;
+		accumTemp += diffTemp * diffTemp;
+
+		i++;
+	}
+
+	float sigmaNoisedPress = sqrt(varPress1 + varPress2 + varPress3 + varPress4) / 4.0f;
+	float sigmaNoisedTemp = sqrt(varTemp1 + varTemp2 + varTemp3 + varTemp4) / 4.0f;
+	float sigmaUnbiasedPress = sqrt(accumPress/i);
+	float sigmaUnbiasedTemp = sqrt(accumTemp/i);
+
+	EXPECT_LT(sigmaUnbiasedPress, sigmaNoisedPress); // First check if there was an enhancement
+	EXPECT_LT(sigmaUnbiasedTemp, sigmaNoisedTemp);
+
+	EXPECT_LT(sigmaUnbiasedPress, sigmaNoisedPress * 0.3f); // Check if outliers were eliminated
+	EXPECT_LT(sigmaUnbiasedTemp, sigmaNoisedTemp * 0.3f);
 }
 
 TEST(SensorTest, AltitudeEstimatorFullTest) {
