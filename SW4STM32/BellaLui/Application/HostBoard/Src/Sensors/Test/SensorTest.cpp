@@ -139,14 +139,27 @@ TEST(SensorTest, BarometerRedundancyTest) {
 	accumPress = 0.0f;
 	accumTemp = 0.0f;
 	i = 0;
+
+	uint32_t numOutliers = 0;
 	while(unbiasedBarometer.fetch(&noisedData) && realBarometer.fetch(&realData)) {
 		float diffPress = noisedData.pressure - realData.pressure;
 		float diffTemp = noisedData.temperature - realData.temperature;
 		accumPress += diffPress * diffPress;
 		accumTemp += diffTemp * diffTemp;
 
+		if(abs(diffPress) > 2.0f || abs(diffTemp) > 1.0f) {
+			numOutliers++;
+		}
+
 		i++;
 	}
+
+	EXPECT_LT(numOutliers, 13);
+	/*
+	 *  The probability of two outliers occurring at the same time is p*(1-(1-p)^3) where p is 0.01 in the generated dataset.
+	 *  For the whole dataset, we multiply this probability by twice the size of the dataset. (10451*2)
+	 *  We also take a safety margin of 2.
+	 */
 
 	float sigmaNoisedPress = sqrt(varPress1 + varPress2 + varPress3 + varPress4) / 4.0f;
 	float sigmaNoisedTemp = sqrt(varTemp1 + varTemp2 + varTemp3 + varTemp4) / 4.0f;
