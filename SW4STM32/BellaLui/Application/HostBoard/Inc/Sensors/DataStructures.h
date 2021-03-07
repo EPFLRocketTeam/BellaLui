@@ -9,18 +9,6 @@
 #define APPLICATION_HOSTBOARD_INC_SENSORS_DATASTRUCTURES_H_
 
 
-
-struct AltitudeData {
-	float altitude;
-};
-
-
-struct BarometerData {
-	float pressure;
-	float temperature;
-};
-
-
 struct Vector {
 	float x;
 	float y;
@@ -30,6 +18,21 @@ struct Vector {
 struct IMUData {
 	Vector accel;
 	Vector gyro;
+};
+
+
+struct BarometerData {
+	float pressure;
+	float temperature;
+};
+
+struct ThrustData {
+	float thrust;
+};
+
+
+struct AltitudeData {
+	float altitude;
 };
 
 

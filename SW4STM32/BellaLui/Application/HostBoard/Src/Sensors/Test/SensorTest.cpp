@@ -7,60 +7,53 @@
 
 #include <gtest/gtest.h>
 
-
 #include "CSV.h"
 
 #include "MockIMU.h"
 #include "MockBarometer.h"
 #include "AltitudeSimulator.h"
 
+#include "Sensors/RemoteSensor.h"
 #include "Sensors/UnbiasedIMU.h"
 #include "Sensors/UnbiasedBarometer.h"
 #include "Sensors/AltitudeEstimator.h"
 
 
 
-TEST(SensorTest, MainSensorTest) {
-	MockIMU imu1("IMU 1");
-	MockIMU imu2("IMU 2");
-	MockIMU imu3("IMU 3");
-	MockIMU imu4("IMU 4");
+TEST(SensorTest, IMUFlightDataTest) {
+	MockIMU imu1("IMU.csv");
+	MockIMU imu2("IMU.csv");
+	MockIMU imu3("IMU.csv");
+	MockIMU imu4("IMU.csv");
 
-	MockBarometer barometer1("Barometer 1");
-	MockBarometer barometer2("Barometer 2");
-	MockBarometer barometer3("Barometer 3");
-	MockBarometer barometer4("Barometer 4");
+	EXPECT_EQ(imu1.load(), true);
+	EXPECT_EQ(imu2.load(), true);
+	EXPECT_EQ(imu3.load(), true);
+	EXPECT_EQ(imu4.load(), true);
+}
 
-	UnbiasedIMU imu("Unbiased IMU", {&imu1, &imu2, &imu3, &imu4});
-	UnbiasedBarometer barometer("Unbiased Barometer", {&barometer1, &barometer2, &barometer3, &barometer4});
-	AltitudeEstimator altitude("Altitude Estimator", &barometer);
+TEST(SensorTest, BarometerFlightDataTest) {
+	MockBarometer barometer1("Flight.csv");
+	MockBarometer barometer2("Flight.csv");
+	MockBarometer barometer3("Flight.csv");
+	MockBarometer barometer4("Flight.csv");
 
-	imu.load();
-	altitude.load();
-
-	IMUData imuData;
-	AltitudeData altitudeData;
-
-	if(imu.fetch(&imuData)) {
-		//std::cout << imuData.accel.y << std::endl;
-	}
-
-
-	while(altitude.fetch(&altitudeData)) {
-	}
-
-	ASSERT_EQ(1, 1);
+	EXPECT_EQ(barometer1.load(), true);
+	EXPECT_EQ(barometer2.load(), true);
+	EXPECT_EQ(barometer3.load(), true);
+	EXPECT_EQ(barometer4.load(), true);
 }
 
 
 TEST(SensorTest, AltitudeEstimatorFullTest) {
-	MockBarometer barometer("Barometer", 0, 104);
+	MockBarometer barometer("Flight.csv", 0, 104);
 
 	AltitudeEstimator altitude("Altitude Estimator", &barometer);
 	AltitudeSimulator simulator("Altitude Simulator", 0, 104);
 
-	altitude.load();
-	simulator.load();
+	ASSERT_EQ(barometer.load(), true);
+	ASSERT_EQ(altitude.load(), true);
+	ASSERT_EQ(simulator.load(), true);
 
 	AltitudeData altitudeData;
 	AltitudeData simulatedData;
@@ -72,13 +65,14 @@ TEST(SensorTest, AltitudeEstimatorFullTest) {
 }
 
 TEST(SensorTest, AltitudeEstimatorAscentTest) {
-	MockBarometer barometer("Barometer", 0, 40);
+	MockBarometer barometer("Flight.csv", 0, 40);
 
 	AltitudeEstimator altitude("Altitude Estimator", &barometer);
 	AltitudeSimulator simulator("Altitude Simulator", 0, 40);
 
-	altitude.load();
-	simulator.load();
+	ASSERT_EQ(barometer.load(), true);
+	ASSERT_EQ(altitude.load(), true);
+	ASSERT_EQ(simulator.load(), true);
 
 	AltitudeData altitudeData;
 	AltitudeData simulatedData;
@@ -90,13 +84,14 @@ TEST(SensorTest, AltitudeEstimatorAscentTest) {
 }
 
 TEST(SensorTest, AltitudeEstimatorApogeeTest) {
-	MockBarometer barometer("Barometer", 37, 40);
+	MockBarometer barometer("Flight.csv", 37, 40);
+	AltitudeSimulator simulator("SimulatedFlight.csv", 37, 40);
 
 	AltitudeEstimator altitude("Altitude Estimator", &barometer);
-	AltitudeSimulator simulator("Altitude Simulator", 37, 40);
 
-	altitude.load();
-	simulator.load();
+	ASSERT_EQ(barometer.load(), true);
+	ASSERT_EQ(altitude.load(), true);
+	ASSERT_EQ(simulator.load(), true);
 
 	AltitudeData altitudeData;
 	AltitudeData simulatedData;
@@ -105,4 +100,23 @@ TEST(SensorTest, AltitudeEstimatorApogeeTest) {
 		simulator.fetch(&simulatedData);
 		ASSERT_NEAR(altitudeData.altitude, simulatedData.altitude, 10.0f);
 	}
+}
+
+TEST(SensorTest, RemoteSensorTest) {
+	RemoteSensor<ThrustData> sensor("Thrust Remote Sensor");
+
+	ThrustData data;
+	data.thrust = 42.0f;
+
+	EXPECT_EQ(sensor.fetch(&data), false);
+
+	sensor.onDataReception(data);
+
+	data.thrust = 0.0f;
+	ASSERT_FLOAT_EQ(data.thrust, 0.0f);
+
+	EXPECT_EQ(sensor.fetch(&data), true);
+
+	ASSERT_FLOAT_EQ(data.thrust, 42.0f);
+
 }

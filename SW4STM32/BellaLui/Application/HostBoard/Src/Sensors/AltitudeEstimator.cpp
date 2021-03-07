@@ -81,11 +81,11 @@ AltitudeEstimator::AltitudeEstimator(const char* identifier, Sensor<BarometerDat
 }
 
 bool AltitudeEstimator::load() {
-	return barometer->load();
+	return true;
 }
 
 bool AltitudeEstimator::unload() {
-	return barometer->unload();
+	return true;
 }
 
 bool AltitudeEstimator::fetch(AltitudeData* data) {
@@ -106,6 +106,8 @@ float AltitudeEstimator::altitudeComputation(float raw_pressure, float raw_tempe
 	float temperature1;
 	float temp_increase;
 	float pressure2;
+
+	raw_temperature += 273.0f;
 
 	//set constants
 	if (constants_set == false) {
