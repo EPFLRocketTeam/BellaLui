@@ -13,6 +13,7 @@
 #include <Sensors/Sensor.h>
 #include <Embedded/system.h>
 
+#include <algorithm>
 #include <stdint.h>
 #include <initializer_list>
 #include <iostream>

@@ -7,6 +7,7 @@
 
 
 #include "CSV.h"
+#include <stdexcept>
 
 std::vector<std::vector<float>> read_csv(std::string filename){
     // Reads a CSV file into a vector of <string, vector<int>> pairs where
