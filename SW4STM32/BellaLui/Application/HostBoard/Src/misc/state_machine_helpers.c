@@ -30,6 +30,26 @@ namespace state_machine_helpers {
         return false;
     }
 
+    uint8_t handleCoastState(const float max_altitude, const float baro_data_altitude, const float baro_data_base_altitude, const uint32_t apogee_counter) {
+        // update the maximum altitude detected up to this point
+        if (max_altitude < baro_data_altitude) {					
+            return state_coast_rocket_is_ascending; 
+        } 
+        else {
+            // if the number of measurements exceeds a certain value (basic noise filtering) then the altitude trigger based on the counter is enabled
+            bool counterAltTrig = apogee_counter+1 > APOGEE_BUFFER_SIZE;
+            // since the rocket is then supposed to be descending, the trigger waits for an altitude offset greater than the one defined to occure before triggering the state change
+            bool diffAltTrig = (max_altitude - baro_data_altitude) > APOGEE_ALT_DIFF; 
+            bool minAltTrig = ((baro_data_altitude - baro_data_base_altitude) > ROCKET_CST_MIN_TRIG_AGL);
+
+            if (minAltTrig && counterAltTrig && diffAltTrig) {
+                return state_coast_switch_to_primary_state;
+            }
+        }
+
+        return 0;        
+    }
+
     uint8_t newImuDataIsAvailable(const uint32_t currentImuSeqNumber, const uint32_t lastImuSeqNumber) {
         return currentImuSeqNumber > lastImuSeqNumber;
     }

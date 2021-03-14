@@ -127,37 +127,19 @@ void TK_state_machine(void const *argument) {
 
 			// compute apogee triggers for altitude
 			if (baroIsReady) {
-				uint8_t minAltTrig = ((baro_data->altitude - baro_data->base_altitude) > ROCKET_CST_MIN_TRIG_AGL);
-				uint8_t counterAltTrig = 0;
-				uint8_t diffAltTrig = 0;
+				uint8_t state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data->altitude, baro_data->base_altitude, apogee_counter);
 
-				// update the maximum altitude detected up to this point
-				if (max_altitude < baro_data->altitude) {
-					// if a new maximum altitude is found, this means the rocket is going up
-					max_altitude = baro_data->altitude;
-					// The descending measurement counter is thus set to zero
-					apogee_counter = 0;
-				} else {
-					// if the rocket isn't rising then it is descending, thus the number of descending measurements are counted
-					apogee_counter++;
-					if (apogee_counter > APOGEE_BUFFER_SIZE)
-					// if the number of measurements exceeds a certain value (basic noise filtering)...
-					{
-						// ... then the altitude trigger based on the counter is enabled
-						counterAltTrig = 1;
-						if ((max_altitude - baro_data->altitude) > APOGEE_ALT_DIFF)
-						// since the rocket is then supposed to be descending, the trigger waits for an altitude offset greater than the one defined to occure before triggering the state change
-						{
-							diffAltTrig = 1;
-						}
-					}
+				if(state_coast_status == state_machine_helpers::state_coast_rocket_is_ascending){
+					max_altitude = baro_data->altitude; // if a new maximum altitude is found, this means the rocket is going up					
+					apogee_counter = 0; // The descending measurement counter is thus set to zero
 				}
-
-				// detect apogee
-				if (minAltTrig && counterAltTrig && diffAltTrig) {
-					time_tmp = HAL_GetTick(); // save time to mute sensors while ejection occures
-					current_state = STATE_PRIMARY; // switch to primary descent phase
-					flight_status = 30; // TODO: flight_status numbers should be defined as consts
+				else{
+					++apogee_counter; // if the rocket isn't rising then it is descending, thus the number of descending measurements are counted
+					if(state_coast_status == state_machine_helpers::state_coast_switch_to_primary_state){
+						time_tmp = HAL_GetTick(); // save time to mute sensors while ejection occures
+						current_state = STATE_PRIMARY; // switch to primary descent phase
+						flight_status = 30; // TODO: flight_status numbers should be defined as consts
+					}
 				}
 			}
 			break;
