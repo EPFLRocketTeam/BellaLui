@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 namespace state_machine_helpers {
+    // TODO: change to Enum
     const uint8_t state_idle_false_positive = 101;
     const uint8_t state_idle_liftoff_detected = 102;
     const uint8_t state_idle_switch_to_liftoff_state = 103;
