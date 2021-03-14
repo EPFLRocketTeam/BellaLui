@@ -123,7 +123,7 @@ void TK_state_machine(void const *argument) {
 		}
 
 		case STATE_COAST: {
-			flight_status = 20;
+			flight_status = 20; // TODO: flight_status numbers should be defined as consts
 
 			// compute apogee triggers for altitude
 			if (baroIsReady) {
@@ -157,7 +157,7 @@ void TK_state_machine(void const *argument) {
 				if (minAltTrig && counterAltTrig && diffAltTrig) {
 					time_tmp = HAL_GetTick(); // save time to mute sensors while ejection occures
 					current_state = STATE_PRIMARY; // switch to primary descent phase
-					flight_status = 30;
+					flight_status = 30; // TODO: flight_status numbers should be defined as consts
 				}
 			}
 			break;
@@ -188,7 +188,7 @@ void TK_state_machine(void const *argument) {
 					time_tmp = HAL_GetTick(); // save current time to start differed touchdown detection rate
 					current_state = STATE_SECONDARY; // switch to secondary recovery phase
 					td_last_alt = baro_data->altitude; // save altitude measurement for touchdown detection
-					flight_status = 35;
+					flight_status = 35; // TODO: flight_status numbers should be defined as consts
 				}
 			}
 			break;
@@ -219,7 +219,7 @@ void TK_state_machine(void const *argument) {
 
 					if (counterTdTrig) {
 						current_state = STATE_TOUCHDOWN;
-						flight_status = 40;
+						flight_status = 40; // TODO: flight_status numbers should be defined as consts
 						// TODO: Set telemetry data rate to low
 					}
 				}
