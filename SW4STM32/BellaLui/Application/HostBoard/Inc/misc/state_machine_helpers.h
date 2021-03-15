@@ -15,7 +15,7 @@ namespace state_machine_helpers {
     const uint8_t state_primary_altitude_above_secondary_altitude = 31;
     const uint8_t state_primary_switch_to_secondary_state = 32;
 
-    uint8_t handleIdleState(const uint32_t currentTime, const uint32_t liftoff_time, uint8_t liftoffAccelTrig);
+    uint8_t handleIdleState(const uint32_t currentTime, const uint32_t liftoff_time, const float acceleration_z);
     bool handleLiftoffState(const uint32_t currentTime, const uint32_t previousTime);
     uint8_t handleCoastState(const float max_altitude, const float baro_data_altitude, const float baro_data_base_altitude, const uint32_t apogee_counter);
     uint8_t handlePrimaryState(const uint32_t currentTime, const uint32_t time_tmp, const float baro_data_altitude, const float baro_data_base_altitude, const uint32_t sec_counter);

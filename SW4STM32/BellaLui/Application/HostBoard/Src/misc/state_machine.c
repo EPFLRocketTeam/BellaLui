@@ -96,10 +96,7 @@ void TK_state_machine(void const *argument) {
 		case STATE_IDLE: {
 			if (imuIsReady) {
 				const uint32_t currentTime = HAL_GetTick();
-				// Compute lift-off triggers for acceleration
-				uint8_t liftoffAccelTrig = (abs_fl32(imu_data->acceleration.z) > ROCKET_CST_LIFTOFF_TRIG_ACCEL);
-
-				uint8_t state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoff_time, liftoffAccelTrig);
+				uint8_t state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoff_time, abs_fl32(imu_data->acceleration.z));
 
 				if(state_idle_status == state_machine_helpers::state_idle_false_positive){
 					liftoff_time = 0;
