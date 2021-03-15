@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 #include "telemetry/test/datagram_check.hpp"
-#include "misc/datagram_builder.h"
+#include "telemetry/datagram_builder.h"
 #include "telemetry/telemetry_protocol.h"
 
 // TODO: a test with buffer overflow !
@@ -17,11 +17,11 @@ TEST(TelemetryTest, DatagramBuilder_Empty) {
 	uint8_t type = GPS_PACKET;
 
 	DatagramBuilder db(0, type, ts, seq);
-	Telemetry_Message msg = db.finalizeDatagram();
+	Telemetry_Message *msg = db.finalizeDatagram();
 
-	ASSERT_EQ(msg.size, TOTAL_DATAGRAM_OVERHEAD);
-	checkHeader((uint8_t*) msg.ptr, type, ts, seq);
-	checkCRC((uint8_t*) msg.ptr, msg.size - CHECKSUM_SIZE);
+	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD);
+	checkHeader((uint8_t*) msg->buf, type, ts, seq);
+	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramBuilder_Write8) {
@@ -33,15 +33,15 @@ TEST(TelemetryTest, DatagramBuilder_Write8) {
 	DatagramBuilder db(size, type, ts, seq);
 	for(int i = 0; i < size; i++)
 		db.write8(vals[i]);
-	Telemetry_Message msg = db.finalizeDatagram();
+	Telemetry_Message *msg = db.finalizeDatagram();
 
-	ASSERT_EQ(msg.size, TOTAL_DATAGRAM_OVERHEAD + size);
-	checkHeader((uint8_t*) msg.ptr, type, ts, seq);
+	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
+	checkHeader((uint8_t*) msg->buf, type, ts, seq);
 
 	for(int i = 0; i < size; i++)
-		checkVal8((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + i, vals[i], "Payload " + std::to_string(i) + " mismatch");
+		checkVal8((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + i, vals[i], "Payload " + std::to_string(i) + " mismatch");
 
-	checkCRC((uint8_t*) msg.ptr, msg.size - CHECKSUM_SIZE);
+	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramBuilder_Write16) {
@@ -53,15 +53,15 @@ TEST(TelemetryTest, DatagramBuilder_Write16) {
 	DatagramBuilder db(size * bytePerElem, type, ts, seq);
 	for(int i = 0; i < size; i++)
 		db.write16(vals[i]);
-	Telemetry_Message msg = db.finalizeDatagram();
+	Telemetry_Message *msg = db.finalizeDatagram();
 
-	ASSERT_EQ(msg.size, TOTAL_DATAGRAM_OVERHEAD + size * bytePerElem);
-	checkHeader((uint8_t*) msg.ptr, type, ts, seq);
+	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size * bytePerElem);
+	checkHeader((uint8_t*) msg->buf, type, ts, seq);
 
 	for(int i = 0; i < size; i++)
-			checkVal16((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + bytePerElem*i, vals[i], "Payload " + std::to_string(i) + " mismatch");
+		checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + bytePerElem*i, vals[i], "Payload " + std::to_string(i) + " mismatch");
 
-	checkCRC((uint8_t*) msg.ptr, msg.size - CHECKSUM_SIZE);
+	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramBuilder_Write32) {
@@ -73,15 +73,15 @@ TEST(TelemetryTest, DatagramBuilder_Write32) {
 	DatagramBuilder db(size * bytePerElem, type, ts, seq);
 	for(int i = 0; i < size; i++)
 		db.write32(vals[i]);
-	Telemetry_Message msg = db.finalizeDatagram();
+	Telemetry_Message *msg = db.finalizeDatagram();
 
-	ASSERT_EQ(msg.size, TOTAL_DATAGRAM_OVERHEAD + size * bytePerElem);
-	checkHeader((uint8_t*) msg.ptr, type, ts, seq);
+	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size * bytePerElem);
+	checkHeader((uint8_t*) msg->buf, type, ts, seq);
 
 	for(int i = 0; i < size; i++)
-			checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + bytePerElem*i, vals[i], "Payload " + std::to_string(i) + " mismatch");
+			checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + bytePerElem*i, vals[i], "Payload " + std::to_string(i) + " mismatch");
 
-	checkCRC((uint8_t*) msg.ptr, msg.size - CHECKSUM_SIZE);
+	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramCreation_Telemetry) {
@@ -92,26 +92,26 @@ TEST(TelemetryTest, DatagramCreation_Telemetry) {
 
 	int size = 40; //bytes
 
-	Telemetry_Message msg = createTelemetryDatagram(ts, &imu, &baro, speed, altitude);
+	Telemetry_Message *msg = createTelemetryDatagram(ts, &imu, &baro, speed, altitude);
 
-	ASSERT_EQ(msg.size, TOTAL_DATAGRAM_OVERHEAD + size);
-	checkHeader((uint8_t*) msg.ptr, TELEMETRY_PACKET, ts, 0);
+	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
+	checkHeader((uint8_t*) msg->buf, TELEMETRY_PACKET, ts, 0);
 
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 0, imu.acceleration.x, "Acceleration X incorrect");
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 4, imu.acceleration.y, "Acceleration Y incorrect");
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 8, imu.acceleration.z, "Acceleration Z incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 0, imu.acceleration.x, "Acceleration X incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 4, imu.acceleration.y, "Acceleration Y incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 8, imu.acceleration.z, "Acceleration Z incorrect");
 
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 12, imu.eulerAngles.x, "Euler X incorrect");
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 16, imu.eulerAngles.y, "Euler Y incorrect");
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 20, imu.eulerAngles.z, "Euler Z incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 12, imu.eulerAngles.x, "Euler X incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 16, imu.eulerAngles.y, "Euler Y incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 20, imu.eulerAngles.z, "Euler Z incorrect");
 
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 24, baro.temperature, "Temperature incorrect");
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 28, baro.pressure, "Pressure incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 24, baro.temperature, "Temperature incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 28, baro.pressure, "Pressure incorrect");
 
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 32, speed, "Speed incorrect");
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 36, altitude, "Altitude incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 32, speed, "Speed incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 36, altitude, "Altitude incorrect");
 
-	checkCRC((uint8_t*) msg.ptr, msg.size - CHECKSUM_SIZE);
+	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramCreation_Airbrakes) {
@@ -120,14 +120,14 @@ TEST(TelemetryTest, DatagramCreation_Airbrakes) {
 
 	int size = 4; //bytes
 
-	Telemetry_Message msg = createAirbrakesDatagram(ts, angle);
+	Telemetry_Message *msg = createAirbrakesDatagram(ts, angle);
 
-	ASSERT_EQ(msg.size, TOTAL_DATAGRAM_OVERHEAD + size);
-	checkHeader((uint8_t*) msg.ptr, AIRBRAKES_PACKET, ts, 1);
+	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
+	checkHeader((uint8_t*) msg->buf, AIRBRAKES_PACKET, ts, 1);
 
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER, angle, "Angle incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER, angle, "Angle incorrect");
 
-	checkCRC((uint8_t*) msg.ptr, msg.size - CHECKSUM_SIZE);
+	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramCreation_GPS) {
@@ -136,19 +136,19 @@ TEST(TelemetryTest, DatagramCreation_GPS) {
 
 	int size = 17; //bytes
 
-	Telemetry_Message msg = createGPSDatagram(ts, gps);
+	Telemetry_Message *msg = createGPSDatagram(ts, gps);
 
-	ASSERT_EQ(msg.size, TOTAL_DATAGRAM_OVERHEAD + size);
-	checkHeader((uint8_t*) msg.ptr, GPS_PACKET, ts, 2);
+	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
+	checkHeader((uint8_t*) msg->buf, GPS_PACKET, ts, 2);
 
-	checkVal8((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER, gps.sats, "Sats number incorrect");
+	checkVal8((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER, gps.sats, "Sats number incorrect");
 
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 1, gps.hdop, "hdop incorrect");
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 5, gps.lat, "lat incorrect");
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 9, gps.lon, "lon incorrect");
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 13, gps.altitude, "altitude incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 1, gps.hdop, "hdop incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 5, gps.lat, "lat incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 9, gps.lon, "lon incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 13, gps.altitude, "altitude incorrect");
 
-	checkCRC((uint8_t*) msg.ptr, msg.size - CHECKSUM_SIZE);
+	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramCreation_State) {
@@ -159,16 +159,16 @@ TEST(TelemetryTest, DatagramCreation_State) {
 
 	int size = 6; //bytes
 
-	Telemetry_Message msg = createStateDatagram(ts, id, val, state);
+	Telemetry_Message *msg = createStateDatagram(ts, id, val, state);
 
-	ASSERT_EQ(msg.size, TOTAL_DATAGRAM_OVERHEAD + size);
-	checkHeader((uint8_t*) msg.ptr, STATUS_PACKET, ts, 3);
+	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
+	checkHeader((uint8_t*) msg->buf, STATUS_PACKET, ts, 3);
 
-	checkVal8((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER, id, "ID incorrect");
-	checkVal32((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 1, val, "value incorrect");
-	checkVal8((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 5, state, "state incorrect");
+	checkVal8((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER, id, "ID incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 1, val, "value incorrect");
+	checkVal8((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 5, state, "state incorrect");
 
-	checkCRC((uint8_t*) msg.ptr, msg.size - CHECKSUM_SIZE);
+	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramCreation_Propulsion) {
@@ -177,22 +177,22 @@ TEST(TelemetryTest, DatagramCreation_Propulsion) {
 
 	int size = 14; //bytes
 
-	Telemetry_Message msg = createPropulsionDatagram(ts, &prop);
+	Telemetry_Message *msg = createPropulsionDatagram(ts, &prop);
 
-	ASSERT_EQ(msg.size, TOTAL_DATAGRAM_OVERHEAD + size);
-	checkHeader((uint8_t*) msg.ptr, PROPULSION_DATA_PACKET, ts, 4);
+	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
+	checkHeader((uint8_t*) msg->buf, PROPULSION_DATA_PACKET, ts, 4);
 
-	checkVal16((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 0, prop.pressure1, "pressure 1 incorrect");
-	checkVal16((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 2, prop.pressure2, "pressure 2 incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 0, prop.pressure1, "pressure 1 incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 2, prop.pressure2, "pressure 2 incorrect");
 
-	checkVal16((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 4, prop.temperature1, "temp 1 incorrect");
-	checkVal16((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 6, prop.temperature2, "temp 2 incorrect");
-	checkVal16((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 8, prop.temperature3, "temp 3 incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 4, prop.temperature1, "temp 1 incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 6, prop.temperature2, "temp 2 incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 8, prop.temperature3, "temp 3 incorrect");
 
-	checkVal16((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 10, prop.status, "status incorrect");
-	checkVal16((uint8_t*) msg.ptr + TOTAL_DATAGRAM_HEADER + 12, prop.motor_position, "motor position incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 10, prop.status, "status incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 12, prop.motor_position, "motor position incorrect");
 
-	checkCRC((uint8_t*) msg.ptr, msg.size - CHECKSUM_SIZE);
+	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 

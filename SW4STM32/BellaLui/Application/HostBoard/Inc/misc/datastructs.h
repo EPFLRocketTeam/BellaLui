@@ -50,8 +50,8 @@ typedef struct
 
 typedef struct
 {
-  void* ptr;
   uint16_t size;
+  uint8_t buf[];
 } Telemetry_Message;
 
 typedef struct

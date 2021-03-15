@@ -9,7 +9,7 @@
 #define TELEMETRY_TEST_DATAGRAM_CHECK
 
 #include <gtest/gtest.h>
-#include "misc/datagram_builder.h"
+#include "telemetry/datagram_builder.h"
 #include "telemetry/simpleCRC.h"
 
 template<typename T>
