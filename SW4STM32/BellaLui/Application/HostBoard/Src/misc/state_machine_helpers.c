@@ -4,7 +4,9 @@
 
 namespace state_machine_helpers {
 
-    uint8_t handleIdleState(const uint32_t currentTime, const uint32_t liftoff_time, uint8_t liftoffAccelTrig) {
+    uint8_t handleIdleState(const uint32_t currentTime, const uint32_t liftoff_time, const float acceleration_z) {
+        bool liftoffAccelTrig = acceleration_z > ROCKET_CST_LIFTOFF_TRIG_ACCEL; //Compute lift-off triggers for acceleration
+
         if(liftoff_time == 0 && liftoffAccelTrig){
             return state_idle_liftoff_detected;
         }

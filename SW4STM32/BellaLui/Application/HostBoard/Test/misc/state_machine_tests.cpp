@@ -44,20 +44,20 @@ TEST(StateMachineTests, ShouldReachTouchdownStateAfterFiveMinutes){
 TEST(StateMachineTests, ShouldGetCorrectIdleStateStatus){
     uint32_t currentTime = 2*60*1000;
     uint32_t liftoffTime = 1*60*1000;
-    uint8_t liftoffAccelTrig = 0;
+    float acceleration_z = 1;
 
-    uint8_t state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, liftoffAccelTrig);
+    uint8_t state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, acceleration_z);
     EXPECT_EQ(state_idle_status, state_machine_helpers::state_idle_false_positive);
 
-    liftoffAccelTrig = 1;
-    state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, liftoffAccelTrig);
+    acceleration_z = 2.1;
+    state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, acceleration_z);
     EXPECT_EQ(state_idle_status, state_machine_helpers::state_idle_switch_to_liftoff_state);
 
     currentTime = liftoffTime + 300;
-    state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, liftoffAccelTrig);
+    state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, acceleration_z);
     EXPECT_EQ(state_idle_status, 0);
 
     liftoffTime = 0;
-    state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, liftoffAccelTrig);
+    state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, acceleration_z);
     EXPECT_EQ(state_idle_status, state_machine_helpers::state_idle_liftoff_detected);
 }
