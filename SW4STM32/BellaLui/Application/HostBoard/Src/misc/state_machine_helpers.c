@@ -50,6 +50,25 @@ namespace state_machine_helpers {
         return 0;        
     }
 
+    uint8_t handlePrimaryState(const uint32_t currentTime, const uint32_t time_tmp, const float baro_data_altitude, const float baro_data_base_altitude, const uint32_t sec_counter) {
+        // update the minimum altitude detected up to this point
+        if ((baro_data_altitude - baro_data_base_altitude) > ROCKET_CST_REC_SECONDARY_ALT) {
+            return state_primary_altitude_above_secondary_altitude; // As long as the measured altitude is above the secondary recovery event altitude, keep buffer counter to 0
+        } 
+        else {
+            bool counterSecTrig = sec_counter+1 > SECONDARY_BUFFER_SIZE; // if more than a given amount of measurements are below the secondary recovery altitude, toggle the state trigger
+            
+            bool sensorMuteTimeTrig = (currentTime - time_tmp) > APOGEE_MUTE_TIME; // check that some time has passed since the detection of the apogee before triggering the secondary recovery event
+
+            if (counterSecTrig && sensorMuteTimeTrig)
+            {
+                return state_primary_switch_to_secondary_state;
+            }
+        }
+
+        return 0;
+    }
+
     uint8_t newImuDataIsAvailable(const uint32_t currentImuSeqNumber, const uint32_t lastImuSeqNumber) {
         return currentImuSeqNumber > lastImuSeqNumber;
     }

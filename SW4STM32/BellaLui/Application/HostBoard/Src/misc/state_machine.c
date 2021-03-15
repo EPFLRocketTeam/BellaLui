@@ -147,30 +147,19 @@ void TK_state_machine(void const *argument) {
 
 		case STATE_PRIMARY: {
 			if (baroIsReady) {
-				// check that some time has passed since the detection of the apogee before triggering the secondary recovery event
-				uint8_t sensorMuteTimeTrig = ((HAL_GetTick() - time_tmp) > APOGEE_MUTE_TIME);
-				uint8_t counterSecTrig = 0;
+				uint8_t state_primary_status = state_machine_helpers::handlePrimaryState(HAL_GetTick(), time_tmp, baro_data->altitude, baro_data->base_altitude, sec_counter);
 
-				// update the minimum altitude detected up to this point
-				if ((baro_data->altitude - baro_data->base_altitude) > ROCKET_CST_REC_SECONDARY_ALT) {
-					// As long as the measured altitude is above the secondary recovery event altitude, keep buffer counter to 0
+				if(state_primary_status == state_machine_helpers::state_primary_altitude_above_secondary_altitude){
 					sec_counter = 0;
-				} else {
-					// if the measured altitude is lower than the trigger altitude, start counting
-					sec_counter++;
-					if (sec_counter > SECONDARY_BUFFER_SIZE)
-					// if more than a given amount of measurements are below the secondary recovery altitude, toggle the state trigger
-					{
-						counterSecTrig = 1;
-					}
 				}
-
-				//detect secondary recovery event
-				if (sensorMuteTimeTrig && counterSecTrig) {
-					time_tmp = HAL_GetTick(); // save current time to start differed touchdown detection rate
-					current_state = STATE_SECONDARY; // switch to secondary recovery phase
-					td_last_alt = baro_data->altitude; // save altitude measurement for touchdown detection
-					flight_status = 35; // TODO: flight_status numbers should be defined as consts
+				else{
+					sec_counter++; // if the measured altitude is lower than the trigger altitude, start counting
+					if(state_primary_status == state_machine_helpers::state_primary_switch_to_secondary_state){
+						time_tmp = HAL_GetTick(); // save current time to start differed touchdown detection rate
+						current_state = STATE_SECONDARY; // switch to secondary recovery phase
+						td_last_alt = baro_data->altitude; // save altitude measurement for touchdown detection
+						flight_status = 35; // TODO: flight_status numbers should be defined as consts
+					}
 				}
 			}
 			break;
