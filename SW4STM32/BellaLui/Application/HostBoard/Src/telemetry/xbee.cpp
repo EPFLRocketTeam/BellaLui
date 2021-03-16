@@ -6,9 +6,11 @@
  */
 
 #include <misc/common.h>
-#include "telemetry/telemetry_handling.h"
 #include "telemetry/telemetry_protocol.h"
 #include "telemetry/xbee.h"
+#include "telemetry/telemetry_sending.h"
+#include "telemetry/telemetry_receiving.h"
+#include "telemetry/queue/EtlMessageQueue.h"
 
 #include "debug/profiler.h"
 #include "debug/terminal.h"
@@ -20,7 +22,7 @@
 #include <stdint.h>
 #include <stm32f4xx_hal.h>
 
-osMessageQId xBeeQueueHandle;
+EtlMessageQueue<Telemetry_Message> xBeeSendQueue(64);
 osSemaphoreId xBeeTxBufferSemHandle;
 
 UART_HandleTypeDef *xBee_huart;
@@ -92,9 +94,8 @@ void xbee_freertos_init(UART_HandleTypeDef *huart) {
 	osSemaphoreDef(xBeeTxBufferSem);
 	xBeeTxBufferSemHandle = osSemaphoreCreate(osSemaphore(xBeeTxBufferSem), 1);
 
-	osMessageQDef(xBeeQueue, 64, Telemetry_Message);
-	xBeeQueueHandle = osMessageCreate(osMessageQ(xBeeQueue), NULL);
-	vQueueAddToRegistry(xBeeQueueHandle, "xBee incoming queue");
+	xBeeSendQueue.setup("xBee incoming queue");
+	registerSendQueue(&xBeeSendQueue);
 
 	xBee_huart = huart;
 
@@ -107,8 +108,6 @@ void TK_xBeeTransmit(const void *args) {
 
 	initXbee();
 	uint32_t packetStartTime = HAL_GetTick();
-
-	osEvent event;
 
 	while(true) {
 		start_profiler(1);
@@ -126,23 +125,17 @@ void TK_xBeeTransmit(const void *args) {
 			telemetrySendIMU(666, (IMU_data ) { { 666.0f, 666.0f, 666.0f }, { 666, 666, 666 } });
 		}
 
-		do {
-			//as long as there is data to send, send it.
-			event = osMessageGet(xBeeQueueHandle, 50);
-			if(event.status == osEventMessage) {
-				if(currentXbeeTxBufPos == 0 && elapsed != 0) {
-					packetStartTime = HAL_GetTick();
-				}
-
-				Telemetry_Message *m = event.value.p;
-
-				led_set_TK_rgb(led_xbee_tx_id, 0x00, 0xFF, 0x00);
-
-				sendData(m->ptr, m->size);
-
-				vPortFree(m->ptr);
+		//as long as there is data to send, send it.
+		Telemetry_Message *msg;
+		while(xBeeSendQueue.pop(&msg, 50)) {
+			if(currentXbeeTxBufPos == 0 && elapsed != 0) {
+				packetStartTime = HAL_GetTick();
 			}
-		} while(event.status == osEventMessage);
+
+			led_set_TK_rgb(led_xbee_tx_id, 0x00, 0xFF, 0x00);
+			sendData(msg->buf, msg->size);
+			vPortFree(msg);
+		}
 
 		end_profiler();
 	}
