@@ -1,19 +1,22 @@
-/* telemetry_handling.h
+/* telemetry_sending.h
  *
  *  Created on: 10 Jun 2019
  *      Author: Alexandre Devienne
  */
 
-#ifndef TELEMETRY_HANDLING_H_
-#define TELEMETRY_HANDLING_H_
+#ifndef TELEMETRY_SENDING_H_
+#define TELEMETRY_SENDING_H_
 
 #include <stdbool.h>
 
-#include "../../../HostBoard/Inc/misc/datastructs.h"
+#include "misc/datastructs.h"
+#include "telemetry/queue/AbstractMessageQueue.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+void registerSendQueue(AbstractMessageQueue<Telemetry_Message> *queue);
 
 bool telemetrySendGPS(uint32_t timestamp, GPS_data data);
 bool telemetrySendIMU(uint32_t timestamp, IMU_data data);
@@ -23,11 +26,9 @@ bool telemetrySendMotorPressure(uint32_t timestamp, uint32_t pressure);
 bool telemetrySendAirbrakesAngle(uint32_t timestamp, int32_t angle);
 bool telemetrySendPropulsionData(uint32_t timestamp, PropulsionData* payload);
 
-bool telemetryReceivePropulsionCommand(uint32_t timestamp, uint8_t* payload);
-
 #ifdef __cplusplus
 }
 #endif
 
 
-#endif /* TELEMETRY_HANDLING_H_ */
+#endif /* TELEMETRY_SENDING_H_ */

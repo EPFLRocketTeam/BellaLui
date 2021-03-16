@@ -19,7 +19,7 @@ typedef float float32_t;
 #include "debug/profiler.h"
 #include "debug/led.h"
 #include "debug/monitor.h"
-#include "telemetry/telemetry_handling.h"
+#include "telemetry/telemetry_sending.h"
 #include "airbrakes/airbrake.h"
 #include <sensors_old/sensor_board.h>
 #include "misc/datastructs.h"
