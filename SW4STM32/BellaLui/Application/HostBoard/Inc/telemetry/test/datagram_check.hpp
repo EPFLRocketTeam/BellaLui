@@ -22,7 +22,7 @@ void checkVal8(uint8_t *ptr, T expected, std::string msg) {
 	EXPECT_EQ(*ptr, expected) << msg;
 }
 
-void checkVals(uint8_t *ptr, uint8_t *expected, int size, std::string msg) {
+inline void checkVals(uint8_t *ptr, uint8_t *expected, int size, std::string msg) {
 	for(int i = 0; i < size; i++) {
 		checkVal8(ptr + i, expected[i], msg + " (index " + std::to_string(i) + ")");
 	}
@@ -45,7 +45,7 @@ void checkVal32(uint8_t *ptr, T expected, std::string msg) {
 }
 
 
-void checkHeader(uint8_t *ptr, uint8_t id, uint32_t ts, uint32_t seq) {
+inline void checkHeader(uint8_t *ptr, uint8_t id, uint32_t ts, uint32_t seq) {
 	// Datagram ID
 	checkVal8(ptr, id, "Datagram ID mismatch");
 
@@ -60,7 +60,7 @@ void checkHeader(uint8_t *ptr, uint8_t id, uint32_t ts, uint32_t seq) {
 	checkVal32(ptr + 9, seq, "Sequence number mismatch");
 }
 
-void checkCRC(uint8_t *ptr, int size) {
+inline void checkCRC(uint8_t *ptr, int size) {
 	uint16_t crc = CRC_16_GENERATOR_POLY.initialValue;
 
 	for(int i = 0; i < size; i++) {
@@ -75,11 +75,11 @@ void checkCRC(uint8_t *ptr, int size) {
  * Specific functions for verifying each type of datagram
  */
 
-void checkTelemetryDatagram(Telemetry_Message *msg, uint32_t ts, IMU_data imu, BARO_data baro, float32_t speed, float32_t altitude) {
+inline void checkTelemetryDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, IMU_data imu, BARO_data baro, float32_t speed, float32_t altitude) {
 	int size = 40; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
-	checkHeader((uint8_t*) msg->buf, TELEMETRY_PACKET, ts, 0);
+	checkHeader((uint8_t*) msg->buf, TELEMETRY_PACKET, ts, seq);
 
 	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 0, imu.acceleration.x, "Acceleration X incorrect");
 	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 4, imu.acceleration.y, "Acceleration Y incorrect");
@@ -98,22 +98,22 @@ void checkTelemetryDatagram(Telemetry_Message *msg, uint32_t ts, IMU_data imu, B
 	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
-void checkAirbrakesDatagram(Telemetry_Message *msg, uint32_t ts, float32_t angle) {
+inline void checkAirbrakesDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, float32_t angle) {
 	int size = 4; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
-	checkHeader((uint8_t*) msg->buf, AIRBRAKES_PACKET, ts, 1);
+	checkHeader((uint8_t*) msg->buf, AIRBRAKES_PACKET, ts, seq);
 
 	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER, angle, "Angle incorrect");
 
 	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
-void checkGpsDatagram(Telemetry_Message *msg, uint32_t ts, GPS_data gps) {
+inline void checkGpsDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, GPS_data gps) {
 	int size = 17; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
-	checkHeader((uint8_t*) msg->buf, GPS_PACKET, ts, 2);
+	checkHeader((uint8_t*) msg->buf, GPS_PACKET, ts, seq);
 
 	checkVal8((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER, gps.sats, "Sats number incorrect");
 
@@ -125,11 +125,11 @@ void checkGpsDatagram(Telemetry_Message *msg, uint32_t ts, GPS_data gps) {
 	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
-void checkStateDatagram(Telemetry_Message *msg, uint32_t ts, uint8_t id, float32_t val, uint8_t state) {
+inline void checkStateDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, uint8_t id, float32_t val, uint8_t state) {
 	int size = 6; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
-	checkHeader((uint8_t*) msg->buf, STATUS_PACKET, ts, 3);
+	checkHeader((uint8_t*) msg->buf, STATUS_PACKET, ts, seq);
 
 	checkVal8((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER, id, "ID incorrect");
 	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 1, val, "value incorrect");
@@ -138,11 +138,11 @@ void checkStateDatagram(Telemetry_Message *msg, uint32_t ts, uint8_t id, float32
 	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
-void checkPropulsionDatagram(Telemetry_Message *msg, uint32_t ts, PropulsionData prop) {
+inline void checkPropulsionDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, PropulsionData prop) {
 	int size = 14; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
-	checkHeader((uint8_t*) msg->buf, PROPULSION_DATA_PACKET, ts, 4);
+	checkHeader((uint8_t*) msg->buf, PROPULSION_DATA_PACKET, ts, seq);
 
 	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 0, prop.pressure1, "pressure 1 incorrect");
 	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 2, prop.pressure2, "pressure 2 incorrect");

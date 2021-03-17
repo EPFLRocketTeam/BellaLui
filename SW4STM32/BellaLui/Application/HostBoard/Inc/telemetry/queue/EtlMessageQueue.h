@@ -15,7 +15,6 @@ template<typename T>
 class EtlMessageQueue : public AbstractMessageQueue<T> {
 public:
 	EtlMessageQueue(uint32_t queueSize);
-	virtual ~EtlMessageQueue();
 
 	void setup(const char *description);
 

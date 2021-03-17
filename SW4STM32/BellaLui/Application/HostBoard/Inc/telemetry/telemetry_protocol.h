@@ -16,7 +16,7 @@ enum DatagramPayloadType {
 #define START_DELIMITER_SIZE 1
 #define MSB_SIZE 1
 #define LSB_SIZE 1
-#define CHECKSUM_SIZE 1 // TODO: this is wrong, should be 2
+#define CHECKSUM_SIZE 2 // TODO: 1 or 2 ?????
 
 // Packet Header size in bytes
 #define XBEE_OPTIONS_SIZE 14
@@ -39,7 +39,7 @@ enum DatagramPayloadType {
 #define TOTAL_DATAGRAM_OVERHEAD (TOTAL_DATAGRAM_HEADER + CHECKSUM_SIZE)
 
 #define SENSOR_DATAGRAM_PAYLOAD_SIZE 40
-#define GPS_DATAGRAM_PAYLOAD_SIZE 13
+#define GPS_DATAGRAM_PAYLOAD_SIZE 17 // TODO: 13 or 17 ??
 #define TELEMETRY_RAW_DATAGRAM_PAYLOAD_SIZE 24
 #define TELEMETRY_FILTERED_DATAGRAM_PAYLOAD_SIZE 24
 #define PROPULSION_DATAGRAM_PAYLOAD_SIZE 14

@@ -19,8 +19,9 @@
 #define vPortFree free
 
 inline uint32_t HAL_GetTick() {
-	clock_t t = clock();
-	return 1000.0 * t / CLOCKS_PER_SEC;
+	struct timespec ts;
+	timespec_get(&ts, TIME_UTC);
+	return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 }
 
 #else

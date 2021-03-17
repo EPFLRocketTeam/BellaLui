@@ -92,7 +92,7 @@ TEST(TelemetryTest, DatagramCreation_Telemetry) {
 
 	Telemetry_Message *msg = createTelemetryDatagram(ts, &imu, &baro, speed, altitude);
 
-	checkTelemetryDatagram(msg, ts, imu, baro, speed, altitude);
+	checkTelemetryDatagram(msg, ts, 0, imu, baro, speed, altitude);
 }
 
 TEST(TelemetryTest, DatagramCreation_Airbrakes) {
@@ -101,7 +101,7 @@ TEST(TelemetryTest, DatagramCreation_Airbrakes) {
 
 	Telemetry_Message *msg = createAirbrakesDatagram(ts, angle);
 
-	checkAirbrakesDatagram(msg, ts, angle);
+	checkAirbrakesDatagram(msg, ts, 1, angle);
 }
 
 TEST(TelemetryTest, DatagramCreation_GPS) {
@@ -110,18 +110,18 @@ TEST(TelemetryTest, DatagramCreation_GPS) {
 
 	Telemetry_Message *msg = createGPSDatagram(ts, gps);
 
-	checkGpsDatagram(msg, ts, gps);
+	checkGpsDatagram(msg, ts, 2, gps);
 }
 
 TEST(TelemetryTest, DatagramCreation_State) {
 	uint32_t ts = 4567;
-	uint8_t id = 1;
+	uint8_t id = 2;
 	float32_t val = 10.1;
 	uint8_t state = 0x08;
 
 	Telemetry_Message *msg = createStateDatagram(ts, id, val, state);
 
-	checkStateDatagram(msg, ts, id, val, state);
+	checkStateDatagram(msg, ts, 3, id, val, state);
 }
 
 TEST(TelemetryTest, DatagramCreation_Propulsion) {
@@ -130,7 +130,7 @@ TEST(TelemetryTest, DatagramCreation_Propulsion) {
 
 	Telemetry_Message *msg = createPropulsionDatagram(ts, &prop);
 
-	checkPropulsionDatagram(msg, ts, prop);
+	checkPropulsionDatagram(msg, ts, 4, prop);
 }
 
 

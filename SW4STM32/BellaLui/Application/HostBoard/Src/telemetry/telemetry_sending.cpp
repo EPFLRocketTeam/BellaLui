@@ -18,13 +18,6 @@
 #include <stdbool.h>
 
 
-#define TELE_TIMEMIN 200
-#define GPS_TIMEMIN 200
-#define STATE_TIMEMIN 200
-#define PROP_DATA_TIMEMIN 100
-#define AB_TIMEMIN 100
-//#define TELE_RAW_TIMEMIN 100
-
 AbstractMessageQueue<Telemetry_Message> *msgQueue = nullptr;
 
 IMU_data imu = { { 0, 0, 0 }, { 0, 0, 0 } };
@@ -101,7 +94,7 @@ bool telemetrySendAirbrakesAngle(uint32_t timestamp, float angle) {
 	return true;
 }
 
-bool telemetrySendState(uint32_t timestamp, bool id, float value, uint8_t av_state) {
+bool telemetrySendState(uint32_t timestamp, uint8_t id, float value, uint8_t av_state) {
 	uint32_t now = HAL_GetTick();
 
 	if (now - last_state_update <= STATE_TIMEMIN || nullptr == msgQueue)

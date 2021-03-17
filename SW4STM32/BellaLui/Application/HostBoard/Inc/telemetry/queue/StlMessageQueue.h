@@ -20,10 +20,11 @@ template<typename T>
 class StlMessageQueue : public AbstractMessageQueue<T> {
 public:
 	StlMessageQueue(uint32_t queueSize);
-	virtual ~StlMessageQueue();
 
 	virtual bool push(T *val, uint32_t timeout);
 	virtual bool pop(T **dst, uint32_t timeout);
+
+	uint32_t count();
 
 private:
 	std::queue<T*> q_;
@@ -50,6 +51,11 @@ bool StlMessageQueue<T>::pop(T **dst, uint32_t timeout) {
 	*dst = q_.front();
 	q_.pop();
 	return true;
+}
+
+template<typename T>
+uint32_t StlMessageQueue<T>::count() {
+	return q_.size();
 }
 
 #endif /* APPLICATION_HOSTBOARD_INC_TELEMETRY_QUEUE_STLMESSAGEQUEUE_H_ */

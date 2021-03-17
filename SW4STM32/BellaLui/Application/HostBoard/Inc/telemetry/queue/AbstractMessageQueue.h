@@ -14,7 +14,7 @@ template <typename T>
 class AbstractMessageQueue {
 public:
 	AbstractMessageQueue(uint32_t queueSize) : size_(queueSize) {}
-	virtual ~AbstractMessageQueue();
+	virtual ~AbstractMessageQueue() {}
 
 	virtual bool push(T *val, uint32_t timeout) = 0;
 	virtual bool pop(T **dst, uint32_t timeout) = 0;
