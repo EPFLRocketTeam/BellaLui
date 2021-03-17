@@ -18,7 +18,7 @@ public:
 	Barometer(const char* identifier, I2CDriver* driver, uint8_t address);
 
 	bool load();
-	bool reset();
+	bool unload();
 	bool fetch(BarometerData* data);
 
 private:

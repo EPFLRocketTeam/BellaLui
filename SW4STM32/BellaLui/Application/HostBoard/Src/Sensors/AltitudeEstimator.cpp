@@ -1,12 +1,20 @@
 /*Using "barometric formula with temperature"
 Ground altitude is 0m */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include "altitude_computation.h"
+#include <cmath>
+#include <cstdbool>
+#include <Sensors/AltitudeEstimator.h>
 
 //#define DEBUG
+
+
+
+float T0 = -1; //temperature at ground level [K]
+float P0 = -1; //pressure at ground level [hPa]
+float T0_averaged = 0;
+float P0_averaged = 0;
+bool constants_set = false; //true when constants have been set
+int constants_iterator = 0;
 
 /*setConstants
 Sets values for temperature and pressure at ground level.
@@ -14,8 +22,7 @@ To be executed only once
 Inputs: temperature and pressure, addresses of T0 and P0
 Outputs: -*/
 
-void setConstants(float temperature, float pressure, float* T0, float* P0)
-{
+static void setConstants(float temperature, float pressure, float* T0, float* P0) {
 	if (constants_iterator >= N_ITERATIONS_AVERAGE)
 		{
 			*T0 = T0_averaged;
@@ -41,8 +48,7 @@ void setConstants(float temperature, float pressure, float* T0, float* P0)
 Returns pressure as calculated exclusively from altitude
 Inputs: altitude [m]
 Outputs: pressure [hPa] */
-float getPresFromAlt(float altitude)
-{
+static float getPresFromAlt(float altitude) {
 	return P0*pow((1 + A*altitude/T0), (G0/R/-A));
 }
 
@@ -50,8 +56,7 @@ float getPresFromAlt(float altitude)
 Returns altitude as calculated exclusively from pressure
 Inputs: pressure [hPa]
 Outputs: altitude [m]*/
-float getAltFromPres(float pressure)
-{
+static float getAltFromPres(float pressure) {
 	return T0/A*(pow(pressure/P0, -A*R/G0) - 1);
 }
 
@@ -59,8 +64,7 @@ float getAltFromPres(float pressure)
 Returns temperature as calculated exclusively by altitude
 Inputs: altitude [m]
 Outputs: temperature [m] */
-float getTempFromAlt(float altitude)
-{
+static float getTempFromAlt(float altitude) {
 	return T0 + A*altitude;
 }
 
@@ -69,15 +73,44 @@ Function that will loop indefinetly.
 Returns altitude.
 Inputs: pressure [hPa] and temperature [K] from sensors
 Outputs: altitude [m] */
-float altitudeComputation(float raw_temperature, float raw_pressure)
+
+
+
+AltitudeEstimator::AltitudeEstimator(const char* identifier, Sensor<BarometerData>* sensor) : Sensor(identifier), barometer(sensor) {
+
+}
+
+bool AltitudeEstimator::load() {
+	return true;
+}
+
+bool AltitudeEstimator::unload() {
+	return true;
+}
+
+bool AltitudeEstimator::fetch(AltitudeData* data) {
+	BarometerData barodata;
+
+	if(barometer->fetch(&barodata)) {
+		data->altitude = altitudeComputation(barodata.pressure, barodata.temperature);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+float AltitudeEstimator::altitudeComputation(float raw_pressure, float raw_temperature)
 {
 	float altitude1;
+	float altitude2;
 	float temperature1;
 	float temp_increase;
 	float pressure2;
 
+	raw_temperature += 273.0f;
+
 	//set constants
-	if (constants_set == false){
+	if (constants_set == false) {
 		setConstants(raw_temperature, raw_pressure, &T0, &P0);
 	}
 
@@ -95,19 +128,7 @@ float altitudeComputation(float raw_temperature, float raw_pressure)
 	//decrease in pressure
 	pressure2 = raw_pressure*(1 + temp_increase*TEMPERATURE_CORRECTION_FACTOR);
 
-	return getAltFromPres(pressure2);
-}
+	altitude2 = getAltFromPres(pressure2);
 
-
-int main(void)
-{
-	#ifdef DEBUG
-	float altitude = 0;
-
-	altitude= altitudeComputation(285, 900);
-	altitude= altitudeComputation(284, 850);
-	printf("%f\n", altitude);
-	#endif
-
-	return 0;
+	return altitude2;
 }

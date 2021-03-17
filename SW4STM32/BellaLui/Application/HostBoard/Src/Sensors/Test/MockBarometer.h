@@ -11,13 +11,23 @@
 
 #include <Sensors/Sensor.h>
 
+#include <iostream>
+#include <cstdint>
+
 class MockBarometer : public Sensor<BarometerData> {
 public:
 	MockBarometer(const char* identifier);
+	MockBarometer(const char* identifier, uint32_t start, uint32_t end);
+	~MockBarometer() { unload(); }
 
 	bool load();
-	bool reset();
+	bool unload();
 	bool fetch(BarometerData* data);
+
+private:
+	FILE* file;
+	uint32_t start;
+	uint32_t end;
 };
 
 

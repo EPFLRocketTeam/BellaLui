@@ -55,9 +55,9 @@ bool Barometer::load() {
 	return true;
 }
 
-bool Barometer::reset() {
+bool Barometer::unload() {
 	this->driver->reset();
-	return load();
+	return true;
 }
 
 bool Barometer::fetch(BarometerData* data) {

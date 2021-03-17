@@ -202,7 +202,8 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="FlashAPI/Src|**/Test*|**/test*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry excluding="Algorithms|Test/googletest/googletest/scripts/fused_gtest/gtest|FlashAPI/Src|**/Test*|**/test*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Test/googletest/googletest/scripts/fused_gtest/gtest"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -407,7 +408,8 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="FlashAPI/Src|**/Test*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry excluding="Algorithms|Test/googletest/googletest/scripts/fused_gtest/gtest|FlashAPI/Src|**/Test*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Test/googletest/googletest/scripts/fused_gtest/gtest"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -415,15 +417,6 @@
 		</cconfiguration>
 		<cconfiguration id="fr.ac6.managedbuild.config.gnu.cross.exe.debug.509694695">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="fr.ac6.managedbuild.config.gnu.cross.exe.debug.509694695" moduleId="org.eclipse.cdt.core.settings" name="Testing">
-				<macros>
-					<stringListMacro name="PATH" type="VALUE_TEXT_LIST">
-						<value name="/usr/bin"/>
-						<value name="/bin"/>
-						<value name="/usr/sbin"/>
-						<value name="/sbin"/>
-						<value name="/usr/local/bin"/>
-					</stringListMacro>
-				</macros>
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -435,7 +428,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="fr.ac6.managedbuild.config.gnu.cross.exe.debug.509694695" name="Testing" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.enablement=null,org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.image=null,org.eclipse.cdt.docker.launcher.containerbuild.property.connection=null" parent="fr.ac6.managedbuild.config.gnu.cross.exe.debug" postannouncebuildStep="" postbuildStep="" prebuildStep="${workspace_loc:/${ProjName}/Test/lib/buildgtest.sh}">
+				<configuration artifactExtension="" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="fr.ac6.managedbuild.config.gnu.cross.exe.debug.509694695" name="Testing" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.enablement=null,org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.image=null,org.eclipse.cdt.docker.launcher.containerbuild.property.connection=null" parent="fr.ac6.managedbuild.config.gnu.cross.exe.debug" postannouncebuildStep="" postbuildStep="" prebuildStep="">
 					<folderInfo id="fr.ac6.managedbuild.config.gnu.cross.exe.debug.509694695." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.macosx.base.1751814159" name="MacOSX GCC" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.macosx.base" superClass="cdt.managedbuild.toolchain.gnu.macosx.base">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.MachO64" id="cdt.managedbuild.target.gnu.platform.macosx.base.1544854678" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
@@ -503,6 +496,7 @@
 					<sourceEntries>
 						<entry excluding="BME280/|Barometer.cpp|IMU.cpp|StandardI2CDriver.cpp|FastI2CDriver.cpp|BNO055/|SensorAcquisition.cpp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Application/HostBoard/Src/Sensors"/>
 						<entry excluding="xbee.cpp|telemetry_receiving.cpp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Application/HostBoard/Src/telemetry"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Test/googletest/googletest/scripts/fused_gtest/gtest"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
