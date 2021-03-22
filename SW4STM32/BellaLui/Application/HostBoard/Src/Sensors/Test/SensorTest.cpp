@@ -21,10 +21,10 @@
 
 
 TEST(SensorTest, IMUFlightDataTest) {
-	MockIMU imu1("IMU.csv");
-	MockIMU imu2("IMU.csv");
-	MockIMU imu3("IMU.csv");
-	MockIMU imu4("IMU.csv");
+	MockIMU imu1("NoisyIMU1.csv");
+	MockIMU imu2("NoisyIMU2.csv");
+	MockIMU imu3("NoisyIMU3.csv");
+	MockIMU imu4("NoisyIMU4.csv");
 
 	EXPECT_EQ(imu1.load(), true);
 	EXPECT_EQ(imu2.load(), true);
