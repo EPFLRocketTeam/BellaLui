@@ -202,8 +202,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Algorithms|Test/googletest/googletest/scripts/fused_gtest/gtest|FlashAPI/Src|**/Test*|**/test*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Test/googletest/googletest/scripts/fused_gtest/gtest"/>
+						<entry excluding="Test/googletest/googletest/scripts/fused_gtest/gtest|**/Test*|**/test*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -408,8 +407,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Algorithms|Test/googletest/googletest/scripts/fused_gtest/gtest|FlashAPI/Src|**/Test*|**/test*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Test/googletest/googletest/scripts/fused_gtest/gtest"/>
+						<entry excluding="Test/googletest/googletest/scripts/fused_gtest/gtest|**/Test*|**/test*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

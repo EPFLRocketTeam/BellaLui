@@ -23,10 +23,18 @@
 #define AIRBRAKES_MONITOR 	  7
 #define PROPULSION_MONITOR 	  8
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 bool enter_monitor(uint8_t id);
 bool exit_monitor(uint8_t id);
 
 void enable_monitor(uint8_t id, uint8_t location, uint8_t refresh_rate);
 void disable_monitor(uint8_t id);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* APPLICATION_HOSTBOARD_INC_DEBUG_MONITOR_H_ */

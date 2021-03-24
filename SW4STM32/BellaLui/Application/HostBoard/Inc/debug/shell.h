@@ -26,11 +26,19 @@ typedef struct {
 	uint8_t num_components;
 } ShellCommand;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void shell_init(UART_HandleTypeDef* uart, void (*terminal)(ShellCommand* cmd, int (*respond)(const char* format, ...)));
 void TK_shell(const void *args);
 void shell_bridge(int8_t board_id);
 void shell_receive_byte(char cbuf, int32_t bridge);
 int8_t get_shell_bridge();
 bool component_matches(struct CommandComponent* comp, const char* target);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* APPLICATION_HOSTBOARD_INC_DEBUG_SHELL_H_ */

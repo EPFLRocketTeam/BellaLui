@@ -10,8 +10,8 @@
 Barometer::Barometer(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver) {
 	this->dev.dev_id = address;
 	this->dev.intf = BME280_I2C_INTF;
-	this->dev.read = &driver->read;
-	this->dev.write = &driver->write;
+	this->dev.read = driver->readFunc;
+	this->dev.write = driver->writeFunc;
 	this->dev.delay_ms = &driver->wait;
 }
 

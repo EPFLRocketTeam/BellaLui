@@ -10,6 +10,8 @@
 
 #define FMPI2C_TIMEOUT 3
 
+FastI2CDriver::FastI2CDriver() : I2CDriver(&FastI2CDriver::read, &FastI2CDriver::write) {}
+
 int8_t FastI2CDriver::read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len) {
 	int8_t rslt = 0;
 

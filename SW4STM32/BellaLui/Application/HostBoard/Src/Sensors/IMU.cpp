@@ -13,8 +13,8 @@
 
 IMU::IMU(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver) {
 	this->dev.dev_addr = address;
-	this->dev.bus_read = (s8(*)(u8, u8, u8 *, u8)) &driver->read;
-	this->dev.bus_write = (s8(*)(u8, u8, u8 *, u8)) &driver->write;
+	this->dev.bus_read = (s8(*)(u8, u8, u8 *, u8)) driver->readFunc;
+	this->dev.bus_write = (s8(*)(u8, u8, u8 *, u8)) driver->writeFunc;
 	this->dev.delay_msec = (void(*)(u32)) &driver->wait;
 }
 
@@ -102,12 +102,12 @@ bool IMU::fetch(IMUData* data) {
 	uint8_t result = 0;
 
 	if(accel_counter++ == ACCEL_ACQUISITION_DIVIDER) {
-		result += this->driver->read(this->dev.dev_addr, BNO055_ACCEL_DATA_X_LSB_VALUEX_REG, accel_data, BNO055_ACCEL_XYZ_DATA_SIZE);
+		result += this->driver->readFunc(this->dev.dev_addr, BNO055_ACCEL_DATA_X_LSB_VALUEX_REG, accel_data, BNO055_ACCEL_XYZ_DATA_SIZE);
 		accel_counter = 0;
 	}
 
 	if(gyro_counter++ == GYRO_ACQUISITION_DIVIDER) {
-		result += this->driver->read(this->dev.dev_addr, BNO055_GYRO_DATA_X_LSB_VALUEX_REG, gyro_data, BNO055_GYRO_XYZ_DATA_SIZE);
+		result += this->driver->readFunc(this->dev.dev_addr, BNO055_GYRO_DATA_X_LSB_VALUEX_REG, gyro_data, BNO055_GYRO_XYZ_DATA_SIZE);
 		gyro_counter = 0;
 	}
 

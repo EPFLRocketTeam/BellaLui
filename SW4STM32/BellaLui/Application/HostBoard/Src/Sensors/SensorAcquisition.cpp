@@ -7,6 +7,9 @@
 
 #include "Sensors/UnbiasedIMU.h"
 #include "Sensors/UnbiasedBarometer.h"
+#include "Sensors/Barometer.h"
+#include "Sensors/IMU.h"
+#include "Sensors/I2CDriver.h"
 
 #include "debug/profiler.h"
 #include "debug/led.h"

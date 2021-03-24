@@ -312,6 +312,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/spi.c</locationURI>
 		</link>
 		<link>
+			<name>Application/User/Core/tim.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/tim.c</locationURI>
+		</link>
+		<link>
 			<name>Application/User/Core/stm32f4xx_hal_msp.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/stm32f4xx_hal_msp.c</locationURI>

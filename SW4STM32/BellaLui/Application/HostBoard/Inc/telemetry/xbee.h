@@ -12,9 +12,11 @@
 #include "stm32f4xx_hal.h"
 
 #define XBEE_PAYLOAD_MAX_SIZE 130
-
 #define XBEE_PERFORMANCE_BPS 80000
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void xbee_freertos_init(UART_HandleTypeDef *huart);
 void xbee_change_uart(UART_HandleTypeDef *huart);
@@ -42,5 +44,9 @@ void processReceivedByte(uint8_t rxByte);
 void resetStateMachine ();
 
 void setPacketSize(uint8_t datagram_id);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TELEMETRY_XBEE_XBEE_H_ */

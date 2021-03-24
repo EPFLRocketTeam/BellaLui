@@ -10,9 +10,17 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void start_profiler(uint8_t identifier_addend); // The resulting task id is incremented by the provided value
 void end_profiler();
 void enable_profiler();
 void disable_profiler();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* APPLICATION_HOSTBOARD_INC_DEBUG_PROFILER_H_ */

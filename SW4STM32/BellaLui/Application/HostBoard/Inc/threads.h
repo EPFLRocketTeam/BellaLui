@@ -82,7 +82,7 @@
 #endif
 
 #ifdef SENSOR
-#include <sensors/sensor_board.h>
+#include <Sensors/SensorAcquisition.h>
 #endif
 
 #ifdef KALMAN
