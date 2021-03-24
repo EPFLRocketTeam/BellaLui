@@ -21,7 +21,9 @@ TEST(TelemetryTest, DatagramBuilder_Empty) {
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD);
 	checkHeader((uint8_t*) msg->buf, type, ts, seq);
-	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
+
+	if(ACTIVATE_DATAGRAM_CHECKSUM)
+		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramBuilder_Write8) {
@@ -41,7 +43,8 @@ TEST(TelemetryTest, DatagramBuilder_Write8) {
 	for(int i = 0; i < size; i++)
 		checkVal8((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + i, vals[i], "Payload " + std::to_string(i) + " mismatch");
 
-	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
+	if(ACTIVATE_DATAGRAM_CHECKSUM)
+		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramBuilder_Write16) {
@@ -61,7 +64,8 @@ TEST(TelemetryTest, DatagramBuilder_Write16) {
 	for(int i = 0; i < size; i++)
 		checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + bytePerElem*i, vals[i], "Payload " + std::to_string(i) + " mismatch");
 
-	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
+	if(ACTIVATE_DATAGRAM_CHECKSUM)
+		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramBuilder_Write32) {
@@ -79,9 +83,10 @@ TEST(TelemetryTest, DatagramBuilder_Write32) {
 	checkHeader((uint8_t*) msg->buf, type, ts, seq);
 
 	for(int i = 0; i < size; i++)
-			checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + bytePerElem*i, vals[i], "Payload " + std::to_string(i) + " mismatch");
+		checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + bytePerElem*i, vals[i], "Payload " + std::to_string(i) + " mismatch");
 
-	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
+	if(ACTIVATE_DATAGRAM_CHECKSUM)
+		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 TEST(TelemetryTest, DatagramCreation_Telemetry) {

@@ -95,7 +95,8 @@ inline void checkTelemetryDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t
 	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 32, speed, "Speed incorrect");
 	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 36, altitude, "Altitude incorrect");
 
-	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
+	if(ACTIVATE_DATAGRAM_CHECKSUM)
+		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 inline void checkAirbrakesDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, float32_t angle) {
@@ -106,7 +107,8 @@ inline void checkAirbrakesDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t
 
 	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER, angle, "Angle incorrect");
 
-	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
+	if(ACTIVATE_DATAGRAM_CHECKSUM)
+		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 inline void checkGpsDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, GPS_data gps) {
@@ -122,7 +124,8 @@ inline void checkGpsDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, 
 	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 9, gps.lon, "lon incorrect");
 	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 13, gps.altitude, "altitude incorrect");
 
-	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
+	if(ACTIVATE_DATAGRAM_CHECKSUM)
+		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 inline void checkStateDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, uint8_t id, float32_t val, uint8_t state) {
@@ -135,7 +138,8 @@ inline void checkStateDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq
 	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 1, val, "value incorrect");
 	checkVal8((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 5, state, "state incorrect");
 
-	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
+	if(ACTIVATE_DATAGRAM_CHECKSUM)
+		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 inline void checkPropulsionDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, PropulsionData prop) {
@@ -154,7 +158,8 @@ inline void checkPropulsionDatagram(Telemetry_Message *msg, uint32_t ts, uint32_
 	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 10, prop.status, "status incorrect");
 	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 12, prop.motor_position, "motor position incorrect");
 
-	checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
+	if(ACTIVATE_DATAGRAM_CHECKSUM)
+		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
 #endif //TELEMETRY_TEST_DATAGRAM_CHECK

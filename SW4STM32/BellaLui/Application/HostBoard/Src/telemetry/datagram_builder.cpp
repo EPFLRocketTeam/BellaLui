@@ -57,14 +57,15 @@ DatagramBuilder::DatagramBuilder(uint16_t datagramPayloadSize, uint8_t datagramT
 }
 
 Telemetry_Message *DatagramBuilder::finalizeDatagram() {
-	// TODO: HEADER_SIZE is the wrong place to start...
-	for(int16_t i = (TOTAL_DATAGRAM_HEADER /*+ PREAMBLE_SIZE + CONTROL_FLAG_SIZE*/); i < currentIdx; i++) {
-		//Calculate checksum for datagram and payload fields
-		datagramCrc = CalculateRemainderFromTable(*((uint8_t*) datagramPtr->buf + i), datagramCrc);
-	}
+	if(ACTIVATE_DATAGRAM_CHECKSUM) {
+		for(int16_t i = TOTAL_DATAGRAM_HEADER; i < currentIdx; i++) {
+			//Calculate checksum for datagram and payload fields
+			datagramCrc = CalculateRemainderFromTable(*((uint8_t*) datagramPtr->buf + i), datagramCrc);
+		}
 
-	datagramCrc = FinalizeCRC(datagramCrc);
-	write16(datagramCrc);
+		datagramCrc = FinalizeCRC(datagramCrc);
+		write16(datagramCrc);
+	}
 
 	return datagramPtr;
 }
