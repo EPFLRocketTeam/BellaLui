@@ -58,11 +58,7 @@ typedef struct
 #define DATA_ID_STATE 50 // enum
 
 
-#define DATA_ID_START_VALVE_OPERATION 80
-#define DATA_ID_START_FUELING 81
-#define DATA_ID_STOP_FUELING 82
-#define DATA_ID_START_HOMING 83
-#define DATA_ID_ABORT 84
+#define DATA_ID_PROP_COMMAND 80
 
 
 

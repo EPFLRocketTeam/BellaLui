@@ -39,13 +39,13 @@ typedef struct
 
 typedef struct
 {
-  uint16_t pressure1;
-  uint16_t pressure2;
+  int32_t pressure1;
+  int32_t pressure2;
   int16_t temperature1;
   int16_t temperature2;
   int16_t temperature3;
-  uint16_t status;
-  int16_t motor_position;
+  uint32_t status;
+  int32_t motor_position;
 } PropulsionData;
 
 typedef struct
