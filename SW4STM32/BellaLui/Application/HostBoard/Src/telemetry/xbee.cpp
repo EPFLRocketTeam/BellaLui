@@ -11,6 +11,7 @@
 #include "telemetry/telemetry_sending.h"
 #include "telemetry/telemetry_receiving.h"
 #include "telemetry/queue/EtlMessageQueue.h"
+#include "telemetry/queue/queue.h"
 
 #include "debug/profiler.h"
 #include "debug/terminal.h"

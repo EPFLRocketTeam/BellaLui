@@ -87,23 +87,23 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 		}
 
 		if(EQUALS(0, "help")) {
-			respond("> BellaLui Terminal available commands:\n");
-			respond("> bridge: creates a I/O bridge with the given board\n");
-			respond("> flash: performs basic bulk operations on the flash memory\n");
-			respond("> help: shows this help page\n");
-			respond("> id: prints the shell's board ID\n");
-			respond("> input: redirects the shell's input to the specified input stream\n");
-			respond("> monitor: enables or disables a specific monitor\n");
-			respond("> output: redirects the specified output stream to the shell\n");
-			respond("> profiler: enables or disables the embedded profiler\n");
-			respond("> reset: performs a software reset of the avionics\n");
-			respond("> shutdown: shutdowns the avionics\n");
-			respond("> version: displays the current terminal version\n");
+			respond("> BellaLui Terminal available commands:\r\n");
+			respond("> bridge: creates a I/O bridge with the given board\r\n");
+			respond("> flash: performs basic bulk operations on the flash memory\r\n");
+			respond("> help: shows this help page\r\n");
+			respond("> id: prints the shell's board ID\r\n");
+			respond("> input: redirects the shell's input to the specified input stream\r\n");
+			respond("> monitor: enables or disables a specific monitor\r\n");
+			respond("> output: redirects the specified output stream to the shell\r\n");
+			respond("> profiler: enables or disables the embedded profiler\r\n");
+			respond("> reset: performs a software reset of the avionics\r\n");
+			respond("> shutdown: shutdowns the avionics\r\n");
+			respond("> version: displays the current terminal version\r\n");
 		} else if(EQUALS(0, "shutdown")) {
-			respond("> BellaLui shutting down immediately\n");
+			respond("> BellaLui shutting down immediately\r\n");
 			while(1);
 		} else if(EQUALS(0, "version")) {
-			respond("> BellaLui Terminal v1.0 by Arion Zimmermann\n");
+			respond("> BellaLui Terminal v1.0 by Arion Zimmermann\r\n");
 		} else if(EQUALS(0, "reset")) {
 			HAL_NVIC_SystemReset();
 		} else if(EQUALS(0, "time")) {
@@ -115,31 +115,31 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 			uint32_t board_id = get_board_id();
 
 			if(bridge < 0) {
-				respond("> Direct shell to board %u\n", board_id);
+				respond("> Direct shell to board %u\r\n", board_id);
 			} else {
-				respond("> Bridged shell to board %d\n", bridge);
+				respond("> Bridged shell to board %d\r\n", bridge);
 			}
 		} else if(EQUALS(0, "profiler")) {
 			if(EQUALS(1, "enable")) {
 				enable_profiler();
 				respond("\x1b[2J");
-				respond("> Profiler now enabled\n");
+				respond("> Profiler now enabled\r\n");
 			} else if(EQUALS(1, "disable")) {
 				disable_profiler();
 				respond("\x1b[2J");
-				respond("> Profiler now disabled\n");
+				respond("> Profiler now disabled\r\n");
 			} else {
-				respond("> Usage: profiler { enable | disable }\n");
+				respond("> Usage: profiler { enable | disable }\r\n");
 			}
 		} else if(EQUALS(0, "verbose")) {
 			if(EQUALS(1, "on")) {
 				verbose = true;
-				respond("> Verbose mode enabled\n");
+				respond("> Verbose mode enabled\r\n");
 			} else if(EQUALS(1, "off")) {
 				verbose = false;
-				respond("> Verbose mode disabled\n");
+				respond("> Verbose mode disabled\r\n");
 			} else {
-				respond("> Usage: verbose { on | off }\n");
+				respond("> Usage: verbose { on | off }\r\n");
 			}
 		} else if(EQUALS(0, "monitor")) {
 			if(EQUALS(1, "enable") && cmd->num_components >= 3) {
@@ -158,33 +158,33 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 
 				if(EQUALS(2, "sensor")) {
 					enable_monitor(SENSOR_MONITOR, location, refresh_rate);
-					respond("> Sensor monitor enabled with %dHz frequency\n", refresh_rate);
+					respond("> Sensor monitor enabled with %dHz frequency\r\n", refresh_rate);
 				} else if(EQUALS(2, "state")) {
 					enable_monitor(STATE_MONITOR, location, refresh_rate);
-					respond("> State monitor enabled with %dHz frequency\n", refresh_rate);
+					respond("> State monitor enabled with %dHz frequency\r\n", refresh_rate);
 				} else if(EQUALS(2, "kalman")) {
 					enable_monitor(KALMAN_MONITOR, location, refresh_rate);
-					respond("> Kalman monitor enabled with %dHz frequency\n", refresh_rate);
+					respond("> Kalman monitor enabled with %dHz frequency\r\n", refresh_rate);
 				} else if(EQUALS(2, "flash")) {
 					enable_monitor(FLASH_MONITOR, location, refresh_rate);
-					respond("> Flash monitor enabled with %dHz frequency\n", refresh_rate);
+					respond("> Flash monitor enabled with %dHz frequency\r\n", refresh_rate);
 				} else if(EQUALS(2, "can")) {
 					enable_monitor(CAN_MONITOR, location, refresh_rate);
-					respond("> CAN bus monitor enabled with %dHz frequency\n", refresh_rate);
+					respond("> CAN bus monitor enabled with %dHz frequency\r\n", refresh_rate);
 				} else if(EQUALS(2, "telemetry")) {
 					enable_monitor(TELEMETRY_MONITOR, location, refresh_rate);
-					respond("> Telemetry monitor enabled with %dHz frequency\n", refresh_rate);
+					respond("> Telemetry monitor enabled with %dHz frequency\r\n", refresh_rate);
 				} else if(EQUALS(2, "gps")) {
 					enable_monitor(GPS_MONITOR, location, refresh_rate);
-					respond("> GPS monitor enabled with %dHz frequency\n", refresh_rate);
+					respond("> GPS monitor enabled with %dHz frequency\r\n", refresh_rate);
 				} else if(EQUALS(2, "airbrakes")) {
 					enable_monitor(AIRBRAKES_MONITOR, location, refresh_rate);
-					respond("> Airbrakes monitor enabled with %dHz frequency\n", refresh_rate);
+					respond("> Airbrakes monitor enabled with %dHz frequency\r\n", refresh_rate);
 				} else if(EQUALS(2, "propulsion")) {
 					enable_monitor(PROPULSION_MONITOR, location, refresh_rate);
-					respond("> Propulsion monitor enabled with %dHz frequency\n", refresh_rate);
+					respond("> Propulsion monitor enabled with %dHz frequency\r\n", refresh_rate);
 				} else {
-					respond("> Usage: monitor enable { sensor | state | kalman | flash | can | telemetry | airbrakes } location [refresh rate; default: 1Hz]\n");
+					respond("> Usage: monitor enable { sensor | state | kalman | flash | can | telemetry | airbrakes } location [refresh rate; default: 1Hz]\r\n");
 				}
 			} else if(EQUALS(1, "disable") && cmd->num_components == 3) {
 				respond("\x1b[2J");

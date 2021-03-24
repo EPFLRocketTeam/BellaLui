@@ -57,7 +57,7 @@ void TK_sensor_acquisition(const void *argument) {
 			led_set_TK_rgb(led_accelerometer, 0x00, 0xFF, 0x00);
 		} else {
 			imu.reset();
-			rocket_log("%s ceased functioning\n", imu.name());
+			rocket_log("%s ceased functioning\r\n", imu.name());
 			led_set_TK_rgb(led_accelerometer, 0xFF, 0x00, 0x00);
 		}
 		end_profiler();
@@ -68,7 +68,7 @@ void TK_sensor_acquisition(const void *argument) {
 			led_set_TK_rgb(led_barometer, 0x00, 0xFF, 0x00);
 		} else {
 			barometer.reset();
-			rocket_log("%s ceased functioning\n", barometer.name());
+			rocket_log("%s ceased functioning\r\n", barometer.name());
 			led_set_TK_rgb(led_barometer, 0xFF, 0x00, 0x00);
 		}
 		end_profiler();
@@ -93,16 +93,16 @@ void TK_sensor_acquisition(const void *argument) {
 
 
 		if(enter_monitor(SENSOR_MONITOR)) {
-			rocket_log(" Excluded barometer outputs: %d\x1b[K\n", barometer.getExcludedCount());
-			rocket_log(" Excluded accelerometer outputs: %d\x1b[K\n", imu.getExcludedCount());
-			rocket_log(" Temperature: %d [m°C]\x1b[K\n", (uint32_t) (barometerData.temperature * 10));
-			rocket_log(" Pressure: %d [Pa]\x1b[K\n", (uint32_t) (barometerData.pressure));
-			rocket_log(" Acceleration X: %d [mg]\x1b[K\n", (uint32_t) (imuData.accel.x));
-			rocket_log(" Acceleration Y: %d [mg]\x1b[K\n", (uint32_t) (imuData.accel.y));
-			rocket_log(" Acceleration Z: %d [mg]\x1b[K\n", (uint32_t) (imuData.accel.z));
-			rocket_log(" Rotation X: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * imuData.gyro.x));
-			rocket_log(" Rotation Y: %d [mrad/s]\x1b[K\n", (uint32_t) (1000 * imuData.gyro.y));
-			rocket_log(" Rotation Z: %d [mrad/s]\x1b[K\n\x1b[K\n", (uint32_t) (1000 * imuData.gyro.z));
+			rocket_log(" Excluded barometer outputs: %d\x1b[K\r\n", barometer.getExcludedCount());
+			rocket_log(" Excluded accelerometer outputs: %d\x1b[K\r\n", imu.getExcludedCount());
+			rocket_log(" Temperature: %d [m°C]\x1b[K\r\n", (uint32_t) (barometerData.temperature * 10));
+			rocket_log(" Pressure: %d [Pa]\x1b[K\r\n", (uint32_t) (barometerData.pressure));
+			rocket_log(" Acceleration X: %d [mg]\x1b[K\r\n", (uint32_t) (imuData.accel.x));
+			rocket_log(" Acceleration Y: %d [mg]\x1b[K\r\n", (uint32_t) (imuData.accel.y));
+			rocket_log(" Acceleration Z: %d [mg]\x1b[K\r\n", (uint32_t) (imuData.accel.z));
+			rocket_log(" Rotation X: %d [mrad/s]\x1b[K\r\n", (uint32_t) (1000 * imuData.gyro.x));
+			rocket_log(" Rotation Y: %d [mrad/s]\x1b[K\r\n", (uint32_t) (1000 * imuData.gyro.y));
+			rocket_log(" Rotation Z: %d [mrad/s]\x1b[K\r\n\x1b[K\r\n", (uint32_t) (1000 * imuData.gyro.z));
 
 			exit_monitor(SENSOR_MONITOR);
 		}

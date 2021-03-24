@@ -21,13 +21,13 @@ typedef float float32_t;
 #include "debug/monitor.h"
 #include "telemetry/telemetry_sending.h"
 #include "airbrakes/airbrake.h"
-#include <sensors_old/sensor_board.h>
 #include "misc/datastructs.h"
 #include <misc/common.h>
 #include "storage/flash_logging.h"
 #include "debug/console.h"
 #include "storage/flash_logging.h"
 #include "debug/terminal.h"
+#include <misc/rocket_constants.h>
 
 
 #define BUFFER_SIZE 128
@@ -43,6 +43,10 @@ float kalman_z  = 0;
 float kalman_vz = 0;
 int32_t ab_angle = 42;
 
+
+float altitudeFromPressure(float pressure_hPa) {
+	return 44330 * (1.0 - pow (pressure_hPa / ADJUSTED_SEA_LEVEL_PRESSURE, 0.1903));
+}
 
 // wrapper to avoid fatal crashes when implementing redundancy
 int board2Idx(uint32_t board) {

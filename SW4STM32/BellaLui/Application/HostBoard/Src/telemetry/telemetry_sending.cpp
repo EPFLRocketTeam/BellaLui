@@ -12,7 +12,7 @@
 #include "telemetry/datagram_builder.h"
 #include "telemetry/telemetry_protocol.h"
 
-#include "telemetry/queue/AbstractMessageQueue.h"
+#include "telemetry/queue/queue.h"
 
 #include <Embedded/system.h>
 #include <Embedded/can.h>

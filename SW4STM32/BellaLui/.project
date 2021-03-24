@@ -19,11 +19,12 @@
 		</buildCommand>
 	</buildSpec>
 	<natures>
+		<nature>com.st.stm32cube.ide.mcu.MCUProjectNature</nature>
 		<nature>org.eclipse.cdt.core.cnature</nature>
-		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
-		<nature>fr.ac6.mcu.ide.core.MCUProjectNature</nature>
 		<nature>org.eclipse.cdt.core.ccnature</nature>
+		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
+		<nature>com.st.stm32cube.ide.mcu.MCUSW4STM32ConvertedProjectNature</nature>
 	</natures>
 	<linkedResources>
 		<link>
@@ -312,11 +313,6 @@
 			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/spi.c</locationURI>
 		</link>
 		<link>
-			<name>Application/User/Core/tim.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/tim.c</locationURI>
-		</link>
-		<link>
 			<name>Application/User/Core/stm32f4xx_hal_msp.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/stm32f4xx_hal_msp.c</locationURI>
@@ -330,6 +326,11 @@
 			<name>Application/User/Core/stm32f4xx_it.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/stm32f4xx_it.c</locationURI>
+		</link>
+		<link>
+			<name>Application/User/Core/tim.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Core/Src/tim.c</locationURI>
 		</link>
 		<link>
 			<name>Application/User/Core/usart.c</name>
