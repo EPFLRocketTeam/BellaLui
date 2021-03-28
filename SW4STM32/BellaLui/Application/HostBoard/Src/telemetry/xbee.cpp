@@ -188,8 +188,11 @@ void sendData(uint8_t *txData, uint16_t txDataSize) {
 	if(currentXbeeTxBufPos + txDataSize < XBEE_PAYLOAD_MAX_SIZE) {
 		addToBuffer(txData, txDataSize);
 	}
-	// send the XBee frame if there remains less than 20 bytes available in the txDataBuffer
+	/*// send the XBee frame if there remains less than 20 bytes available in the txDataBuffer
 	if(XBEE_PAYLOAD_MAX_SIZE - currentXbeeTxBufPos < 20) {
+		sendXbeeFrame();
+	}*/
+	if(currentXbeeTxBufPos > 0) {
 		sendXbeeFrame();
 	}
 }
