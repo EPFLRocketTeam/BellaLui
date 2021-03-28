@@ -117,9 +117,9 @@ bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
 bool handlePropulsionData(uint32_t timestamp, PropulsionData* data) {
 	if(enter_monitor(PROPULSION_MONITOR)) {
 		rocket_log(" Status: %x\x1b[K\n", data->status);
-		rocket_log(" Temperature 1: %d\x1b[K\n", 100 * (int32_t) data->temperature1);
-		rocket_log(" Temperature 2: %d [m°C]\x1b[K\n", 100 * (int32_t) data->temperature2);
-		rocket_log(" Temperature 3: %d [m°C]\x1b[K\n", 100 * (int32_t) data->temperature3);
+		rocket_log(" Temperature 1: %d\x1b[K\n", 100 * (int16_t) data->temperature1);
+		rocket_log(" Temperature 2: %d [m°C]\x1b[K\n", 100 * (int16_t) data->temperature2);
+		rocket_log(" Temperature 3: %d [m°C]\x1b[K\n", 100 * (int16_t) data->temperature3);
 		rocket_log(" Pressure 1: %d [mBar]\x1b[K\n", (int32_t) data->pressure1);
 		rocket_log(" Pressure 2: %d [mBar]\x1b[K\n", (int32_t) data->pressure1);
 		rocket_log(" Motor position: %d [mdeg]\x1b[K\n", 100 * (int32_t) data->motor_position);
