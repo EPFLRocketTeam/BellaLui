@@ -76,6 +76,9 @@ bool UnbiasedSensor<T>::load() {
 		status |= this->sensors[i]->load();
 	}
 
+	if(status)
+		this->ready = true;
+
 	return status;
 }
 
@@ -87,11 +90,17 @@ bool UnbiasedSensor<T>::unload() {
 		status |= this->sensors[i]->unload();
 	}
 
+	if(status)
+		this->ready = false;
+
 	return status;
 }
 
 template<class T>
 bool UnbiasedSensor<T>::fetch(T* data) {
+	if(!this->ready)
+		return false;
+
 	bool status = false;
 
 	for(uint8_t i = 0; i < count; i++) {

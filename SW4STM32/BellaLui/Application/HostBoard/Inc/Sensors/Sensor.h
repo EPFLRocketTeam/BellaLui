@@ -16,7 +16,7 @@
 template<class T>
 class Sensor {
 public:
-	Sensor(const char* identifier) : identifier(identifier) {}
+	Sensor(const char* identifier) : ready(false), identifier(identifier) {}
 	virtual ~Sensor() {};
 	virtual bool load() = 0;
 	virtual bool unload() = 0;

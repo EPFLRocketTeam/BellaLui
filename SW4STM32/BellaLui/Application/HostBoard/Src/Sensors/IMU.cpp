@@ -13,7 +13,7 @@
 
 
 
-IMU::IMU(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver), ready(false) {
+IMU::IMU(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver) {
 	this->dev.dev_addr = address;
 	this->dev.bus_read = driver->readFunc;
 	this->dev.bus_write = driver->writeFunc;

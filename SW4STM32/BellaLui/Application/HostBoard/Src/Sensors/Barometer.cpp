@@ -7,7 +7,7 @@
 
 #include <Sensors/Barometer.h>
 
-Barometer::Barometer(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver), ready(false) {
+Barometer::Barometer(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver) {
 	this->dev.dev_id = address;
 	this->dev.intf = BME280_I2C_INTF;
 	this->dev.read = (int8_t(*)(uint8_t, uint8_t, uint8_t*, uint16_t)) driver->readFunc; // Casting the last argument to uint16_t is unsafe

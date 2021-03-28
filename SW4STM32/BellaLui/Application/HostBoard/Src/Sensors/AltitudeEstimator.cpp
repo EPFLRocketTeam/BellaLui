@@ -81,14 +81,19 @@ AltitudeEstimator::AltitudeEstimator(const char* identifier, Sensor<BarometerDat
 }
 
 bool AltitudeEstimator::load() {
+	ready = true;
 	return true;
 }
 
 bool AltitudeEstimator::unload() {
+	ready = false;
 	return true;
 }
 
 bool AltitudeEstimator::fetch(AltitudeData* data) {
+	if(!ready)
+		return false;
+
 	BarometerData barodata;
 
 	if(barometer->fetch(&barodata)) {
