@@ -277,11 +277,11 @@ void TK_can_reader() {
 				// new_ab = true;
 				break;
 			case DATA_ID_PROP_PRESSURE1:
-				prop_data.pressure1 = msg.data & 0xFFFF;
+				prop_data.pressure1 = (int32_t) msg.data;
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_PRESSURE2:
-				prop_data.pressure2 = msg.data & 0xFFFF;
+				prop_data.pressure2 = (int32_t) msg.data;
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_TEMPERATURE1:
@@ -297,11 +297,11 @@ void TK_can_reader() {
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_STATUS:
-				prop_data.status = msg.data & 0xFFFF;
+				prop_data.status = msg.data;
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_MOTOR_POSITION:
-				prop_data.motor_position = (int16_t) (msg.data & 0xFFFF);
+				prop_data.motor_position = (int32_t) msg.data;
 				new_prop_data = true;
 				break;
 			case DATA_ID_SHELL_CONTROL:
