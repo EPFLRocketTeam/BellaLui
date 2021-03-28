@@ -89,7 +89,7 @@ bool IMU::load() {
 
 	ready = true;
 
-	return BNO055_SUCCESS;
+	return true;
 }
 
 bool IMU::unload() {

@@ -311,13 +311,13 @@ void TK_can_reader() {
 				if(shell_command == SHELL_BRIDGE_CREATE) {
 					shell_bridge(shell_payload & 0xF);
 					can_setFrame(SHELL_ACK, DATA_ID_SHELL_CONTROL, HAL_GetTick());
-					rocket_log("\n\nBellaLui Terminal for board %u\n\n", get_board_id());
+					rocket_log("\r\n\r\nBellaLui Terminal for board %u\r\n\r\n", get_board_id());
 				} else if(shell_command == SHELL_BRIDGE_DESTROY) {
 					shell_bridge(-1);
 				} else if(shell_command == SHELL_ACK) {
-					rocket_direct_transmit((uint8_t*) "> Connected to remote shell\n", 28);
+					rocket_direct_transmit((uint8_t*) "> Connected to remote shell\r\n", 28);
 				} else if(shell_command == SHELL_ERR) {
-					rocket_direct_transmit((uint8_t*) "> Failed to connect to remote shell\n", 36);
+					rocket_direct_transmit((uint8_t*) "> Failed to connect to remote shell\r\n", 36);
 				}
 
 				break;
@@ -331,7 +331,7 @@ void TK_can_reader() {
 				rocket_direct_transmit((uint8_t*) &msg.data, 4);
 				break;
 			default:
-				rocket_log("Unhandled can frame ID %d\n", msg.id);
+				rocket_log("Unhandled can frame ID %d\r\n", msg.id);
 			}
 		}
 

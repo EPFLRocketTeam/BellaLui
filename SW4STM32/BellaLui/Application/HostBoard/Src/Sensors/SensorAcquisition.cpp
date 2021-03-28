@@ -22,7 +22,7 @@
 #include <stdint.h>
 
 void TK_sensor_acquisition(const void *argument) {
-	uint16_t retry_counter = 1;
+	uint16_t retry_counter = 0;
 
 	uint8_t led_barometer = led_register_TK();
 	uint8_t led_accelerometer = led_register_TK();
@@ -63,13 +63,12 @@ void TK_sensor_acquisition(const void *argument) {
 			altitude.load();
 		}
 
-		retry_counter = (retry_counter + 1) % 100; // Retry loading every second
 
 
 		start_profiler(1);
 		if(imu.fetch(&imuData)) {
 			led_set_TK_rgb(led_accelerometer, 0x00, 0xFF, 0x00);
-		} else {
+		} else if(retry_counter == 0) {
 			imu.reset();
 			rocket_log("%s ceased functioning\r\n", imu.name());
 			led_set_TK_rgb(led_accelerometer, 0xFF, 0x00, 0x00);
@@ -80,12 +79,15 @@ void TK_sensor_acquisition(const void *argument) {
 		start_profiler(2);
 		if(altitude.fetch(&altitudeData)) {
 			led_set_TK_rgb(led_barometer, 0x00, 0xFF, 0x00);
-		} else {
+		} else if(retry_counter == 0) {
 			altitude.reset();
 			rocket_log("%s ceased functioning\r\n", altitude.name());
 			led_set_TK_rgb(led_barometer, 0xFF, 0x00, 0x00);
 		}
 		end_profiler();
+
+
+		retry_counter = (retry_counter + 1) % 100; // Retry loading every second
 
 
 		start_profiler(3);
