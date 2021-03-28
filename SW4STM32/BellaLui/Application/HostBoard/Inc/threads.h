@@ -12,6 +12,7 @@
 #define LED
 #define SENSOR_BOARD
 
+
 #ifdef GPS_BOARD
 #define CAN_ID CAN_ID_GPS_BOARD
 #define BOARD_LED_R (0)

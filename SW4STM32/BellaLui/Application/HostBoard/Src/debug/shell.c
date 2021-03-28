@@ -96,7 +96,7 @@ void shell_receive_byte(char cbuf, int32_t bridge) {
 		return;
 	}
 
-	if(cbuf != '\n' && command_index < CMD_BUFFER_SIZE) {
+	if(cbuf != '\r' && cbuf != '\n' && command_index < CMD_BUFFER_SIZE) {
 		command_buffer[command_index++] = cbuf;
 
 		if(cbuf == ' ') {

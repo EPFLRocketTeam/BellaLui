@@ -84,7 +84,7 @@ bool UnbiasedSensor<T>::unload() {
 	bool status = false;
 
 	for(uint8_t i = 0; i < count; i++) {
-		status |= this->sensors[i]->reset();
+		status |= this->sensors[i]->unload();
 	}
 
 	return status;

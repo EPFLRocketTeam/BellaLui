@@ -23,6 +23,9 @@ public:
 	virtual bool fetch(T* data) = 0;
 	bool reset() { return unload() && load(); }
 	const char* name() { return identifier; }
+	bool isReady() { return ready; }
+protected:
+	bool ready;
 private:
 	const char* identifier;
 };

@@ -40,12 +40,12 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 		if(has_io_mode(IO_INPUT & IO_DIRECT)) {
 			if(EQUALS(0, "exit")) {
 				disable_io_mode(IO_INPUT & IO_DIRECT); // Disables direct input mode
-				respond("> Board IO mode set to 0x%08x\n", get_io_mode());
+				respond("> Board IO mode set to 0x%08x\r\n", get_io_mode());
 			} else if(has_io_mode(IO_INPUT & IO_DIRECT & IO_CAN)) {
 				CAN_msg message;
 
 				if(cmd->num_components < 2) {
-					respond("> Format: id < float > data <timestamp>\n");
+					respond("> Format: id < float > data <timestamp>\r\n");
 					return;
 				}
 
@@ -191,52 +191,52 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 
 				if(EQUALS(2, "sensor")) {
 					disable_monitor(SENSOR_MONITOR);
-					respond("> Sensor monitor disabled\n");
+					respond("> Sensor monitor disabled\r\n");
 				} else if(EQUALS(2, "state")) {
 					disable_monitor(STATE_MONITOR);
-					respond("> State monitor disabled\n");
+					respond("> State monitor disabled\r\n");
 				} else if(EQUALS(2, "kalman")) {
 					disable_monitor(KALMAN_MONITOR);
-					respond("> Kalman monitor disabled\n");
+					respond("> Kalman monitor disabled\r\n");
 				} else if(EQUALS(2, "flash")) {
 					disable_monitor(FLASH_MONITOR);
-					respond("> Flash monitor disabled\n");
+					respond("> Flash monitor disabled\r\n");
 				} else if(EQUALS(2, "can")) {
 					disable_monitor(CAN_MONITOR);
-					respond("> CAN bus monitor disabled\n");
+					respond("> CAN bus monitor disabled\r\n");
 				} else if(EQUALS(2, "telemetry")) {
 					disable_monitor(TELEMETRY_MONITOR);
-					respond("> Telemetry monitor disabled\n");
+					respond("> Telemetry monitor disabled\r\n");
 				} else if(EQUALS(2, "gps")) {
 					disable_monitor(GPS_MONITOR);
-					respond("> GPS monitor disabled\n");
+					respond("> GPS monitor disabled\r\n");
 				} else if(EQUALS(2, "airbrakes")) {
 					disable_monitor(AIRBRAKES_MONITOR);
-					respond("> Airbrakes monitor disabled\n");
+					respond("> Airbrakes monitor disabled\r\n");
 				} else if(EQUALS(2, "propulsion")) {
 					disable_monitor(PROPULSION_MONITOR);
-					respond("> Propulsion monitor disabled\n");
+					respond("> Propulsion monitor disabled\r\n");
 				} else {
-					respond("> Usage: monitor disable { sensor | state | kalman | flash | can | telemetry | airbrakes }\n");
+					respond("> Usage: monitor disable { sensor | state | kalman | flash | can | telemetry | airbrakes }\r\n");
 				}
 			} else {
-				respond("> Usage: monitor { enable | disable } { sensor | state | kalman | flash | can | telemetry | airbrakes } [location] [refresh rate; default: 10]\n");
+				respond("> Usage: monitor { enable | disable } { sensor | state | kalman | flash | can | telemetry | airbrakes } [location] [refresh rate; default: 10]\r\n");
 			}
 		} else if(EQUALS(0, "bridge")) {
 			if(EQUALS(1, "create")) {
 				if(cmd->num_components > 2) {
 					uint8_t target = atoi(cmd->components[2].component);
 					can_setFrame(SHELL_BRIDGE_CREATE | target, DATA_ID_SHELL_CONTROL, HAL_GetTick());
-					respond("> Creating bridge with board %u...\n", target);
+					respond("> Creating bridge with board %u...\r\n", target);
 				} else {
-					respond("> Usage: bridge create target\n");
+					respond("> Usage: bridge create target\r\n");
 				}
 			} else if(EQUALS(1, "destroy")) {
 				uint8_t target = get_board_id();
 				can_setFrame(SHELL_BRIDGE_DESTROY | target, DATA_ID_SHELL_CONTROL, HAL_GetTick());
-				respond("> Bridge with board %u destroyed\n", target);
+				respond("> Bridge with board %u destroyed\r\n", target);
 			} else {
-				respond("> Usage: bridge { create | destroy } [target]\n");
+				respond("> Usage: bridge { create | destroy } [target]\r\n");
 			}
 		} else if(EQUALS(0, "output")) {
 
@@ -247,8 +247,8 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 			} else if(EQUALS(1, "telemetry")) {
 				mask = IO_OUTPUT & IO_TELEMETRY;
 			} else {
-				respond("> IO target not recognised.\n");
-				respond("> Usage: output { can | telemetry } { auto, pipe, direct }\n");
+				respond("> IO target not recognised.\r\n");
+				respond("> Usage: output { can | telemetry } { auto, pipe, direct }\r\n");
 				return;
 			}
 
@@ -263,12 +263,12 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 			if(EQUALS(2, "pipe") || EQUALS(3, "pipe") || EQUALS(4, "pipe")) {
 				mode |= IO_PIPE;
 
-				respond("> If pipe mode enabled, reset the board to return to the standard terminal.\n");
+				respond("> If pipe mode enabled, reset the board to return to the standard terminal.\r\n");
 
 				if(EQUALS(1, "telemetry")) {
 					UART_HandleTypeDef* huart = get_console_uart();
 					xbee_change_uart(huart);
-					respond("> Warning: Telemetry DUPLEX I/O pipe enabled.\n");
+					respond("> Warning: Telemetry DUPLEX I/O pipe enabled.\r\n");
 				}
 			}
 
@@ -278,7 +278,7 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 
 			enable_io_mode(mask & mode);
 
-			respond("> Board IO mode set to 0x%08x\n", get_io_mode());
+			respond("> Board IO mode set to 0x%08x\r\n", get_io_mode());
 		} else if(EQUALS(0, "input")) {
 
 			uint32_t mask = 0;
@@ -288,8 +288,8 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 			} else if(EQUALS(1, "telemetry")) {
 				mask = IO_INPUT & IO_TELEMETRY;
 			} else {
-				respond("> IO target not recognised.\n");
-				respond("> Usage: input { can | telemetry } { auto, pipe, direct }\n");
+				respond("> IO target not recognised.\r\n");
+				respond("> Usage: input { can | telemetry } { auto, pipe, direct }\r\n");
 				return;
 			}
 
@@ -304,45 +304,45 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 			if(EQUALS(2, "pipe") || EQUALS(3, "pipe") || EQUALS(4, "pipe")) {
 				mode |= IO_PIPE;
 
-				respond("> If pipe mode enabled, reset the board to return to the standard terminal.\n");
+				respond("> If pipe mode enabled, reset the board to return to the standard terminal.\r\n");
 
 				if(EQUALS(1, "telemetry")) {
 					UART_HandleTypeDef* huart = get_console_uart();
 					xbee_change_uart(huart);
-					respond("> Warning: Telemetry DUPLEX I/O pipe enabled.\n");
+					respond("> Warning: Telemetry DUPLEX I/O pipe enabled.\r\n");
 				}
 			}
 
 			if(EQUALS(2, "direct") || EQUALS(3, "direct") || EQUALS(4, "direct")) {
 				mode |= IO_DIRECT;
-				respond("> Direct input mode entered. Type 'exit' to return to the standard terminal.\n");
+				respond("> Direct input mode entered. Type 'exit' to return to the standard terminal.\r\n");
 			}
 
 			enable_io_mode(mask & mode);
 
-			respond("> Board IO mode set to 0x%08x\n", get_io_mode());
+			respond("> Board IO mode set to 0x%08x\r\n", get_io_mode());
 		} else if(EQUALS(0, "flash")) {
 			if(EQUALS(1, "dump")) {
 				on_fullsd_dump_request();
-				respond("> Flash dump requested\n");
+				respond("> Flash dump requested\r\n");
 			} else if(EQUALS(1, "erase")) {
 				respond("> Erasing flash memory... ");
 				flash_erase_all();
-				respond("done\nPlease reset the board to format the filesystem.\n");
+				respond("done\nPlease reset the board to format the filesystem.\r\n");
 			} else if(EQUALS(1, "download")) {
 				for(uint8_t i = 2; i < cmd->num_components; i++) {
 					uint16_t block = atoi(cmd->components[i].component);
 
 					if(block < 4096) {
-						respond("> Upload of block %d requested\n", block);
+						respond("> Upload of block %d requested\r\n", block);
 						on_upload_request(block);
 					}
 				}
 			} else {
-				respond("> Usage: flash { dump | erase | download } [blocks...]\n");
+				respond("> Usage: flash { dump | erase | download } [blocks...]\r\n");
 			}
 		} else {
-			respond("> %.*s: command not found\n", cmd->components[0].length, cmd->components[0].component);
+			respond("> %.*s: command not found\r\n", cmd->components[0].length, cmd->components[0].component);
 		}
 	}
 }

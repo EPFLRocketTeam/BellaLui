@@ -92,6 +92,8 @@ bool AltitudeEstimator::fetch(AltitudeData* data) {
 	BarometerData barodata;
 
 	if(barometer->fetch(&barodata)) {
+		data->pressure = barodata.pressure;
+		data->temperature = barodata.temperature;
 		data->altitude = altitudeComputation(barodata.pressure, barodata.temperature);
 		return true;
 	} else {

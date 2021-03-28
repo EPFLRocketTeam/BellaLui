@@ -13,7 +13,7 @@
 #include <fmpi2c.h>
 #include <cmsis_os.h>
 
-typedef int8_t (*IOFunc)(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
+typedef int8_t (*IOFunc)(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t len);
 
 class I2CDriver {
 public:
@@ -30,8 +30,8 @@ class StandardI2CDriver : public I2CDriver {
 public:
 	StandardI2CDriver();
 
-	static int8_t read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
-	static int8_t write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
+	static int8_t read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t len);
+	static int8_t write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t len);
 	void reset();
 };
 
@@ -39,8 +39,8 @@ class FastI2CDriver : public I2CDriver {
 public:
 	FastI2CDriver();
 
-	static int8_t read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
-	static int8_t write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
+	static int8_t read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t len);
+	static int8_t write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t len);
 	void reset();
 };
 

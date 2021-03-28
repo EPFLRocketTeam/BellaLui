@@ -32,6 +32,8 @@ struct ThrustData {
 
 
 struct AltitudeData {
+	float pressure;
+	float temperature;
 	float altitude;
 };
 

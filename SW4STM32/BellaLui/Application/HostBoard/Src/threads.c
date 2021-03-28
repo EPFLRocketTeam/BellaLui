@@ -101,11 +101,11 @@ void create_threads() {
 	  rocket_boot_log("Telemetry reception thread started.\n");
 	#endif
 
-	#ifdef KALMAN
+	/*#ifdef KALMAN
 	  osThreadDef(5kalman, TK_kalman, osPriorityNormal, 0, 2048); // Kalman needs big stack
 	  kalmanHandle = osThreadCreate(osThread(5kalman), NULL);
 	  rocket_boot_log("Kalman thread started.\n");
-	#endif
+	#endif*/
 
 	#ifdef ROCKET_FSM
 	  osThreadDef(6rocket_fsm, TK_state_machine, osPriorityNormal, 0, 256);

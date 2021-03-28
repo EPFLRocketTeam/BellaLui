@@ -12,7 +12,7 @@
 
 StandardI2CDriver::StandardI2CDriver() : I2CDriver(&StandardI2CDriver::read, &StandardI2CDriver::write) {}
 
-int8_t StandardI2CDriver::read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len) {
+int8_t StandardI2CDriver::read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t len) {
 	int8_t rslt = 0;
 
 	vTaskSuspendAll();
@@ -24,7 +24,7 @@ int8_t StandardI2CDriver::read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, 
 	return rslt;
 }
 
-int8_t StandardI2CDriver::write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len) {
+int8_t StandardI2CDriver::write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t len) {
 	int8_t rslt = 0;
 
 	vTaskSuspendAll();

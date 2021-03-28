@@ -7,11 +7,11 @@
 
 #include <Sensors/Barometer.h>
 
-Barometer::Barometer(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver) {
+Barometer::Barometer(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver), ready(false) {
 	this->dev.dev_id = address;
 	this->dev.intf = BME280_I2C_INTF;
-	this->dev.read = driver->readFunc;
-	this->dev.write = driver->writeFunc;
+	this->dev.read = (int8_t(*)(uint8_t, uint8_t, uint8_t*, uint16_t)) driver->readFunc; // Casting the last argument to uint16_t is unsafe
+	this->dev.write = (int8_t(*)(uint8_t, uint8_t, uint8_t*, uint16_t)) driver->writeFunc; // Casting the last argument to uint16_t is unsafe
 	this->dev.delay_ms = &driver->wait;
 }
 
@@ -52,15 +52,24 @@ bool Barometer::load() {
 		return false;
 	}
 
+	ready = true;
+
 	return true;
 }
 
 bool Barometer::unload() {
 	this->driver->reset();
+
+	ready = false;
+
 	return true;
 }
 
 bool Barometer::fetch(BarometerData* data) {
+	if(!ready) {
+		return false;
+	}
+
 	static struct bme280_data raw_data;
 
 	int8_t result = bme280_get_sensor_data(BME280_TEMP | BME280_PRESS, &raw_data, &dev);

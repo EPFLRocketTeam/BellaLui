@@ -10,6 +10,7 @@
 #include "Sensors/Barometer.h"
 #include "Sensors/IMU.h"
 #include "Sensors/I2CDriver.h"
+#include "Sensors/AltitudeEstimator.h"
 
 #include "debug/profiler.h"
 #include "debug/led.h"
@@ -41,15 +42,28 @@ void TK_sensor_acquisition(const void *argument) {
 
 	UnbiasedIMU imu("Unbiased IMU", {&imu1, &imu2, &imu3, &imu4});
 	UnbiasedBarometer barometer("Unbiased Barometer", {&barometer1, &barometer2, &barometer3, &barometer4});
+	AltitudeEstimator altitude("Altitude Estimator", &barometer);
 
-	imu.load();
-	barometer.load();
-
+	AltitudeData altitudeData;
 	IMUData imuData;
-	BarometerData barometerData;
 
 	while(true) {
 		start_profiler(1); // Whole thread profiling
+
+
+		if(!imu.isReady() && retry_counter == 0) {
+			imu.load();
+		}
+
+		if(!barometer.isReady() && retry_counter == 0) {
+			barometer.load();
+		}
+
+		if(!altitude.isReady() && retry_counter == 0) {
+			altitude.load();
+		}
+
+		retry_counter = (retry_counter + 1) % 100; // Retry loading every second
 
 
 		start_profiler(1);
@@ -64,11 +78,11 @@ void TK_sensor_acquisition(const void *argument) {
 
 
 		start_profiler(2);
-		if(!barometer.fetch(&barometerData)) {
+		if(altitude.fetch(&altitudeData)) {
 			led_set_TK_rgb(led_barometer, 0x00, 0xFF, 0x00);
 		} else {
-			barometer.reset();
-			rocket_log("%s ceased functioning\r\n", barometer.name());
+			altitude.reset();
+			rocket_log("%s ceased functioning\r\n", altitude.name());
 			led_set_TK_rgb(led_barometer, 0xFF, 0x00, 0x00);
 		}
 		end_profiler();
@@ -78,14 +92,15 @@ void TK_sensor_acquisition(const void *argument) {
 
 		uint32_t time = HAL_GetTick();
 
-		can_setFrame((int32_t) barometerData.temperature, DATA_ID_TEMPERATURE, time);
-		can_setFrame((int32_t) (barometerData.pressure * 100), DATA_ID_PRESSURE, time);
 		can_setFrame((int32_t) imuData.accel.x, DATA_ID_ACCELERATION_X, time);
 		can_setFrame((int32_t) imuData.accel.y, DATA_ID_ACCELERATION_Y, time);
 		can_setFrame((int32_t) imuData.accel.z, DATA_ID_ACCELERATION_Z, time);
 		can_setFrame((int32_t) (1000 * imuData.gyro.x), DATA_ID_GYRO_X, time);
 		can_setFrame((int32_t) (1000 * imuData.gyro.y), DATA_ID_GYRO_Y, time);
 		can_setFrame((int32_t) (1000 * imuData.gyro.z), DATA_ID_GYRO_Z, time);
+		can_setFrame((int32_t) altitudeData.temperature, DATA_ID_TEMPERATURE, time);
+		can_setFrame((int32_t) (altitudeData.pressure * 100), DATA_ID_PRESSURE, time);
+		can_setFrame((int32_t) (altitudeData.altitude), DATA_ID_KALMAN_Z, time);
 
 		end_profiler();
 
@@ -95,14 +110,15 @@ void TK_sensor_acquisition(const void *argument) {
 		if(enter_monitor(SENSOR_MONITOR)) {
 			rocket_log(" Excluded barometer outputs: %d\x1b[K\r\n", barometer.getExcludedCount());
 			rocket_log(" Excluded accelerometer outputs: %d\x1b[K\r\n", imu.getExcludedCount());
-			rocket_log(" Temperature: %d [m°C]\x1b[K\r\n", (uint32_t) (barometerData.temperature * 10));
-			rocket_log(" Pressure: %d [Pa]\x1b[K\r\n", (uint32_t) (barometerData.pressure));
+			rocket_log(" Temperature: %d [m°C]\x1b[K\r\n", (uint32_t) (altitudeData.temperature * 10));
+			rocket_log(" Pressure: %d [Pa]\x1b[K\r\n", (uint32_t) (altitudeData.pressure));
 			rocket_log(" Acceleration X: %d [mg]\x1b[K\r\n", (uint32_t) (imuData.accel.x));
 			rocket_log(" Acceleration Y: %d [mg]\x1b[K\r\n", (uint32_t) (imuData.accel.y));
 			rocket_log(" Acceleration Z: %d [mg]\x1b[K\r\n", (uint32_t) (imuData.accel.z));
 			rocket_log(" Rotation X: %d [mrad/s]\x1b[K\r\n", (uint32_t) (1000 * imuData.gyro.x));
 			rocket_log(" Rotation Y: %d [mrad/s]\x1b[K\r\n", (uint32_t) (1000 * imuData.gyro.y));
 			rocket_log(" Rotation Z: %d [mrad/s]\x1b[K\r\n\x1b[K\r\n", (uint32_t) (1000 * imuData.gyro.z));
+			rocket_log(" Altitude: %d [m]\x1b[K\r\n\x1b[K\r\n", (uint32_t) (altitudeData.altitude));
 
 			exit_monitor(SENSOR_MONITOR);
 		}

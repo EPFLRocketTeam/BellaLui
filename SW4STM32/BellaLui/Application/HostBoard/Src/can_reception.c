@@ -201,12 +201,12 @@ void TK_can_reader() {
 			}*/
 
 			if(is_verbose()) {
-				rocket_log("----- CAN RX frame begins -----\n");
-				rocket_log("Frame Source: %d\n", (uint32_t) msg.id_CAN);
-				rocket_log("Frame ID: %d\n", (uint32_t) msg.id);
-				rocket_log("Frame Timestamp: %d\n", (uint32_t) msg.timestamp);
-				rocket_log("Frame Data: %d\n", (uint32_t) msg.data);
-				rocket_log("----- CAN RX frame ends -----\n");
+				rocket_log("----- CAN RX frame begins -----\r\n");
+				rocket_log("Frame Source: %d\r\n", (uint32_t) msg.id_CAN);
+				rocket_log("Frame ID: %d\r\n", (uint32_t) msg.id);
+				rocket_log("Frame Timestamp: %d\r\n", (uint32_t) msg.timestamp);
+				rocket_log("Frame Data: %d\r\n", (uint32_t) msg.data);
+				rocket_log("----- CAN RX frame ends -----\r\n");
 			}
 
 
