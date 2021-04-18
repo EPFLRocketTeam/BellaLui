@@ -102,7 +102,7 @@ void TK_sensor_acquisition(const void *argument) {
 		can_setFrame((int32_t) (1000 * imuData.gyro.z), DATA_ID_GYRO_Z, time);
 		can_setFrame((int32_t) altitudeData.temperature, DATA_ID_TEMPERATURE, time);
 		can_setFrame((int32_t) (altitudeData.pressure * 100), DATA_ID_PRESSURE, time);
-		can_setFrame((int32_t) (altitudeData.altitude), DATA_ID_KALMAN_Z, time);
+		can_setFrame((int32_t) (altitudeData.altitude), DATA_ID_ALTITUDE, time);
 
 		end_profiler();
 
