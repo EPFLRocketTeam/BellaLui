@@ -15,8 +15,8 @@
 
 IMU::IMU(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver) {
 	this->dev.dev_addr = address;
-	this->dev.bus_read = driver->readFunc;
-	this->dev.bus_write = driver->writeFunc;
+	this->dev.bus_read = driver->readFunc8;
+	this->dev.bus_write = driver->writeFunc8;
 	this->dev.delay_msec = (void(*)(u32)) &driver->wait;
 }
 

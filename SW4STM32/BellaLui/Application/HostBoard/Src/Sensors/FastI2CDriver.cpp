@@ -10,9 +10,10 @@
 
 #define FMPI2C_TIMEOUT 3
 
-FastI2CDriver::FastI2CDriver() : I2CDriver(&FastI2CDriver::read, &FastI2CDriver::write) {}
+FastI2CDriver::FastI2CDriver()
+	: I2CDriver(&FastI2CDriver::read8, &FastI2CDriver::read16, &FastI2CDriver::write8, &FastI2CDriver::write16) {}
 
-int8_t FastI2CDriver::read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t len) {
+int8_t FastI2CDriver::read16(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len) {
 	int8_t rslt = 0;
 
 	vTaskSuspendAll();
@@ -24,7 +25,7 @@ int8_t FastI2CDriver::read(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint
 	return rslt;
 }
 
-int8_t FastI2CDriver::write(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint8_t len) {
+int8_t FastI2CDriver::write16(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len) {
 	int8_t rslt = 0;
 
 	vTaskSuspendAll();
