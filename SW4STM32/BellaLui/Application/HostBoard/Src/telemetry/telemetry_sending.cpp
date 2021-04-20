@@ -34,7 +34,7 @@ uint32_t last_state_update = 0;
 
 
 void registerSendQueue(AbstractMessageQueue<Telemetry_Message> *queue) {
-	msgQueue = (AbstractMessageQueue<Telemetry_Message>*) queue;
+	msgQueue = queue;
 }
 
 
