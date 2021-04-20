@@ -99,15 +99,16 @@ bool AltitudeEstimator::fetch(AltitudeData* data) {
 	if(barometer->fetch(&barodata)) {
 		data->pressure = barodata.pressure;
 		data->temperature = barodata.temperature;
-		data->altitude = altitudeComputation(barodata.pressure, barodata.temperature);
+		data->altitude = altitudeComputation(barodata.pressure, barodata.temperature * 0.01f);
 		return true;
 	} else {
 		return false;
 	}
 }
 
-float AltitudeEstimator::altitudeComputation(float raw_pressure, float raw_temperature)
-{
+#include "debug/console.h"
+
+float AltitudeEstimator::altitudeComputation(float raw_pressure, float raw_temperature) { // Temperature in °C, pressure can have any unit.
 	float altitude1;
 	float altitude2;
 	float temperature1;

@@ -22,7 +22,7 @@ typedef struct
 } CAN_msg;
 
 // Define all the data ID's
-#define DATA_ID_PRESSURE 0 // hPa
+#define DATA_ID_PRESSURE 0 // cPa
 #define DATA_ID_ACCELERATION_X 1 // milli-g
 #define DATA_ID_ACCELERATION_Y 2 // milli-g
 #define DATA_ID_ACCELERATION_Z 3 // milli-g
