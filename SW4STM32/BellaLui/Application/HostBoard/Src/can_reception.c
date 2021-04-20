@@ -276,6 +276,8 @@ void TK_can_reader() {
 				ab_angle = ((int32_t) msg.data); // keep in deg
 				// new_ab = true;
 				break;
+			case DATA_ID_ALTITUDE:
+				break;
 			case DATA_ID_PROP_PRESSURE1:
 				prop_data.pressure1 = (int32_t) msg.data;
 				new_prop_data = true;
