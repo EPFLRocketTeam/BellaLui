@@ -24,7 +24,7 @@ extern "C" {
 
 class IMU : public Sensor<IMUData> {
 public:
-	IMU(const char* identifier, I2CDriver* driver, uint8_t address);
+	IMU(const char* identifier, I2CDriver* driver, uint8_t address, bool flip);
 
 	bool load();
 	bool unload();
@@ -33,6 +33,7 @@ public:
 private:
 	I2CDriver* driver;
 	bno055_t dev;
+	bool flip;
 };
 
 #endif /* APPLICATION_HOSTBOARD_INC_SENSORS_IMU_H_ */

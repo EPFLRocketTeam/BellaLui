@@ -30,10 +30,10 @@ void TK_sensor_acquisition(const void *argument) {
 	StandardI2CDriver i2c;
 	FastI2CDriver fmpi2c;
 
-	IMU imu1("IMU 1", &i2c, BNO055_I2C_ADDR1);
-	IMU imu2("IMU 2", &i2c, BNO055_I2C_ADDR2);
-	IMU imu3("IMU 3", &fmpi2c, BNO055_I2C_ADDR1);
-	IMU imu4("IMU 4", &fmpi2c, BNO055_I2C_ADDR2);
+	IMU imu1("IMU 1", &i2c, BNO055_I2C_ADDR2, false);
+	IMU imu2("IMU 2", &i2c, BNO055_I2C_ADDR1, false);
+	IMU imu3("IMU 3", &fmpi2c, BNO055_I2C_ADDR1, true);
+	IMU imu4("IMU 4", &fmpi2c, BNO055_I2C_ADDR2, false);
 
 	Barometer barometer1("Barometer 1", &i2c, BME280_I2C_ADDR_PRIM);
 	Barometer barometer2("Barometer 2", &i2c, BME280_I2C_ADDR_SEC);
@@ -67,7 +67,7 @@ void TK_sensor_acquisition(const void *argument) {
 
 		start_profiler(1);
 		if(imu.fetch(&imuData)) {
-			led_set_TK_rgb(led_accelerometer, 0x00, 0xFF, 0x00);
+			led_set_TK_rgb(led_accelerometer, 0x00, 0xFF, 0xFF);
 		} else if(retry_counter == 0) {
 			imu.reset();
 			rocket_log("%s ceased functioning\r\n", imu.name());
@@ -78,7 +78,7 @@ void TK_sensor_acquisition(const void *argument) {
 
 		start_profiler(2);
 		if(altitude.fetch(&altitudeData)) {
-			led_set_TK_rgb(led_barometer, 0x00, 0xFF, 0x00);
+			led_set_TK_rgb(led_barometer, 0x00, 0xFF, 0xFF);
 		} else if(retry_counter == 0) {
 			altitude.reset();
 			rocket_log("%s ceased functioning\r\n", altitude.name());

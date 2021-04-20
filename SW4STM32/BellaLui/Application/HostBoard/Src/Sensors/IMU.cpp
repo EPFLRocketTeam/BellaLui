@@ -13,7 +13,7 @@
 
 
 
-IMU::IMU(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver) {
+IMU::IMU(const char* identifier, I2CDriver* driver, uint8_t address, bool flip) : Sensor(identifier), driver(driver), flip(flip) {
 	this->dev.dev_addr = address;
 	this->dev.bus_read = driver->readFunc8;
 	this->dev.bus_write = driver->writeFunc8;
@@ -85,6 +85,20 @@ bool IMU::load() {
 	if(result != BNO055_SUCCESS) {
 		// rocket_log("Accelerometer %s failed to set default write page ID with error code %d\n", name(), result);
 		return false;
+	}
+
+	// AXIS REMAPPING
+	if(flip) {
+		result = bno055_set_remap_y_sign(BNO055_REMAP_AXIS_NEGATIVE);
+		if(result != BNO055_SUCCESS) {
+			// rocket_log("Accelerometer %s failed to remap Y-axis with error code %d\n", name(), result);
+			return false;
+		}
+		result = bno055_set_remap_z_sign(BNO055_REMAP_AXIS_NEGATIVE);
+		if(result != BNO055_SUCCESS) {
+			// rocket_log("Accelerometer %s failed to remap Z-axis with error code %d\n", name(), result);
+			return false;
+		}
 	}
 
 	ready = true;
