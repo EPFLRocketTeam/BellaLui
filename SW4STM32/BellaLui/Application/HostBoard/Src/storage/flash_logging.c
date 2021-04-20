@@ -174,9 +174,9 @@ void TK_logging_thread(void const *pvArgs) {
 			if(enter_monitor(FLASH_MONITOR)) {
 				uint32_t time = HAL_GetTick();
 
-				rocket_log(" Throughput: %dKB/s\x1b[K\n", bytes_written / (time - last_update));
-				rocket_log(" Log file size: %dKB\x1b[K\n", flight_data->length / 1000);
-				rocket_log(" Device capacity: %d%%\x1b[K\n", 100 - (100 * flight_data->length / fs->addressable_space));
+				rocket_log(" Throughput: %dKB/s\x1b[K\r\n", bytes_written / (time - last_update));
+				rocket_log(" Log file size: %dKB\x1b[K\r\n", flight_data->length / 1000);
+				rocket_log(" Device capacity: %d%%\x1b[K\r\n", 100 - (100 * flight_data->length / fs->addressable_space));
 				exit_monitor(FLASH_MONITOR);
 
 				bytes_written = 0;
@@ -192,14 +192,14 @@ void TK_logging_thread(void const *pvArgs) {
 
 		stream.close();
 
-		rocket_log("Entering passive rocket_logging mode\n");
+		rocket_log("Entering passive rocket_logging mode\r\n");
 
 		led_set_TK_rgb(led_identifier, 0, 0, 50);
 
 		xSemaphoreGive(master_io_semaphore);
 		xSemaphoreTake(slave_io_semaphore, portMAX_DELAY);
 
-		rocket_log("Entering active rocket_logging mode\n");
+		rocket_log("Entering active rocket_logging mode\r\n");
 
 		led_set_TK_rgb(led_identifier, 0, 0, 0);
 	}
@@ -223,16 +223,16 @@ void release_flash_lock() {
 
 void on_dump_feedback(int32_t error_code) {
 	if(error_code != 0) {
-		rocket_log("Dump failed with error code: %ld\n", error_code);
+		rocket_log("Dump failed with error code: %ld\r\n", error_code);
 		// An error occurred while copying the flash data into the SD card.
 	} else {
-		rocket_log("Dump succeeded\n");
+		rocket_log("Dump succeeded\r\n");
 	}
 }
 
 void on_upload_feedback(int32_t error_code) {
 	if(error_code != 0) {
-		rocket_log("Upload failed with error code: %ld\n", error_code);
+		rocket_log("Upload failed with error code: %ld\r\n", error_code);
 		// An error occurred while copying the flash data into the SD card.
 	}
 }
@@ -366,7 +366,7 @@ int32_t dump_file_on_sd(void* arg) {
 
 	stream.close();
 
-	rocket_log("\nWrote %ld bytes to the sd card.\n", total_bytes_written);
+	rocket_log("\nWrote %ld bytes to the sd card.\r\n", total_bytes_written);
 
 	f_sync(&sd_file);
 	f_close(&sd_file);
@@ -448,8 +448,8 @@ int32_t dump_everything_on_sd(void* arg) {
 		}
 	}
 
-	rocket_log("Dump finished!\n");
-	rocket_log("\nWrote %ld bytes to the sd card.\n", total_bytes_written);
+	rocket_log("Dump finished!\r\n");
+	rocket_log("\r\nWrote %ld bytes to the sd card.\r\n", total_bytes_written);
 
 	f_sync(&sd_file);
 	f_close(&sd_file);
@@ -466,7 +466,7 @@ int32_t upload_block(void* arg) {
 
 	acquire_flash_lock();
 
-	rocket_log("----- Block %d begins -----\n", block);
+	rocket_log("----- Block %d begins -----\r\n", block);
 
 	uint8_t buffer[64];
 	for(uint8_t i = 0; i < 64; i++) {
@@ -479,7 +479,7 @@ int32_t upload_block(void* arg) {
 		osDelay(5); // Let time for the USART unit to process
 	}
 
-	rocket_log("\n----- Block %d ends -----\n", block);
+	rocket_log("\r\n----- Block %d ends -----\r\n", block);
 
 	release_flash_lock();
 
