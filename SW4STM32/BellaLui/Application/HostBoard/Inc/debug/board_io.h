@@ -24,9 +24,17 @@
 #define IO_INPUT	 0b11111111111111110000000000000000
 #define IO_OUTPUT	 0b00000000000000001111111111111111
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void enable_io_mode(uint32_t mask);
 void disable_io_mode(uint32_t mask);
 uint32_t get_io_mode();
 bool has_io_mode(uint32_t mode);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* APPLICATION_HOSTBOARD_INC_DEBUG_BOARD_IO_H_ */

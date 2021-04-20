@@ -12,6 +12,8 @@
 #include "telemetry/datagram_builder.h"
 #include "telemetry/telemetry_protocol.h"
 
+#include "telemetry/queue/Queue.h"
+
 #include <Embedded/system.h>
 #include <Embedded/can.h>
 

@@ -11,8 +11,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void sync_logic(uint16_t period);
 bool do_privileged_io();
 bool end_privileged_io();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* APPLICATION_HOSTBOARD_INC_SYNC_H_ */

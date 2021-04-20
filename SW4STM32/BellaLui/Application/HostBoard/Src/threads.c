@@ -86,7 +86,7 @@ void create_threads() {
 	#endif*/
 
 	#ifdef SENSOR
-	  osThreadDef(3sensor_board, TK_sensor_board, osPriorityNormal, 0, 1024);
+	  osThreadDef(3sensor_board, TK_sensor_acquisition, osPriorityNormal, 0, 1024);
 	  sensorBoardHandle = osThreadCreate(osThread(3sensor_board), NULL);
 	  rocket_boot_log("Sensor acquisition thread started.\n");
 	#endif
@@ -101,11 +101,11 @@ void create_threads() {
 	  rocket_boot_log("Telemetry reception thread started.\n");
 	#endif
 
-	#ifdef KALMAN
+	/*#ifdef KALMAN
 	  osThreadDef(5kalman, TK_kalman, osPriorityNormal, 0, 2048); // Kalman needs big stack
 	  kalmanHandle = osThreadCreate(osThread(5kalman), NULL);
 	  rocket_boot_log("Kalman thread started.\n");
-	#endif
+	#endif*/
 
 	#ifdef ROCKET_FSM
 	  osThreadDef(6rocket_fsm, TK_state_machine, osPriorityNormal, 0, 256);

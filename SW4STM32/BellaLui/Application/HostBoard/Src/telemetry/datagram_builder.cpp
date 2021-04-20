@@ -57,14 +57,15 @@ DatagramBuilder::DatagramBuilder(uint16_t datagramPayloadSize, uint8_t datagramT
 }
 
 Telemetry_Message *DatagramBuilder::finalizeDatagram() {
-	// TODO: HEADER_SIZE is the wrong place to start...
-	for(int16_t i = (TOTAL_DATAGRAM_HEADER /*+ PREAMBLE_SIZE + CONTROL_FLAG_SIZE*/); i < currentIdx; i++) {
-		//Calculate checksum for datagram and payload fields
-		datagramCrc = CalculateRemainderFromTable(*((uint8_t*) datagramPtr->buf + i), datagramCrc);
-	}
+	if(ACTIVATE_DATAGRAM_CHECKSUM) {
+		for(int16_t i = TOTAL_DATAGRAM_HEADER; i < currentIdx; i++) {
+			//Calculate checksum for datagram and payload fields
+			datagramCrc = CalculateRemainderFromTable(*((uint8_t*) datagramPtr->buf + i), datagramCrc);
+		}
 
-	datagramCrc = FinalizeCRC(datagramCrc);
-	write16(datagramCrc);
+		datagramCrc = FinalizeCRC(datagramCrc);
+		write16(datagramCrc);
+	}
 
 	return datagramPtr;
 }
@@ -125,13 +126,13 @@ Telemetry_Message *createStateDatagram(uint32_t timestamp, uint8_t id, float val
 Telemetry_Message *createPropulsionDatagram(uint32_t timestamp, PropulsionData* data) {
 	DatagramBuilder builder = DatagramBuilder(PROPULSION_DATAGRAM_PAYLOAD_SIZE, PROPULSION_DATA_PACKET, timestamp, telemetrySeqNumber++);
 
-	builder.write16<uint16_t>(data->pressure1);
-	builder.write16<uint16_t>(data->pressure2);
+	builder.write32<int32_t>(data->pressure1);
+	builder.write32<int32_t>(data->pressure2);
 	builder.write16<int16_t>(data->temperature1);
 	builder.write16<int16_t>(data->temperature2);
 	builder.write16<int16_t>(data->temperature3);
-	builder.write16<uint16_t>(data->status);
-	builder.write16<int16_t>(data->motor_position);
+	builder.write32<uint32_t>(data->status);
+	builder.write32<int32_t>(data->motor_position);
 
 	return builder.finalizeDatagram();
 }

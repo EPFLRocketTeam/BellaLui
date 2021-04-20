@@ -21,13 +21,13 @@ typedef float float32_t;
 #include "debug/monitor.h"
 #include "telemetry/telemetry_sending.h"
 #include "airbrakes/airbrake.h"
-#include <sensors_old/sensor_board.h>
 #include "misc/datastructs.h"
 #include <misc/common.h>
 #include "storage/flash_logging.h"
 #include "debug/console.h"
 #include "storage/flash_logging.h"
 #include "debug/terminal.h"
+#include <misc/rocket_constants.h>
 
 
 #define BUFFER_SIZE 128
@@ -43,6 +43,10 @@ float kalman_z  = 0;
 float kalman_vz = 0;
 int32_t ab_angle = 42;
 
+
+float altitudeFromPressure(float pressure_hPa) {
+	return 44330 * (1.0 - pow (pressure_hPa / ADJUSTED_SEA_LEVEL_PRESSURE, 0.1903));
+}
 
 // wrapper to avoid fatal crashes when implementing redundancy
 int board2Idx(uint32_t board) {
@@ -113,9 +117,9 @@ bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
 bool handlePropulsionData(uint32_t timestamp, PropulsionData* data) {
 	if(enter_monitor(PROPULSION_MONITOR)) {
 		rocket_log(" Status: %x\x1b[K\n", data->status);
-		rocket_log(" Temperature 1: %d\x1b[K\n", 100 * (int32_t) data->temperature1);
-		rocket_log(" Temperature 2: %d [m°C]\x1b[K\n", 100 * (int32_t) data->temperature2);
-		rocket_log(" Temperature 3: %d [m°C]\x1b[K\n", 100 * (int32_t) data->temperature3);
+		rocket_log(" Temperature 1: %d\x1b[K\n", 100 * (int16_t) data->temperature1);
+		rocket_log(" Temperature 2: %d [m°C]\x1b[K\n", 100 * (int16_t) data->temperature2);
+		rocket_log(" Temperature 3: %d [m°C]\x1b[K\n", 100 * (int16_t) data->temperature3);
 		rocket_log(" Pressure 1: %d [mBar]\x1b[K\n", (int32_t) data->pressure1);
 		rocket_log(" Pressure 2: %d [mBar]\x1b[K\n", (int32_t) data->pressure1);
 		rocket_log(" Motor position: %d [mdeg]\x1b[K\n", 100 * (int32_t) data->motor_position);
@@ -197,12 +201,12 @@ void TK_can_reader() {
 			}*/
 
 			if(is_verbose()) {
-				rocket_log("----- CAN RX frame begins -----\n");
-				rocket_log("Frame Source: %d\n", (uint32_t) msg.id_CAN);
-				rocket_log("Frame ID: %d\n", (uint32_t) msg.id);
-				rocket_log("Frame Timestamp: %d\n", (uint32_t) msg.timestamp);
-				rocket_log("Frame Data: %d\n", (uint32_t) msg.data);
-				rocket_log("----- CAN RX frame ends -----\n");
+				rocket_log("----- CAN RX frame begins -----\r\n");
+				rocket_log("Frame Source: %d\r\n", (uint32_t) msg.id_CAN);
+				rocket_log("Frame ID: %d\r\n", (uint32_t) msg.id);
+				rocket_log("Frame Timestamp: %d\r\n", (uint32_t) msg.timestamp);
+				rocket_log("Frame Data: %d\r\n", (uint32_t) msg.data);
+				rocket_log("----- CAN RX frame ends -----\r\n");
 			}
 
 
@@ -273,11 +277,11 @@ void TK_can_reader() {
 				// new_ab = true;
 				break;
 			case DATA_ID_PROP_PRESSURE1:
-				prop_data.pressure1 = msg.data & 0xFFFF;
+				prop_data.pressure1 = (int32_t) msg.data;
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_PRESSURE2:
-				prop_data.pressure2 = msg.data & 0xFFFF;
+				prop_data.pressure2 = (int32_t) msg.data;
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_TEMPERATURE1:
@@ -293,11 +297,11 @@ void TK_can_reader() {
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_STATUS:
-				prop_data.status = msg.data & 0xFFFF;
+				prop_data.status = msg.data;
 				new_prop_data = true;
 				break;
 			case DATA_ID_PROP_MOTOR_POSITION:
-				prop_data.motor_position = (int16_t) (msg.data & 0xFFFF);
+				prop_data.motor_position = (int32_t) msg.data;
 				new_prop_data = true;
 				break;
 			case DATA_ID_SHELL_CONTROL:
@@ -307,13 +311,13 @@ void TK_can_reader() {
 				if(shell_command == SHELL_BRIDGE_CREATE) {
 					shell_bridge(shell_payload & 0xF);
 					can_setFrame(SHELL_ACK, DATA_ID_SHELL_CONTROL, HAL_GetTick());
-					rocket_log("\n\nBellaLui Terminal for board %u\n\n", get_board_id());
+					rocket_log("\r\n\r\nBellaLui Terminal for board %u\r\n\r\n", get_board_id());
 				} else if(shell_command == SHELL_BRIDGE_DESTROY) {
 					shell_bridge(-1);
 				} else if(shell_command == SHELL_ACK) {
-					rocket_direct_transmit((uint8_t*) "> Connected to remote shell\n", 28);
+					rocket_direct_transmit((uint8_t*) "> Connected to remote shell\r\n", 28);
 				} else if(shell_command == SHELL_ERR) {
-					rocket_direct_transmit((uint8_t*) "> Failed to connect to remote shell\n", 36);
+					rocket_direct_transmit((uint8_t*) "> Failed to connect to remote shell\r\n", 36);
 				}
 
 				break;
@@ -327,7 +331,7 @@ void TK_can_reader() {
 				rocket_direct_transmit((uint8_t*) &msg.data, 4);
 				break;
 			default:
-				rocket_log("Unhandled can frame ID %d\n", msg.id);
+				rocket_log("Unhandled can frame ID %d\r\n", msg.id);
 			}
 		}
 

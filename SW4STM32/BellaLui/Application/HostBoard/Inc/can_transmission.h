@@ -55,14 +55,12 @@ typedef struct
 #define DATA_ID_KALMAN_PITCH 47 // mrad
 #define DATA_ID_KALMAN_ROLL  48 // mrad
 
+#define DATA_ID_ALTITUDE 49 // m
+
 #define DATA_ID_STATE 50 // enum
 
 
-#define DATA_ID_START_VALVE_OPERATION 80
-#define DATA_ID_START_FUELING 81
-#define DATA_ID_STOP_FUELING 82
-#define DATA_ID_START_HOMING 83
-#define DATA_ID_ABORT 84
+#define DATA_ID_PROP_COMMAND 80
 
 
 
@@ -73,6 +71,16 @@ typedef struct
 #define DATA_ID_PROP_TEMPERATURE3 89 // enum
 #define DATA_ID_PROP_STATUS 90 // enum
 #define DATA_ID_PROP_MOTOR_POSITION 91 // enum
+#define DATA_ID_VANE_POS_1 92
+#define DATA_ID_VANE_POS_2 93
+#define DATA_ID_VANE_POS_3 94
+#define DATA_ID_VANE_POS_4 95
+
+#define DATA_ID_THRUST_CMD 100
+#define DATA_ID_VANE_CMD_1 101
+#define DATA_ID_VANE_CMD_2 102
+#define DATA_ID_VANE_CMD_3 103
+#define DATA_ID_VANE_CMD_4 104
 
 #define DATA_ID_SHELL_CONTROL  200
 #define DATA_ID_SHELL_INPUT    201
@@ -86,8 +94,9 @@ typedef struct
 #define CAN_ID_DEBUG_BOARD 6
 #define CAN_ID_DEFAULT 7
 #define CAN_ID_PROPULSION_BOARD 5
+#define CAN_ID_TVC_BOARD 8
 
-#define MAX_BOARD_ID 7 // used to implement redundant info in CAN_handling
+#define MAX_BOARD_ID 8 // used to implement redundant info in CAN_handling
 #define MAX_BOARD_NUMBER (MAX_BOARD_ID+1)
 
 void CAN_Config(uint32_t id);

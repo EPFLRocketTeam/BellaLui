@@ -1,6 +1,8 @@
-/Debug/
+**/Debug/*
 *.elf
+*.bin
 *.hex
 *.map
+*.list
 *.xml
 SW4STM32/BellaLui/.settings/language.settings.xml

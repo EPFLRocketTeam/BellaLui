@@ -10,7 +10,6 @@
 #include <stdbool.h>
 
 #include "misc/datastructs.h"
-#include "telemetry/queue/AbstractMessageQueue.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,8 +21,6 @@ extern "C" {
 #define PROP_DATA_TIMEMIN 100
 #define AB_TIMEMIN 100
 //#define TELE_RAW_TIMEMIN 100
-
-void registerSendQueue(AbstractMessageQueue<Telemetry_Message> *queue);
 
 bool telemetrySendGPS(uint32_t timestamp, GPS_data data);
 bool telemetrySendIMU(uint32_t timestamp, IMU_data data);

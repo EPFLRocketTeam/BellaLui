@@ -8,8 +8,14 @@
 #ifndef APPLICATION_HOSTBOARD_INC_SENSORS_IMU_H_
 #define APPLICATION_HOSTBOARD_INC_SENSORS_IMU_H_
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <Sensors/BNO055/bno055.h>
+#ifdef __cplusplus
+}
+#endif
+
 #include <Sensors/I2CDriver.h>
 #include <Sensors/Sensor.h>
 #include <Sensors/DataStructures.h>

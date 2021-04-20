@@ -10,7 +10,8 @@
 
 #define OS_STKCHECK
 #define LED
-#define TELEMETRY_BOARD
+#define SENSOR_BOARD
+
 
 #ifdef GPS_BOARD
 #define CAN_ID CAN_ID_GPS_BOARD
@@ -82,7 +83,7 @@
 #endif
 
 #ifdef SENSOR
-#include <sensors/sensor_board.h>
+#include <Sensors/SensorAcquisition.h>
 #endif
 
 #ifdef KALMAN

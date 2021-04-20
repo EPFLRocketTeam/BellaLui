@@ -10,8 +10,8 @@
 Barometer::Barometer(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver) {
 	this->dev.dev_id = address;
 	this->dev.intf = BME280_I2C_INTF;
-	this->dev.read = &driver->read;
-	this->dev.write = &driver->write;
+	this->dev.read = driver->readFunc16;
+	this->dev.write = driver->writeFunc16;
 	this->dev.delay_ms = &driver->wait;
 }
 
@@ -52,15 +52,24 @@ bool Barometer::load() {
 		return false;
 	}
 
+	ready = true;
+
 	return true;
 }
 
 bool Barometer::unload() {
 	this->driver->reset();
+
+	ready = false;
+
 	return true;
 }
 
 bool Barometer::fetch(BarometerData* data) {
+	if(!ready) {
+		return false;
+	}
+
 	static struct bme280_data raw_data;
 
 	int8_t result = bme280_get_sensor_data(BME280_TEMP | BME280_PRESS, &raw_data, &dev);
