@@ -75,11 +75,11 @@ extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
 extern TIM_HandleTypeDef htim14;
 
-static const char* err_hardfault = "\x1b[2J===== KERNEL PANIC =====\nHard fault detected\nShutting down immediately";
-static const char* err_stackoverflow = "\x1b[2J===== KERNEL PANIC =====\nStack overflow detected\nShutting down immediately";
-static const char* err_outofmemory = "\x1b[2J===== KERNEL PANIC =====\nOut of memory\nShutting down immediately";
-static const char* err_busfault = "\x1b[2J===== KERNEL PANIC =====\nBus fault detected\nShutting down immediately";
-static const char* err_usagefault = "\x1b[2J===== KERNEL PANIC =====\nUsage fault detected\nShutting down immediately";
+static const char* err_hardfault = "\x1b[2J===== KERNEL PANIC =====\r\nHard fault detected\nShutting down immediately";
+static const char* err_stackoverflow = "\x1b[2J===== KERNEL PANIC =====\r\nStack overflow detected\nShutting down immediately";
+static const char* err_outofmemory = "\x1b[2J===== KERNEL PANIC =====\r\nOut of memory\nShutting down immediately";
+static const char* err_busfault = "\x1b[2J===== KERNEL PANIC =====\r\nBus fault detected\nShutting down immediately";
+static const char* err_usagefault = "\x1b[2J===== KERNEL PANIC =====\r\nUsage fault detected\nShutting down immediately";
 
 
 /* USER CODE BEGIN EV */
@@ -108,11 +108,12 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
+	rocket_direct_transmit(err_hardfault, strlen(err_hardfault));
+
 	#ifdef DEBUG
 	__BKPT(0);
 	#endif
 
-	rocket_direct_transmit(err_hardfault, strlen(err_hardfault));
 
 	/* USER CODE END HardFault_IRQn 0 */
 	while (1)

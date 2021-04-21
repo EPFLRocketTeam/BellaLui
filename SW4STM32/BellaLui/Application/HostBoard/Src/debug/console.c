@@ -54,9 +54,9 @@ void rocket_transmit(uint8_t* buffer, uint32_t length) {
 	int8_t bridge = get_shell_bridge();
 
 	if(bridge == -1) {
-		rocket_direct_transmit(buffer, strlen((char*) buffer));
+		rocket_direct_transmit(buffer, length);
 	} else {
-		__shell_transmit(buffer, strlen((char*) buffer));
+		__shell_transmit(buffer, length);
 	}
 }
 

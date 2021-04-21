@@ -13,7 +13,7 @@
 
 
 
-IMU::IMU(const char* identifier, I2CDriver* driver, uint8_t address) : Sensor(identifier), driver(driver) {
+IMU::IMU(const char* identifier, I2CDriver* driver, uint8_t address, bool flip) : Sensor(identifier), driver(driver), flip(flip) {
 	this->dev.dev_addr = address;
 	this->dev.bus_read = driver->readFunc8;
 	this->dev.bus_write = driver->writeFunc8;
@@ -87,6 +87,20 @@ bool IMU::load() {
 		return false;
 	}
 
+	// AXIS REMAPPING
+	if(flip) {
+		result = bno055_set_remap_y_sign(BNO055_REMAP_AXIS_NEGATIVE);
+		if(result != BNO055_SUCCESS) {
+			// rocket_log("Accelerometer %s failed to remap Y-axis with error code %d\n", name(), result);
+			return false;
+		}
+		result = bno055_set_remap_z_sign(BNO055_REMAP_AXIS_NEGATIVE);
+		if(result != BNO055_SUCCESS) {
+			// rocket_log("Accelerometer %s failed to remap Z-axis with error code %d\n", name(), result);
+			return false;
+		}
+	}
+
 	ready = true;
 
 	return true;
@@ -112,12 +126,12 @@ bool IMU::fetch(IMUData* data) {
 
 	uint8_t result = 0;
 
-	if(accel_counter++ == ACCEL_ACQUISITION_DIVIDER) {
+	if(++accel_counter == ACCEL_ACQUISITION_DIVIDER) {
 		result += this->driver->readFunc8(this->dev.dev_addr, BNO055_ACCEL_DATA_X_LSB_VALUEX_REG, accel_data, BNO055_ACCEL_XYZ_DATA_SIZE);
 		accel_counter = 0;
 	}
 
-	if(gyro_counter++ == GYRO_ACQUISITION_DIVIDER) {
+	if(++gyro_counter == GYRO_ACQUISITION_DIVIDER) {
 		result += this->driver->readFunc8(this->dev.dev_addr, BNO055_GYRO_DATA_X_LSB_VALUEX_REG, gyro_data, BNO055_GYRO_XYZ_DATA_SIZE);
 		gyro_counter = 0;
 	}

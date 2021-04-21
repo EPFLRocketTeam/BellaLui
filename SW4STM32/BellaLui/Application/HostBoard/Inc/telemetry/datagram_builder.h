@@ -77,7 +77,7 @@ template<typename T> inline void DatagramBuilder::write32 (T val) {
 /**
  * Datagram creation function
  */
-Telemetry_Message *createTelemetryDatagram(uint32_t timestamp, IMU_data *imu_data, BARO_data *baro_data, float32_t speed, float32_t altitude);
+Telemetry_Message *createTelemetryDatagram(uint32_t timestamp, IMU_data *imu_data, BARO_data *baro_data, float speed, float altitude);
 Telemetry_Message *createAirbrakesDatagram(uint32_t timestamp, float angle);
 Telemetry_Message *createGPSDatagram(uint32_t timestamp, GPS_data gpsData);
 Telemetry_Message *createStateDatagram(uint32_t timestamp, uint8_t id, float value, uint8_t av_state);

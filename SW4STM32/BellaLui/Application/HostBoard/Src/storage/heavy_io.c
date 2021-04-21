@@ -75,7 +75,7 @@ void TK_heavy_io_scheduler() {
 	while(true) {
 		while(!scheduled_tasks);
 
-		rocket_log("Launching task\n");
+		//rocket_log("Launching task\n");
 
 		led_set_TK_rgb(led_identifier, 0xFF, 0xAA, 0);
 
@@ -88,7 +88,7 @@ void TK_heavy_io_scheduler() {
 			queue.last = queue.first;
 		}
 
-		rocket_log("Task finished\n");
+		//rocket_log("Task finished\n");
 
 		led_set_TK_rgb(led_identifier, 0, 0, 0);
 

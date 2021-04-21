@@ -10,6 +10,7 @@
 #include "can_transmission.h"
 #include "misc/rocket_constants.h"
 #include "debug/monitor.h"
+#include "debug/console.h"
 #include "sync.h"
 
 #include <cmsis_os.h>
@@ -32,14 +33,14 @@ void TK_state_machine(void const *argument) {
 	uint8_t imuIsReady = 0, baroIsReady = 0;
 
 	// Declare apogee detection variables
-	float32_t max_altitude = 0;
+	float max_altitude = 0;
 	uint32_t apogee_counter = 0;
 
 	// Declare secondary recovery event detection variables
 	uint32_t sec_counter = 0;
 
 	// Declare touch-down event detection variables
-	float32_t td_last_alt = 0;
+	float td_last_alt = 0;
 	uint32_t td_counter = 0;
 
 	// TODO: Set low package data rate
@@ -47,6 +48,8 @@ void TK_state_machine(void const *argument) {
 	// State Machine initialization
 	// Hyp: rocket is on rail waiting for lift-off
 	current_state = STATE_CALIBRATION;
+
+	rocket_log("Entered calibration state\r\n");
 
 	// State Machine main task loop
 	while(true) {
@@ -94,6 +97,7 @@ void TK_state_machine(void const *argument) {
 		case STATE_CALIBRATION: {
 			if (baroIsReady) {
 				current_state = STATE_IDLE;
+				rocket_log("Entered idle state\r\n");
 			}
 			break;
 		}
@@ -108,6 +112,9 @@ void TK_state_machine(void const *argument) {
 					//already detected the acceleration trigger. now we need the trigger for at least 1000ms before trigerring the liftoff.
 					if (liftoffAccelTrig && HAL_GetTick() - liftoff_time > LIFTOFF_DETECTION_DELAY) {
 						current_state = STATE_LIFTOFF; // Switch to lift-off state
+
+						rocket_log("Liftoff triggered\r\n");
+
 						break;
 					} else if (!liftoffAccelTrig) //false positive.
 					{
@@ -131,6 +138,8 @@ void TK_state_machine(void const *argument) {
 			// determine motor burn-out based on lift-off detection
 			if ((currentTime - time_tmp) > ROCKET_CST_MOTOR_BURNTIME) {
 				current_state = STATE_COAST; // switch to coast state
+
+				rocket_log("Coast state triggered\r\n");
 			}
 			break;
 		}
@@ -171,6 +180,8 @@ void TK_state_machine(void const *argument) {
 					time_tmp = HAL_GetTick(); // save time to mute sensors while ejection occures
 					current_state = STATE_PRIMARY; // switch to primary descent phase
 					flight_status = 30;
+
+					rocket_log("Primary event state triggered\r\n");
 				}
 			}
 			break;
@@ -202,6 +213,7 @@ void TK_state_machine(void const *argument) {
 					current_state = STATE_SECONDARY; // switch to secondary recovery phase
 					td_last_alt = baro_data->altitude; // save altitude measurement for touchdown detection
 					flight_status = 35;
+					rocket_log("Secondary event state triggered\r\n");
 				}
 			}
 			break;
@@ -233,6 +245,7 @@ void TK_state_machine(void const *argument) {
 					if (counterTdTrig) {
 						current_state = STATE_TOUCHDOWN;
 						flight_status = 40;
+						rocket_log("Touchdown state triggered\r\n");
 						// TODO: Set telemetry data rate to low
 					}
 				}

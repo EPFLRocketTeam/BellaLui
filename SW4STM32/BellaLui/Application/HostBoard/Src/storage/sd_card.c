@@ -16,6 +16,10 @@
 
 #include <rocket_fs.h>
 
+
+// DEPRECATED
+
+
 #define MAX_FOLDER_NUMBER 1000
 #define SD_BUFFER_SIZE 512
 volatile bool new_sd_data_ready = 0;

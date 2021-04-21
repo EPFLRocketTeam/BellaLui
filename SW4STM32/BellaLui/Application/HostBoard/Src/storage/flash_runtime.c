@@ -17,7 +17,7 @@ static FileSystem fs = { 0 };
 static volatile bool ready = false;
 
 void __debug(const char *message) {
-	rocket_boot_log("%s\n", message);
+	rocket_boot_log("%s\r\n", message);
 }
 
 void init_filesystem() {

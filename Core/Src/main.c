@@ -141,7 +141,7 @@ int main(void) {
 	rocket_log_init(&huart3);
 	shell_init(&huart3, &terminal_execute);
 
-	rocket_boot_log("BellaLui v1.0\n\n");
+	rocket_boot_log("BellaLui v1.0\r\n\r\n");
 
 	led_init();
 	led_set_rgb(127, 255, 255);

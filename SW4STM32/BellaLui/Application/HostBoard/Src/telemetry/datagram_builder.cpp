@@ -72,22 +72,22 @@ Telemetry_Message *DatagramBuilder::finalizeDatagram() {
 
 //the createXXXDatagram-Methods create the datagrams as described in the Schema (should be correct)
 
-Telemetry_Message *createTelemetryDatagram(uint32_t timestamp, IMU_data *imu_data, BARO_data *baro_data, float32_t speed, float32_t altitude) {
+Telemetry_Message *createTelemetryDatagram(uint32_t timestamp, IMU_data *imu_data, BARO_data *baro_data, float speed, float altitude) {
 	DatagramBuilder builder = DatagramBuilder(SENSOR_DATAGRAM_PAYLOAD_SIZE, TELEMETRY_PACKET, timestamp, telemetrySeqNumber++);
 
-	builder.write32<float32_t>(imu_data->acceleration.x);
-	builder.write32<float32_t>(imu_data->acceleration.y);
-	builder.write32<float32_t>(imu_data->acceleration.z);
+	builder.write32<float>(imu_data->acceleration.x);
+	builder.write32<float>(imu_data->acceleration.y);
+	builder.write32<float>(imu_data->acceleration.z);
 
-	builder.write32<float32_t>(imu_data->eulerAngles.x);
-	builder.write32<float32_t>(imu_data->eulerAngles.y);
-	builder.write32<float32_t>(imu_data->eulerAngles.z);
+	builder.write32<float>(imu_data->eulerAngles.x);
+	builder.write32<float>(imu_data->eulerAngles.y);
+	builder.write32<float>(imu_data->eulerAngles.z);
 
-	builder.write32<float32_t>(baro_data->temperature);
-	builder.write32<float32_t>(baro_data->pressure);
+	builder.write32<float>(baro_data->temperature);
+	builder.write32<float>(baro_data->pressure);
 
-	builder.write32<float32_t>(speed); 		// can_getSpeed()
-	builder.write32<float32_t>(altitude); 	// can_getAltitude()
+	builder.write32<float>(speed); 		// can_getSpeed()
+	builder.write32<float>(altitude); 	// can_getAltitude()
 
 	return builder.finalizeDatagram();
 }
@@ -95,7 +95,7 @@ Telemetry_Message *createTelemetryDatagram(uint32_t timestamp, IMU_data *imu_dat
 Telemetry_Message *createAirbrakesDatagram(uint32_t timestamp, float angle) {
 	DatagramBuilder builder = DatagramBuilder(AB_DATAGRAM_PAYLOAD_SIZE, AIRBRAKES_PACKET, timestamp, telemetrySeqNumber++);
 
-	builder.write32<float32_t>(angle); // AB_angle
+	builder.write32<float>(angle); // AB_angle
 
 	return builder.finalizeDatagram();
 }
@@ -105,9 +105,9 @@ Telemetry_Message *createGPSDatagram(uint32_t timestamp, GPS_data gpsData) {
 	DatagramBuilder builder = DatagramBuilder(GPS_DATAGRAM_PAYLOAD_SIZE, GPS_PACKET, timestamp, telemetrySeqNumber++);
 
 	builder.write8(gpsData.sats);
-	builder.write32<float32_t>(gpsData.hdop);
-	builder.write32<float32_t>(gpsData.lat);
-	builder.write32<float32_t>(gpsData.lon);
+	builder.write32<float>(gpsData.hdop);
+	builder.write32<float>(gpsData.lat);
+	builder.write32<float>(gpsData.lon);
 	builder.write32<int32_t>(gpsData.altitude);
 
 	return builder.finalizeDatagram();

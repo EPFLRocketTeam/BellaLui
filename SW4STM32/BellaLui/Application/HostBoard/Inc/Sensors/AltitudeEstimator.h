@@ -4,7 +4,7 @@
 #include "Sensors/UnbiasedSensor.h"
 
 
-#define A -0.0065 // thermal lapse rate
+#define A -0.0065 // thermal lapse rate [K/m]
 #define R 287.0 //gas constant for air
 #define G0 9.80665 //acceleration due to gravity
 #define N_ITERATIONS_AVERAGE 50 //Number of iterations to set the ground values

@@ -145,7 +145,7 @@ void can_setFrame(uint32_t data, uint8_t data_id, uint32_t timestamp) {
 		}
 
     	if(has_io_mode(IO_OUTPUT & IO_CAN & IO_DIRECT)) {
-			rocket_log("%d: %08x @ %dms\n", (uint32_t) message.id, message.data, message.timestamp);
+			rocket_log("%d: %08x @ %dms\r\n", (uint32_t) message.id, message.data, message.timestamp);
 		}
     } else { // something bad happen
     	// not sure what to do
