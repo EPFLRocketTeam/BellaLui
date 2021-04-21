@@ -10,7 +10,7 @@
 
 #define OS_STKCHECK
 #define LED
-#define SENSOR_BOARD
+#define TELEMETRY_BOARD
 
 
 #ifdef GPS_BOARD

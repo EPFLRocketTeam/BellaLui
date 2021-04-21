@@ -9,6 +9,8 @@
 #include "debug/console.h"
 #include "debug/board_io.h"
 
+#include "storage/flash_logging.h"
+
 #include "can_transmission.h"
 #include "sync.h"
 
@@ -60,10 +62,11 @@ void TK_shell(const void *args) {
 }
 
 static void __bridge_receive(uint8_t* buffer, uint8_t length) {
+	buffer[length++] = '\r';
 	buffer[length++] = '\n';
 
 	while(length % 4 != 0) {
-		buffer[length++] = '\0';
+		buffer[length++] = '\0'; // Flush
 	}
 
 	for(uint8_t i = 0; i < length / 4; i++) {
