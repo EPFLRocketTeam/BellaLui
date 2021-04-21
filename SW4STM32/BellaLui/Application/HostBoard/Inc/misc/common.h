@@ -51,7 +51,7 @@ enum Warning {
 };
 
 volatile uint32_t flight_status;
-volatile float32_t airbrakes_angle;
+volatile float airbrakes_angle;
 extern volatile float air_speed_state_estimate, altitude_estimate;
 
 volatile enum State current_state;
@@ -93,13 +93,13 @@ static inline void floatToUint8(uint8_t *uint8Ptr, float *floatPtr) {
 	uint8Ptr[3] = floatAsUintPtr[0];
 }
 
-static inline float32_t abs_fl32(float32_t v) {
+static inline float abs_fl32(float v) {
 	return (v >= 0) ? v : -v;
 }
 
-static inline float32_t array_mean(float32_t *array, uint8_t arraySize) {
+static inline float array_mean(float *array, uint8_t arraySize) {
 	uint8_t i;
-	float32_t sum = 0.0;
+	float sum = 0.0;
 
 	for (i = 0; i < arraySize; i++) {
 		sum += array[i];

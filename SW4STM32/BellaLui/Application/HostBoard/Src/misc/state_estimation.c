@@ -5,6 +5,9 @@
  *      Author: Cl�ment Nussbaumer
  */
 
+// DEPRECATED
+
+/*
 #include <can_transmission.h>
 #include <cmsis_os.h>
 #include <misc/common.h>
@@ -71,4 +74,4 @@ void TK_state_estimation ()
       osDelay (3);
     }
 
-}
+}*/

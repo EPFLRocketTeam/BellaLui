@@ -45,11 +45,11 @@ void create_semaphores() {
 }
 
 void create_threads() {
-	osThreadDef(task_LED, TK_led_handler, osPriorityNormal, 0, 256);
+	osThreadDef(task_LED, TK_led_handler, osPriorityNormal, 0, 512);
 	task_LEDHandle = osThreadCreate(osThread(task_LED), NULL);
 	rocket_boot_log("LED thread started.\r\n");
 
-	osThreadDef(task_shell, TK_shell, osPriorityNormal, 0, 256);
+	osThreadDef(task_shell, TK_shell, osPriorityNormal, 0, 512);
 	task_ShellHandle = osThreadCreate(osThread(task_shell), NULL);
 	rocket_boot_log("Shell thread started.\r\n");
 
@@ -62,7 +62,7 @@ void create_threads() {
 	rocket_boot_log("Heavy IO thread started.\r\n");
 
 	#ifdef FLASH_LOGGING
-	 osThreadDef(2task_logging, TK_logging_thread, osPriorityNormal, 0, 256);
+	 osThreadDef(2task_logging, TK_logging_thread, osPriorityNormal, 0, 512);
 	 loggingHandle = osThreadCreate(osThread(2task_logging), NULL);
 	 rocket_boot_log("Logging thread started.\r\n");
 	#endif
@@ -108,7 +108,7 @@ void create_threads() {
 	#endif*/
 
 	#ifdef ROCKET_FSM
-	  osThreadDef(6rocket_fsm, TK_state_machine, osPriorityNormal, 0, 256);
+	  osThreadDef(6rocket_fsm, TK_state_machine, osPriorityNormal, 0, 512);
 	  rocketfsmHandle = osThreadCreate(osThread(6rocket_fsm), NULL);
 	  rocket_boot_log("FSM thread started.\r\n");
 	#endif

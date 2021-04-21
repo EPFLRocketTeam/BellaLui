@@ -100,6 +100,12 @@ bool AltitudeEstimator::fetch(AltitudeData* data) {
 		data->pressure = barodata.pressure;
 		data->temperature = barodata.temperature;
 		data->altitude = altitudeComputation(barodata.pressure, barodata.temperature * 0.01f);
+
+		if(constants_set) {
+			data->base_pressure = P0;
+			data->base_temperature = T0 * 100.0f; // °C to centi-°C
+		}
+
 		return true;
 	} else {
 		return false;

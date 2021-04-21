@@ -35,6 +35,8 @@ struct AltitudeData {
 	float pressure;
 	float temperature;
 	float altitude;
+	float base_pressure;
+	float base_temperature;
 };
 
 
