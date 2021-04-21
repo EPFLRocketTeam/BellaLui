@@ -30,10 +30,10 @@ void TK_sensor_acquisition(const void *argument) {
 	StandardI2CDriver i2c;
 	FastI2CDriver fmpi2c;
 
-	IMU imu1("IMU 1", &i2c, BNO055_I2C_ADDR1);
-	IMU imu2("IMU 2", &i2c, BNO055_I2C_ADDR2);
-	IMU imu3("IMU 3", &fmpi2c, BNO055_I2C_ADDR1);
-	IMU imu4("IMU 4", &fmpi2c, BNO055_I2C_ADDR2);
+	IMU imu1("IMU 1", &i2c, BNO055_I2C_ADDR2, false);
+	IMU imu2("IMU 2", &i2c, BNO055_I2C_ADDR1, false);
+	IMU imu3("IMU 3", &fmpi2c, BNO055_I2C_ADDR1, true);
+	IMU imu4("IMU 4", &fmpi2c, BNO055_I2C_ADDR2, false);
 
 	Barometer barometer1("Barometer 1", &i2c, BME280_I2C_ADDR_PRIM);
 	Barometer barometer2("Barometer 2", &i2c, BME280_I2C_ADDR_SEC);
@@ -67,7 +67,7 @@ void TK_sensor_acquisition(const void *argument) {
 
 		start_profiler(1);
 		if(imu.fetch(&imuData)) {
-			led_set_TK_rgb(led_accelerometer, 0x00, 0xFF, 0x00);
+			led_set_TK_rgb(led_accelerometer, 0x00, 0xFF, 0xFF);
 		} else if(retry_counter == 0) {
 			imu.reset();
 			rocket_log("%s ceased functioning\r\n", imu.name());
@@ -78,7 +78,7 @@ void TK_sensor_acquisition(const void *argument) {
 
 		start_profiler(2);
 		if(altitude.fetch(&altitudeData)) {
-			led_set_TK_rgb(led_barometer, 0x00, 0xFF, 0x00);
+			led_set_TK_rgb(led_barometer, 0x00, 0xFF, 0xFF);
 		} else if(retry_counter == 0) {
 			altitude.reset();
 			rocket_log("%s ceased functioning\r\n", altitude.name());
@@ -109,18 +109,22 @@ void TK_sensor_acquisition(const void *argument) {
 		end_profiler();
 
 
+		float accelNormSq = imuData.accel.x * imuData.accel.x + imuData.accel.y * imuData.accel.y + imuData.accel.z * imuData.accel.z;
+
+
 		if(enter_monitor(SENSOR_MONITOR)) {
 			rocket_log(" Excluded barometer outputs: %d\x1b[K\r\n", barometer.getExcludedCount());
 			rocket_log(" Excluded accelerometer outputs: %d\x1b[K\r\n", imu.getExcludedCount());
-			rocket_log(" Temperature: %d [m°C]\x1b[K\r\n", (uint32_t) (altitudeData.temperature * 10));
-			rocket_log(" Pressure: %d [Pa]\x1b[K\r\n", (uint32_t) (altitudeData.pressure));
-			rocket_log(" Acceleration X: %d [mg]\x1b[K\r\n", (uint32_t) (imuData.accel.x));
-			rocket_log(" Acceleration Y: %d [mg]\x1b[K\r\n", (uint32_t) (imuData.accel.y));
-			rocket_log(" Acceleration Z: %d [mg]\x1b[K\r\n", (uint32_t) (imuData.accel.z));
-			rocket_log(" Rotation X: %d [mrad/s]\x1b[K\r\n", (uint32_t) (1000 * imuData.gyro.x));
-			rocket_log(" Rotation Y: %d [mrad/s]\x1b[K\r\n", (uint32_t) (1000 * imuData.gyro.y));
-			rocket_log(" Rotation Z: %d [mrad/s]\x1b[K\r\n\x1b[K\r\n", (uint32_t) (1000 * imuData.gyro.z));
-			rocket_log(" Altitude: %d [m]\x1b[K\r\n\x1b[K\r\n", (uint32_t) (altitudeData.altitude));
+			rocket_log(" Temperature: %.2f [°C]\x1b[K\r\n", altitudeData.temperature * 0.01f);
+			rocket_log(" Pressure: %.2f [hPa]\x1b[K\r\n", altitudeData.pressure / 100.0f);
+			rocket_log(" Acceleration X: %.2f [g]\x1b[K\r\n", imuData.accel.x / 1000.0f);
+			rocket_log(" Acceleration Y: %.2f [g]\x1b[K\r\n", imuData.accel.y / 1000.0f);
+			rocket_log(" Acceleration Z: %.2f [g]\x1b[K\r\n", imuData.accel.z / 1000.0f);
+			rocket_log(" Acceleration NormSQ: %.2f [g^2]\x1b[K\r\n", accelNormSq / 1000000.0f);
+			rocket_log(" Rotation X: %.2f [rad/s]\x1b[K\r\n", imuData.gyro.x);
+			rocket_log(" Rotation Y: %.2f [rad/s]\x1b[K\r\n", imuData.gyro.y);
+			rocket_log(" Rotation Z: %.2f [rad/s]\x1b[K\r\n\x1b[K\r\n", imuData.gyro.z);
+			rocket_log(" Altitude: %.2f [m]\x1b[K\r\n\x1b[K\r\n", altitudeData.altitude);
 
 			exit_monitor(SENSOR_MONITOR);
 		}

@@ -1,3 +1,8 @@
+#include <debug/shell.h>
+#include <sensors_old/sensor_board.h>
+#include <stm32f4xx_hal.h>
+#include <storage/log_manager.h>
+#include <sys/_stdint.h>
 
 /*
  * CAN_communication.c
@@ -9,25 +14,27 @@
  *  Created on: Feb 23, 2019
  *      Author: Tim Lebailly
  */
-typedef float float32_t;
-
-#include <stdbool.h>
-#include <threads.h>
-#include <cmsis_os.h>
+#include "can_reception.h"
 
 #include "can_transmission.h"
+
+#include "telemetry/telemetry_sending.h"
+#include "airbrakes/airbrake.h"
+#include "storage/log_manager.h"
+
+#include "misc/datastructs.h"
+#include "misc/common.h"
+#include "misc/rocket_constants.h"
+
+#include "debug/console.h"
+#include "debug/terminal.h"
 #include "debug/profiler.h"
 #include "debug/led.h"
 #include "debug/monitor.h"
-#include "telemetry/telemetry_sending.h"
-#include "airbrakes/airbrake.h"
-#include "misc/datastructs.h"
-#include <misc/common.h>
-#include "storage/flash_logging.h"
-#include "debug/console.h"
-#include "storage/flash_logging.h"
-#include "debug/terminal.h"
-#include <misc/rocket_constants.h>
+
+
+#include <stdbool.h>
+#include <cmsis_os.h>
 
 
 #define BUFFER_SIZE 128
@@ -44,9 +51,6 @@ float kalman_vz = 0;
 int32_t ab_angle = 42;
 
 
-float altitudeFromPressure(float pressure_hPa) {
-	return 44330 * (1.0 - pow (pressure_hPa / ADJUSTED_SEA_LEVEL_PRESSURE, 0.1903));
-}
 
 // wrapper to avoid fatal crashes when implementing redundancy
 int board2Idx(uint32_t board) {
@@ -62,30 +66,26 @@ bool handleIMUData(uint32_t timestamp, IMU_data data) {
 	IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
 	#ifdef XBEE
 	return telemetrySendIMU(timestamp, data);
-	#elif defined(KALMAN)
-	return kalmanProcessIMU(data);
+	/*#elif defined(KALMAN)
+	return kalmanProcessIMU(data);*/
 	#endif
 	return true;
 }
 
 bool handleBaroData(uint32_t timestamp, BARO_data data) {
-	data.altitude = altitudeFromPressure(data.pressure);
-
-	#ifdef CERNIER_LEGACY_DATA
-	data.base_pressure = 938.86;
-	#endif
+	/*data.altitude = altitudeFromPressure(data.pressure);
 
 	if (data.base_pressure > 0) { // Warning: terrible HOTFIX, I know
 		data.base_altitude = altitudeFromPressure(data.base_pressure);
-	}
+	}*/
 
 	BARO_buffer[(++currentBaroSeqNumber) % CIRC_BUFFER_SIZE] = data;
 	currentBaroTimestamp = HAL_GetTick();
 
 	#ifdef XBEE
 	return telemetrySendBaro(timestamp, data);
-	#elif defined(KALMAN)
-	return kalmanProcessBaro(data);
+	/*#elif defined(KALMAN)
+	return kalmanProcessBaro(data);*/
 	#endif
 	return false;
 }
@@ -102,10 +102,10 @@ bool handleABData(uint32_t timestamp, int32_t new_angle) {
 
 bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
 	if(state == STATE_LIFTOFF) {
-    	start_logging();
+    	//start_logging();
     	liftoff_time = timestamp;
 	} else if(state == STATE_TOUCHDOWN) {
-		stop_logging();
+		//stop_logging();
         on_dump_request();
 	}
 
@@ -219,33 +219,33 @@ void TK_can_reader() {
 
 			switch(msg.id) {
 			case DATA_ID_PRESSURE:
-				baro[idx].pressure = ((float32_t) ((int32_t) msg.data)) / 10000; // convert from cPa to hPa
+				baro[idx].pressure = ((float) ((int32_t) msg.data)) / 10000; // convert from cPa to hPa
 				new_baro[idx] = true; // only update when we get the pressure
 				break;
 			case DATA_ID_TEMPERATURE:
-				baro[idx].temperature = ((float32_t) ((int32_t) msg.data)) / 100; // from to cDegC in DegC
+				baro[idx].temperature = ((float) ((int32_t) msg.data)) / 100; // from to cDegC in DegC
 				break;
 			case DATA_ID_CALIB_PRESSURE:
-				baro[idx].base_pressure = ((float32_t) ((int32_t) msg.data)) / 10000; // from cPa to hPa
+				baro[idx].base_pressure = ((float) ((int32_t) msg.data)) / 10000; // from cPa to hPa
 				break;
 			case DATA_ID_ACCELERATION_X:
-				imu[idx].acceleration.x = ((float32_t) ((int32_t) msg.data)) / 1000; // convert from m-g to g
+				imu[idx].acceleration.x = ((float) ((int32_t) msg.data)) / 1000; // convert from m-g to g
 				break;
 			case DATA_ID_ACCELERATION_Y:
-				imu[idx].acceleration.y = ((float32_t) ((int32_t) msg.data)) / 1000;
+				imu[idx].acceleration.y = ((float) ((int32_t) msg.data)) / 1000;
 				break;
 			case DATA_ID_ACCELERATION_Z:
-				imu[idx].acceleration.z = ((float32_t) ((int32_t) msg.data)) / 1000;
+				imu[idx].acceleration.z = ((float) ((int32_t) msg.data)) / 1000;
 				new_imu[idx] = true;  // only update when we get IMU from Z
 				break;
 			case DATA_ID_GYRO_X:
-				imu[idx].eulerAngles.x = ((float32_t) ((int32_t) msg.data)); // convert from mrps to ???
+				imu[idx].eulerAngles.x = ((float) ((int32_t) msg.data)); // convert from mrps to ???
 				break;
 			case DATA_ID_GYRO_Y:
-				imu[idx].eulerAngles.y = ((float32_t) ((int32_t) msg.data));
+				imu[idx].eulerAngles.y = ((float) ((int32_t) msg.data));
 				break;
 			case DATA_ID_GYRO_Z:
-				imu[idx].eulerAngles.z = ((float32_t) ((int32_t) msg.data));
+				imu[idx].eulerAngles.z = ((float) ((int32_t) msg.data));
 				break;
 			case DATA_ID_STATE:
 				if(msg.data > state && msg.data < NUM_STATES) {
@@ -261,20 +261,23 @@ void TK_can_reader() {
 			case DATA_ID_KALMAN_STATE:
 				break;
 			case DATA_ID_KALMAN_Z:
-				kalman_z = ((float32_t) ((int32_t) msg.data))/1e3; // from mm to m
+				kalman_z = ((float) ((int32_t) msg.data))/1e3; // from mm to m
 				break;
 			case DATA_ID_KALMAN_VZ:
-				kalman_vz = ((float32_t) ((int32_t) msg.data))/1e3; // from mm/s to m/s
+				kalman_vz = ((float) ((int32_t) msg.data))/1e3; // from mm/s to m/s
 				break;
 			case DATA_ID_AB_STATE:
 				break;
 			case DATA_ID_AB_AIRSPEED:
 				break;
 			case DATA_ID_AB_ALT:
+				baro[idx].altitude = (float) ((int32_t) msg.data); // m
 				break;
 			case DATA_ID_AB_INC:
 				ab_angle = ((int32_t) msg.data); // keep in deg
 				// new_ab = true;
+				break;
+			case DATA_ID_ALTITUDE:
 				break;
 			case DATA_ID_PROP_PRESSURE1:
 				prop_data.pressure1 = (int32_t) msg.data;
@@ -338,9 +341,9 @@ void TK_can_reader() {
 		// check if new/non-handled full sensor packets are present
 		for (int i=0; i < MAX_BOARD_NUMBER ; i++) {
 			if (new_baro[i]) {
-				if(baro[i].base_pressure == 0) {
+				/*if(baro[i].base_pressure == 0) {
 					baro[i].base_pressure = baro[i].pressure; // Terrible HOTFIX, I know.
-				}
+				}*/
 
 				new_baro[i] = !handleBaroData(msg.timestamp, baro[i]);
 			}

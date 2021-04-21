@@ -14,12 +14,9 @@
 
 #include <stdint.h>
 
-typedef float float32_t;
-typedef double float64_t;
-
 typedef struct
 {
-  float32_t x, y, z;
+  float x, y, z;
 } float3D;
 
 typedef struct
@@ -30,11 +27,11 @@ typedef struct
 
 typedef struct
 {
-  float32_t temperature;
-  float32_t pressure;
-  float32_t altitude;
-  float32_t base_pressure;
-  float32_t base_altitude;
+  float temperature;
+  float pressure;
+  float altitude;
+  float base_pressure;
+  float base_altitude;
 } BARO_data;
 
 typedef struct
@@ -56,9 +53,9 @@ typedef struct
 
 typedef struct
 {
-  float32_t hdop; // m
-  float32_t lat; // deg
-  float32_t lon; // deg
+  float hdop; // m
+  float lat; // deg
+  float lon; // deg
   int32_t altitude; // cm
   uint8_t sats;
 } GPS_data;
