@@ -71,6 +71,29 @@ namespace state_machine_helpers {
         return 0;
     }
 
+    float abs_fl32(float v) { // copied in order to avoid including common.h
+	    return (v >= 0) ? v : -v;
+    }
+
+    uint8_t handleSecondaryState(const uint32_t currentTime, const uint32_t time_tmp, const bool baro_is_ready, const float baro_data_altitude, const float td_last_alt, const uint32_t td_counter){
+        // if a given time has passed since the last time the check was done, do the check
+        if (((currentTime - time_tmp) > TOUCHDOWN_DELAY_TIME) && baro_is_ready) {
+
+                if (abs_fl32(baro_data_altitude - td_last_alt) <= TOUCHDOWN_ALT_DIFF){
+
+                    if (td_counter+1 > TOUCHDOWN_BUFFER_SIZE){
+                        return state_machine_helpers::state_secondary_switch_to_touchdown_state;
+                    }
+
+                    return state_machine_helpers::state_secondary_approaching_touchdown;
+                }
+
+                return state_machine_helpers::state_secondary_altitude_difference_still_large;
+            }
+
+        return 0;
+    }
+
     uint8_t newImuDataIsAvailable(const uint32_t currentImuSeqNumber, const uint32_t lastImuSeqNumber) {
         return currentImuSeqNumber > lastImuSeqNumber;
     }

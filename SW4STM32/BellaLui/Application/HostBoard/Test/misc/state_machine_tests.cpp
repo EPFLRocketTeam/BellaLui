@@ -95,3 +95,46 @@ TEST(StateMachineTests, ShouldGetCorrectPrimaryStateStatus){
     state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter); 
     EXPECT_EQ(state_primary_status, state_machine_helpers::state_primary_altitude_above_secondary_altitude);
 }
+
+TEST(StateMachineTests, ShouldGetCorrectSecondaryStateStatus){
+    // TOUCHDOWN_BUFFER_SIZE == 5
+    // TOUCHDOWN_DELAY_TIME == 2000
+    // TOUCHDOWN_ALT_DIFF == 2
+    uint32_t currentTime = 1*60*1000 + 60;
+    uint32_t time_tmp = 1*60*1000;
+
+    uint32_t sec_counter = 1; 
+
+    bool baro_is_ready = false;
+    float baro_data_altitude = 120;
+
+    uint8_t td_counter = 1;
+    float td_last_alt = 130;
+
+    uint8_t state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
+    EXPECT_EQ(state_secondary_status, 0);
+
+    baro_is_ready = true;
+    state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
+    EXPECT_EQ(state_secondary_status, 0);
+
+    currentTime = time_tmp + TOUCHDOWN_DELAY_TIME + 10;
+    state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
+    EXPECT_EQ(state_secondary_status, state_machine_helpers::state_secondary_altitude_difference_still_large);
+    
+    baro_data_altitude = td_last_alt + TOUCHDOWN_ALT_DIFF + 1;
+    state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
+    EXPECT_EQ(state_secondary_status, state_machine_helpers::state_secondary_altitude_difference_still_large);
+
+    baro_data_altitude = td_last_alt + TOUCHDOWN_ALT_DIFF;
+    state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
+    EXPECT_EQ(state_secondary_status, state_machine_helpers::state_secondary_approaching_touchdown);
+
+    td_counter = TOUCHDOWN_BUFFER_SIZE - 1;
+    state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
+    EXPECT_EQ(state_secondary_status, state_machine_helpers::state_secondary_approaching_touchdown);
+
+    td_counter = TOUCHDOWN_BUFFER_SIZE;
+    state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
+    EXPECT_EQ(state_secondary_status, state_machine_helpers::state_secondary_switch_to_touchdown_state);
+}

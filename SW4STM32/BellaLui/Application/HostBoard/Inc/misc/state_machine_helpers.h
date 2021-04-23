@@ -15,11 +15,16 @@ namespace state_machine_helpers {
     const uint8_t state_primary_altitude_above_secondary_altitude = 31;
     const uint8_t state_primary_switch_to_secondary_state = 32;
 
+    const uint8_t state_secondary_altitude_difference_still_large = 41;
+    const uint8_t state_secondary_approaching_touchdown = 42;
+    const uint8_t state_secondary_switch_to_touchdown_state = 43;
+
+
     uint8_t handleIdleState(const uint32_t currentTime, const uint32_t liftoff_time, const float acceleration_z);
     bool handleLiftoffState(const uint32_t currentTime, const uint32_t previousTime);
     uint8_t handleCoastState(const float max_altitude, const float baro_data_altitude, const float baro_data_base_altitude, const uint32_t apogee_counter);
     uint8_t handlePrimaryState(const uint32_t currentTime, const uint32_t time_tmp, const float baro_data_altitude, const float baro_data_base_altitude, const uint32_t sec_counter);
-
+    uint8_t handleSecondaryState(const uint32_t currentTime, const uint32_t time_tmp, const bool baro_is_ready, const float baro_data_altitude, const float td_last_alt, const uint32_t td_counter);
 
     uint8_t newImuDataIsAvailable(const uint32_t currentImuSeqNumber, const uint32_t lastImuSeqNumber);
     uint8_t newBarometerDataIsAvailable(const uint32_t currentBaroSeqNumber, const uint32_t lastBaroSeqNumber);

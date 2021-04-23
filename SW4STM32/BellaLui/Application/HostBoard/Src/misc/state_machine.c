@@ -164,28 +164,20 @@ void TK_state_machine(void const *argument) {
 
 		case STATE_SECONDARY: {
 			uint8_t counterTdTrig = 0;
+			const float baro_data_altitude = baroIsReady ? baro_data->altitude : -1;
 
-			// if a given time has passed since the last time the check was done, do the check
-			if ((HAL_GetTick() - time_tmp) > TOUCHDOWN_DELAY_TIME) {
-				if (baroIsReady) {
-					// save time of check
-					time_tmp = HAL_GetTick();
+			uint8_t state_secondary_status = state_machine_helpers::handleSecondaryState(HAL_GetTick(), time_tmp, baroIsReady, baro_data_altitude, td_last_alt, td_counter);
 
-					// check if the altitude hasn't varied of more than a given amount since last time
-					if (abs_fl32(baro_data->altitude - td_last_alt) > TOUCHDOWN_ALT_DIFF) {
-						// if the altitude difference is still large, this means the rocket is descending and so the touch down counter is kept to zero
-						td_counter = 0;
-					} else {
-						// if the altitude difference is in bounds, the counter is incremented
-						td_counter++;
-						if (td_counter > TOUCHDOWN_BUFFER_SIZE) {
-							// if the counter is larger than a given value, toggle the state trigger
-							counterTdTrig = 1;
-						}
-					}
-					td_last_alt = baro_data->altitude;
+			if(state_primary_status != 0){
+				time_tmp = HAL_GetTick();
+				td_last_alt = baro_data->altitude;
 
-					if (counterTdTrig) {
+				if(state_secondary_status == state_machine_helpers::state_secondary_altitude_difference_still_large){
+					td_counter = 0;
+				}
+				else{
+					++td_counter;
+					if(state_secondary_status == state_machine_helpers::state_secondary_switch_to_touchdown_state){
 						current_state = STATE_TOUCHDOWN;
 						flight_status = 40; // TODO: flight_status numbers should be defined as consts
 						// TODO: Set telemetry data rate to low
