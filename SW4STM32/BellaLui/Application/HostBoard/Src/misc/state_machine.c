@@ -150,7 +150,7 @@ void TK_state_machine(void const *argument) {
 					sec_counter = 0;
 				}
 				else{
-					sec_counter++; // if the measured altitude is lower than the trigger altitude, start counting
+					++sec_counter; // if the measured altitude is lower than the trigger altitude, start counting
 					if(state_primary_status == state_machine_helpers::state_primary_switch_to_secondary_state){
 						time_tmp = HAL_GetTick(); // save current time to start differed touchdown detection rate
 						current_state = STATE_SECONDARY; // switch to secondary recovery phase
