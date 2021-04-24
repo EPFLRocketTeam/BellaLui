@@ -6,7 +6,7 @@
  */
 
 #include "misc/state_machine.h"
-
+#include "misc/state_machine_helpers.h"
 #include "can_transmission.h"
 #include "misc/rocket_constants.h"
 #include "debug/monitor.h"
@@ -56,29 +56,23 @@ void TK_state_machine(void const *argument) {
 		sync_logic(10);
 		can_setFrame(current_state, DATA_ID_STATE, HAL_GetTick());
 
-		// if new imu data is available
-		if (currentImuSeqNumber > lastImuSeqNumber) {
+		imuIsReady = state_machine_helpers::newImuDataIsAvailable(currentImuSeqNumber, lastImuSeqNumber);
+		if (imuIsReady) {
 			// Update accelerometer reading
 			imu_data = getCurrentIMU_data();
 			lastImuSeqNumber = currentImuSeqNumber;
-			imuIsReady = 1; // set new data flag to true
-		} else {
-			imuIsReady = 0; // set new data flag to false
 		}
 
-		// if new barometer data is available
-		if (currentBaroSeqNumber > lastBaroSeqNumber) {
+		baroIsReady = state_machine_helpers::newBarometerDataIsAvailable(currentBaroSeqNumber, lastBaroSeqNumber);
+		if (baroIsReady) {
 			// Update barometer reading
 			baro_data = getCurrentBARO_data();
 			lastBaroSeqNumber = currentBaroSeqNumber;
-			baroIsReady = 1; // set new data flag to true
-		} else {
-			baroIsReady = 0; // set new data flag to false
 		}
 
-		if (liftoff_time != 0 && ((int32_t) HAL_GetTick() - (int32_t) liftoff_time) > 5 * 60 * 1000) {
+		if(state_machine_helpers::touchdownStateIsReached(HAL_GetTick(), liftoff_time)){
 			current_state = STATE_TOUCHDOWN;
-			flight_status = 40;
+			flight_status = 40; // TODO: flight_status numbers should be defined as consts
 		}
 
 		if(enter_monitor(STATE_MONITOR) && current_state < NUM_STATES) {
@@ -94,6 +88,7 @@ void TK_state_machine(void const *argument) {
 
 		// State Machine
 		switch (current_state) {
+
 		case STATE_CALIBRATION: {
 			if (baroIsReady) {
 				current_state = STATE_IDLE;
@@ -104,41 +99,29 @@ void TK_state_machine(void const *argument) {
 
 		case STATE_IDLE: {
 			if (imuIsReady) {
+				const uint32_t currentTime = HAL_GetTick();
+				uint8_t state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoff_time, abs_fl32(imu_data->acceleration.z));
 
-				// Compute lift-off triggers for acceleration
-				uint8_t liftoffAccelTrig = (abs_fl32(imu_data->acceleration.z) > ROCKET_CST_LIFTOFF_TRIG_ACCEL);
-
-				if (liftoff_time != 0) {
-					//already detected the acceleration trigger. now we need the trigger for at least 1000ms before trigerring the liftoff.
-					if (liftoffAccelTrig && HAL_GetTick() - liftoff_time > LIFTOFF_DETECTION_DELAY) {
-						current_state = STATE_LIFTOFF; // Switch to lift-off state
-
-						rocket_log("Liftoff triggered\r\n");
-
-						break;
-					} else if (!liftoffAccelTrig) //false positive.
-					{
-						liftoff_time = 0;
-						time_tmp = 0;
-					}
-					break;
+				if(state_idle_status == state_machine_helpers::state_idle_false_positive){
+					liftoff_time = 0;
+					time_tmp = 0;
 				}
-				// detect lift-off
-				if (liftoffAccelTrig) {
-					liftoff_time = HAL_GetTick();
-					time_tmp = HAL_GetTick(); // Start timer to estimate motor burn out
+				else if (state_idle_status == state_machine_helpers::state_idle_liftoff_detected){
+					liftoff_time = currentTime;
+					time_tmp = currentTime; // Start timer to estimate motor burn out
+				}
+				else if(state_idle_status == state_machine_helpers::state_idle_switch_to_liftoff_state){
+					current_state = STATE_LIFTOFF; // Switch to lift-off state
+					rocket_log("Liftoff triggered\r\n");
 				}
 			}
 			break;
 		}
 
 		case STATE_LIFTOFF: {
-			flight_status = 10;
-			uint32_t currentTime = HAL_GetTick();
-			// determine motor burn-out based on lift-off detection
-			if ((currentTime - time_tmp) > ROCKET_CST_MOTOR_BURNTIME) {
-				current_state = STATE_COAST; // switch to coast state
-
+			flight_status = 10; // TODO: flight_status numbers should be defined as consts
+			if(state_machine_helpers::handleLiftoffState(HAL_GetTick(), time_tmp)){
+				current_state = STATE_COAST;
 				rocket_log("Coast state triggered\r\n");
 			}
 			break;
@@ -149,39 +132,20 @@ void TK_state_machine(void const *argument) {
 
 			// compute apogee triggers for altitude
 			if (baroIsReady) {
-				uint8_t minAltTrig = ((baro_data->altitude - baro_data->base_altitude) > ROCKET_CST_MIN_TRIG_AGL);
-				uint8_t counterAltTrig = 0;
-				uint8_t diffAltTrig = 0;
+				uint8_t state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data->altitude, baro_data->base_altitude, apogee_counter);
 
-				// update the maximum altitude detected up to this point
-				if (max_altitude < baro_data->altitude) {
-					// if a new maximum altitude is found, this means the rocket is going up
-					max_altitude = baro_data->altitude;
-					// The descending measurement counter is thus set to zero
-					apogee_counter = 0;
-				} else {
-					// if the rocket isn't rising then it is descending, thus the number of descending measurements are counted
-					apogee_counter++;
-					if (apogee_counter > APOGEE_BUFFER_SIZE)
-					// if the number of measurements exceeds a certain value (basic noise filtering)...
-					{
-						// ... then the altitude trigger based on the counter is enabled
-						counterAltTrig = 1;
-						if ((max_altitude - baro_data->altitude) > APOGEE_ALT_DIFF)
-						// since the rocket is then supposed to be descending, the trigger waits for an altitude offset greater than the one defined to occure before triggering the state change
-						{
-							diffAltTrig = 1;
-						}
-					}
+				if(state_coast_status == state_machine_helpers::state_coast_rocket_is_ascending){
+					max_altitude = baro_data->altitude; // if a new maximum altitude is found, this means the rocket is going up					
+					apogee_counter = 0; // The descending measurement counter is thus set to zero
 				}
-
-				// detect apogee
-				if (minAltTrig && counterAltTrig && diffAltTrig) {
-					time_tmp = HAL_GetTick(); // save time to mute sensors while ejection occures
-					current_state = STATE_PRIMARY; // switch to primary descent phase
-					flight_status = 30;
-
-					rocket_log("Primary event state triggered\r\n");
+				else{
+					++apogee_counter; // if the rocket isn't rising then it is descending, thus the number of descending measurements are counted
+					if(state_coast_status == state_machine_helpers::state_coast_switch_to_primary_state){
+						time_tmp = HAL_GetTick(); // save time to mute sensors while ejection occures
+						current_state = STATE_PRIMARY; // switch to primary descent phase
+						flight_status = 30; // TODO: flight_status numbers should be defined as consts
+						rocket_log("Primary event state triggered\r\n");
+					}
 				}
 			}
 			break;
@@ -189,31 +153,20 @@ void TK_state_machine(void const *argument) {
 
 		case STATE_PRIMARY: {
 			if (baroIsReady) {
-				// check that some time has passed since the detection of the apogee before triggering the secondary recovery event
-				uint8_t sensorMuteTimeTrig = ((HAL_GetTick() - time_tmp) > APOGEE_MUTE_TIME);
-				uint8_t counterSecTrig = 0;
+				uint8_t state_primary_status = state_machine_helpers::handlePrimaryState(HAL_GetTick(), time_tmp, baro_data->altitude, baro_data->base_altitude, sec_counter);
 
-				// update the minimum altitude detected up to this point
-				if ((baro_data->altitude - baro_data->base_altitude) > ROCKET_CST_REC_SECONDARY_ALT) {
-					// As long as the measured altitude is above the secondary recovery event altitude, keep buffer counter to 0
+				if(state_primary_status == state_machine_helpers::state_primary_altitude_above_secondary_altitude){
 					sec_counter = 0;
-				} else {
-					// if the measured altitude is lower than the trigger altitude, start counting
-					sec_counter++;
-					if (sec_counter > SECONDARY_BUFFER_SIZE)
-					// if more than a given amount of measurements are below the secondary recovery altitude, toggle the state trigger
-					{
-						counterSecTrig = 1;
-					}
 				}
-
-				//detect secondary recovery event
-				if (sensorMuteTimeTrig && counterSecTrig) {
-					time_tmp = HAL_GetTick(); // save current time to start differed touchdown detection rate
-					current_state = STATE_SECONDARY; // switch to secondary recovery phase
-					td_last_alt = baro_data->altitude; // save altitude measurement for touchdown detection
-					flight_status = 35;
-					rocket_log("Secondary event state triggered\r\n");
+				else{
+					++sec_counter; // if the measured altitude is lower than the trigger altitude, start counting
+					if(state_primary_status == state_machine_helpers::state_primary_switch_to_secondary_state){
+						time_tmp = HAL_GetTick(); // save current time to start differed touchdown detection rate
+						current_state = STATE_SECONDARY; // switch to secondary recovery phase
+						td_last_alt = baro_data->altitude; // save altitude measurement for touchdown detection
+						flight_status = 35; // TODO: flight_status numbers should be defined as consts
+						rocket_log("Secondary event state triggered\r\n");
+					}
 				}
 			}
 			break;
@@ -222,31 +175,24 @@ void TK_state_machine(void const *argument) {
 		case STATE_SECONDARY: {
 			uint8_t counterTdTrig = 0;
 
-			// if a given time has passed since the last time the check was done, do the check
-			if ((HAL_GetTick() - time_tmp) > TOUCHDOWN_DELAY_TIME) {
-				if (baroIsReady) {
-					// save time of check
-					time_tmp = HAL_GetTick();
+			const float baro_data_altitude = baroIsReady ? baro_data->altitude : -1;
 
-					// check if the altitude hasn't varied of more than a given amount since last time
-					if (abs_fl32(baro_data->altitude - td_last_alt) > TOUCHDOWN_ALT_DIFF) {
-						// if the altitude difference is still large, this means the rocket is descending and so the touch down counter is kept to zero
-						td_counter = 0;
-					} else {
-						// if the altitude difference is in bounds, the counter is incremented
-						td_counter++;
-						if (td_counter > TOUCHDOWN_BUFFER_SIZE) {
-							// if the counter is larger than a given value, toggle the state trigger
-							counterTdTrig = 1;
-						}
-					}
-					td_last_alt = baro_data->altitude;
+			uint8_t state_secondary_status = state_machine_helpers::handleSecondaryState(HAL_GetTick(), time_tmp, baroIsReady, baro_data_altitude, td_last_alt, td_counter);
 
-					if (counterTdTrig) {
+			if(state_primary_status != 0){
+				time_tmp = HAL_GetTick();
+				td_last_alt = baro_data->altitude;
+
+				if(state_secondary_status == state_machine_helpers::state_secondary_altitude_difference_still_large){
+					td_counter = 0;
+				}
+				else{
+					++td_counter;
+					if(state_secondary_status == state_machine_helpers::state_secondary_switch_to_touchdown_state){
 						current_state = STATE_TOUCHDOWN;
-						flight_status = 40;
-						rocket_log("Touchdown state triggered\r\n");
+						flight_status = 40; // TODO: flight_status numbers should be defined as consts
 						// TODO: Set telemetry data rate to low
+						rocket_log("Touchdown state triggered\r\n");
 					}
 				}
 			}
