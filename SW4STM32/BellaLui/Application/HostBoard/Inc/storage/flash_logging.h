@@ -10,12 +10,16 @@
 
 
 #include <can_transmission.h>
-#include "rocket_fs.h"
-#include "flash.h"
+
 
 
 // Bigger buffer does not work
 #define LOGGING_BUFFER_SIZE (8 * 64)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 void init_logging();
 void start_logging();
@@ -25,5 +29,10 @@ void TK_logging_thread(void const *pvArgs);
 
 void acquire_flash_lock();
 void release_flash_lock();
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* APPLICATION_HOSTBOARD_INC_FLASH_LOGGING_H_ */

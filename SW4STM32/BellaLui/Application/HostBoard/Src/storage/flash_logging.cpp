@@ -13,6 +13,8 @@
 
 #include "storage/flash_runtime.h"
 #include "storage/heavy_io.h"
+#include "rocket_fs.h"
+#include "flash.h"
 
 #include <cmsis_os.h>
 
@@ -113,18 +115,6 @@ void TK_logging_thread(void const *pvArgs) {
 		Stream stream;
 		rocket_fs_stream(&stream, fs, flight_data, APPEND);
 
-		if(!stream.write) {
-			/*
-			 * Stream is not ready for writing.
-			 * An error occurred whilst initialising the stream.
-			 */
-
-			while(true) {
-				led_set_TK_rgb(led_identifier, 50, 0, 0);
-				osDelay(1000);
-			}
-		}
-
 		/*
 		 * Enter the main loop
 		 */
@@ -179,6 +169,8 @@ void TK_logging_thread(void const *pvArgs) {
 				bytes_written = 0;
 				last_update = time;
 			}
+
+			rocket_fs_flush(fs);
 
 			if(is_logging) {
 				led_set_TK_rgb(led_identifier, 0, 50, 50);

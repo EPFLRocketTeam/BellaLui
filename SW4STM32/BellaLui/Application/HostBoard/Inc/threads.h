@@ -107,6 +107,11 @@
 #include <propulsion/pressure_monitor.h>
 #endif
 
+#ifdef FLASH_LOGGING
+#include <storage/flash_logging.h>
+#endif
+
+#include <storage/heavy_io.h>
 
 
 void create_semaphores();
