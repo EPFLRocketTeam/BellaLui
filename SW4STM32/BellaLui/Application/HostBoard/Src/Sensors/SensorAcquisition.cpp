@@ -94,15 +94,23 @@ void TK_sensor_acquisition(const void *argument) {
 
 		uint32_t time = HAL_GetTick();
 
-		can_setFrame((int32_t) imuData.accel.x, DATA_ID_ACCELERATION_X, time);
-		can_setFrame((int32_t) imuData.accel.y, DATA_ID_ACCELERATION_Y, time);
-		can_setFrame((int32_t) imuData.accel.z, DATA_ID_ACCELERATION_Z, time);
-		can_setFrame((int32_t) (1000 * imuData.gyro.x), DATA_ID_GYRO_X, time);
-		can_setFrame((int32_t) (1000 * imuData.gyro.y), DATA_ID_GYRO_Y, time);
-		can_setFrame((int32_t) (1000 * imuData.gyro.z), DATA_ID_GYRO_Z, time);
-		can_setFrame((int32_t) altitudeData.temperature, DATA_ID_TEMPERATURE, time);
-		can_setFrame((int32_t) (altitudeData.pressure * 100), DATA_ID_PRESSURE, time);
-		can_setFrame((int32_t) (altitudeData.altitude), DATA_ID_ALTITUDE, time);
+		bool imuValid = imu.isReady() && imu.getExcludedCount() <= 6 * imu.getCount() / 2; // axis_count(6) * sensor_count / 2
+		if(imuValid) {
+			can_setFrame((int32_t) imuData.accel.x, DATA_ID_ACCELERATION_X, time);
+			can_setFrame((int32_t) imuData.accel.y, DATA_ID_ACCELERATION_Y, time);
+			can_setFrame((int32_t) imuData.accel.z, DATA_ID_ACCELERATION_Z, time);
+			can_setFrame((int32_t) (1000 * imuData.gyro.x), DATA_ID_GYRO_X, time);
+			can_setFrame((int32_t) (1000 * imuData.gyro.y), DATA_ID_GYRO_Y, time);
+			can_setFrame((int32_t) (1000 * imuData.gyro.z), DATA_ID_GYRO_Z, time);
+		}
+
+		bool barometerValid = barometer.isReady() && barometer.getExcludedCount() <= 2 * barometer.getCount() / 2;
+		bool altitudeValid = altitude.isReady() && barometerValid;
+		if(altitudeValid) {
+			can_setFrame((int32_t) altitudeData.temperature, DATA_ID_TEMPERATURE, time);
+			can_setFrame((int32_t) (altitudeData.pressure * 100), DATA_ID_PRESSURE, time);
+			can_setFrame((int32_t) (altitudeData.altitude), DATA_ID_ALTITUDE, time);
+		}
 
 		end_profiler();
 

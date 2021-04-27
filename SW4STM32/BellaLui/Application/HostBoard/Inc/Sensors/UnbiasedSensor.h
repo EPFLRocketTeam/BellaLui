@@ -31,6 +31,7 @@ public:
 	bool unload();
 	bool fetch(T* data);
 	uint16_t getExcludedCount() { return excludedCount; }
+	uint8_t getCount() { return count; }
 
 protected:
 	virtual uint16_t filterData(T* measurements, uint8_t count, T* output) = 0;
