@@ -5,12 +5,12 @@
 
 TEST(StateMachineTests, ShouldStayInLiftoffStateDuringMotorBurnTime){
     //ASSERT_EQ(handleLiftoffState(ROCKET_CST_MOTOR_BURNTIME - 10, 0), STATE_LIFTOFF);
-    ASSERT_EQ(state_machine_helpers::handleLiftoffState(ROCKET_CST_MOTOR_BURNTIME - 10, 0), false);
+    ASSERT_FALSE(state_machine_helpers::handleLiftoffState(ROCKET_CST_MOTOR_BURNTIME - 10, 0));
 }
 
 TEST(StateMachineTests, ShouldSwitchFromLiftoffToCoastStateAfterMotorBurnTime){
     //ASSERT_EQ(handleLiftoffState(ROCKET_CST_MOTOR_BURNTIME + 10, 0), STATE_COAST);
-    ASSERT_EQ(state_machine_helpers::handleLiftoffState(ROCKET_CST_MOTOR_BURNTIME + 10, 0), true);
+    ASSERT_TRUE(state_machine_helpers::handleLiftoffState(ROCKET_CST_MOTOR_BURNTIME + 10, 0));
 }
 
 TEST(StateMachineTests, ShouldGetCorrectImuStatus){
@@ -55,7 +55,7 @@ TEST(StateMachineTests, ShouldGetCorrectIdleStateStatus){
 
     currentTime = liftoffTime + 300;
     state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, acceleration_z);
-    EXPECT_EQ(state_idle_status, 0);
+    EXPECT_EQ(state_idle_status, state_machine_helpers::state_idle_no_op);
 
     liftoffTime = 0;
     state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, acceleration_z);
@@ -75,11 +75,11 @@ TEST(StateMachineTests, ShouldGetCorrectPrimaryStateStatus){
     float baro_data_altitude = 120;
 
     uint8_t state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
-    EXPECT_EQ(state_primary_status, 0);
+    EXPECT_EQ(state_primary_status, state_primary_no_op);
 
     sec_counter = SECONDARY_BUFFER_SIZE;
     state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
-    EXPECT_EQ(state_primary_status, 0);
+    EXPECT_EQ(state_primary_status, state_primary_no_op);
 
     currentTime = time_tmp + APOGEE_MUTE_TIME + 1;
     state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
@@ -87,7 +87,7 @@ TEST(StateMachineTests, ShouldGetCorrectPrimaryStateStatus){
 
     sec_counter = SECONDARY_BUFFER_SIZE - 1;
     state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
-    EXPECT_EQ(state_primary_status, 0);
+    EXPECT_EQ(state_primary_status, state_primary_no_op);
 
     sec_counter = SECONDARY_BUFFER_SIZE;
 
@@ -112,11 +112,11 @@ TEST(StateMachineTests, ShouldGetCorrectSecondaryStateStatus){
     float td_last_alt = 130;
 
     uint8_t state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
-    EXPECT_EQ(state_secondary_status, 0);
+    EXPECT_EQ(state_secondary_status, state_secondary_no_op);
 
     baro_is_ready = true;
     state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
-    EXPECT_EQ(state_secondary_status, 0);
+    EXPECT_EQ(state_secondary_status, state_secondary_no_op);
 
     currentTime = time_tmp + TOUCHDOWN_DELAY_TIME + 10;
     state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);

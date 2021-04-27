@@ -179,7 +179,7 @@ void TK_state_machine(void const *argument) {
 
 			uint8_t state_secondary_status = state_machine_helpers::handleSecondaryState(HAL_GetTick(), time_tmp, baroIsReady, baro_data_altitude, td_last_alt, td_counter);
 
-			if(state_primary_status != 0){
+			if(state_secondary_status != state_secondary_no_op){
 				time_tmp = HAL_GetTick();
 				td_last_alt = baro_data->altitude;
 

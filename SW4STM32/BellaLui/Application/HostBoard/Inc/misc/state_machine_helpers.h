@@ -8,16 +8,20 @@ namespace state_machine_helpers {
     const uint8_t state_idle_false_positive = 11;
     const uint8_t state_idle_liftoff_detected = 12;
     const uint8_t state_idle_switch_to_liftoff_state = 13;
+    const uint8_t state_idle_no_op = 14;
 
     const uint8_t state_coast_rocket_is_ascending = 21;
     const uint8_t state_coast_switch_to_primary_state = 22;
+    const uint8_t state_coast_no_op = 23;
 
     const uint8_t state_primary_altitude_above_secondary_altitude = 31;
     const uint8_t state_primary_switch_to_secondary_state = 32;
+    const uint8_t state_primary_no_op = 33;
 
     const uint8_t state_secondary_altitude_difference_still_large = 41;
     const uint8_t state_secondary_approaching_touchdown = 42;
     const uint8_t state_secondary_switch_to_touchdown_state = 43;
+    const uint8_t state_secondary_no_op = 44;
 
 
     uint8_t handleIdleState(const uint32_t currentTime, const uint32_t liftoff_time, const float acceleration_z);

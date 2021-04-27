@@ -19,7 +19,7 @@ namespace state_machine_helpers {
                 return state_idle_switch_to_liftoff_state;
             }
         }
-        return 0;
+        return state_idle_no_op;
     }
 
     bool handleLiftoffState(const uint32_t currentTime, const uint32_t previousTime) {
@@ -49,7 +49,7 @@ namespace state_machine_helpers {
             }
         }
 
-        return 0;        
+        return state_coast_no_op;        
     }
 
     uint8_t handlePrimaryState(const uint32_t currentTime, const uint32_t time_tmp, const float baro_data_altitude, const float baro_data_base_altitude, const uint32_t sec_counter) {
@@ -68,7 +68,7 @@ namespace state_machine_helpers {
             }
         }
 
-        return 0;
+        return state_primary_no_op;
     }
 
     float abs_fl32(float v) { // copied in order to avoid including common.h
@@ -82,16 +82,16 @@ namespace state_machine_helpers {
                 if (abs_fl32(baro_data_altitude - td_last_alt) <= TOUCHDOWN_ALT_DIFF){
 
                     if (td_counter+1 > TOUCHDOWN_BUFFER_SIZE){
-                        return state_machine_helpers::state_secondary_switch_to_touchdown_state;
+                        return state_secondary_switch_to_touchdown_state;
                     }
 
-                    return state_machine_helpers::state_secondary_approaching_touchdown;
+                    return state_secondary_approaching_touchdown;
                 }
 
-                return state_machine_helpers::state_secondary_altitude_difference_still_large;
+                return state_secondary_altitude_difference_still_large;
             }
 
-        return 0;
+        return state_secondary_no_op;
     }
 
     uint8_t newImuDataIsAvailable(const uint32_t currentImuSeqNumber, const uint32_t lastImuSeqNumber) {
