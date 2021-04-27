@@ -102,10 +102,10 @@ bool handleABData(uint32_t timestamp, int32_t new_angle) {
 
 bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
 	if(state == STATE_LIFTOFF) {
-    	//start_logging();
+    	start_logging();
     	liftoff_time = timestamp;
 	} else if(state == STATE_TOUCHDOWN) {
-		//stop_logging();
+		stop_logging();
         on_dump_request();
 	}
 

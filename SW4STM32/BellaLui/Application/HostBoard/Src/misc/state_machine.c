@@ -82,12 +82,12 @@ void TK_state_machine(void const *argument) {
 		}
 
 		if(enter_monitor(STATE_MONITOR) && current_state < NUM_STATES) {
-			rocket_log(" Time: %dms\x1b[K\n", HAL_GetTick());
-			rocket_log(" Current state: %s\x1b[K\n", state_names[current_state]);
+			rocket_log(" Time: %dms\x1b[K\r\n", HAL_GetTick());
+			rocket_log(" Current state: %s\x1b[K\r\n", state_names[current_state]);
 			if (baro_data != 0) {
-				rocket_log(" Altitude: %d\x1b[K\n", (int32_t) (1000 * (baro_data->altitude - baro_data->base_altitude)));
+				rocket_log(" Altitude: %d\x1b[K\r\n", (int32_t) (1000 * (baro_data->altitude - baro_data->base_altitude)));
 			} else {
-				rocket_log(" Altitude unavailable\x1b[K\n");
+				rocket_log(" Altitude unavailable\x1b[K\r\n");
 			}
 			exit_monitor(STATE_MONITOR);
 		}
