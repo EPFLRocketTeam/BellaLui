@@ -143,20 +143,20 @@ inline void checkStateDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq
 }
 
 inline void checkPropulsionDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, PropulsionData prop) {
-	int size = 14; //bytes
+	int size = 22; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
 	checkHeader((uint8_t*) msg->buf, PROPULSION_DATA_PACKET, ts, seq);
 
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 0, prop.pressure1, "pressure 1 incorrect");
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 2, prop.pressure2, "pressure 2 incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 0, prop.pressure1, "pressure 1 incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 4, prop.pressure2, "pressure 2 incorrect");
 
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 4, prop.temperature1, "temp 1 incorrect");
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 6, prop.temperature2, "temp 2 incorrect");
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 8, prop.temperature3, "temp 3 incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 8, prop.temperature1, "temp 1 incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 10, prop.temperature2, "temp 2 incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 12, prop.temperature3, "temp 3 incorrect");
 
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 10, prop.status, "status incorrect");
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 12, prop.motor_position, "motor position incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 14, prop.status, "status incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 18, prop.motor_position, "motor position incorrect");
 
 	if(ACTIVATE_DATAGRAM_CHECKSUM)
 		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
