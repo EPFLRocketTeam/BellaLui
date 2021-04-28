@@ -112,8 +112,6 @@ bool AltitudeEstimator::fetch(AltitudeData* data) {
 	}
 }
 
-#include "debug/console.h"
-
 float AltitudeEstimator::altitudeComputation(float raw_pressure, float raw_temperature) { // Temperature in °C, pressure can have any unit.
 	float altitude1;
 	float altitude2;

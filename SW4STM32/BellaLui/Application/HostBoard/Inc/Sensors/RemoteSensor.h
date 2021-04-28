@@ -28,14 +28,14 @@ private:
 template<class T>
 bool RemoteSensor<T>::load() {
 	dataPtr = nullptr;
-	ready = true;
+	this->ready = true;
 	return true;
 }
 
 template<class T>
 bool RemoteSensor<T>::unload() {
 	dataPtr = nullptr;
-	ready = false;
+	this->ready = false;
 	return true;
 }
 
@@ -47,7 +47,7 @@ void RemoteSensor<T>::onDataReception(T data) {
 
 template<class T>
 bool RemoteSensor<T>::fetch(T* data) {
-	if(!ready)
+	if(!this->ready)
 		return false;
 
 	if(dataPtr != nullptr) {
