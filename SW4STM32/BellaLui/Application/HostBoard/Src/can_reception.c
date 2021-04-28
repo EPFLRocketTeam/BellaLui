@@ -23,7 +23,7 @@
 #include "storage/log_manager.h"
 
 #include "misc/datastructs.h"
-#include "misc/common.h"
+#include "misc/state_manager.h"
 #include "misc/rocket_constants.h"
 
 #include "debug/console.h"
@@ -63,7 +63,8 @@ int board2Idx(uint32_t board) {
 }
 
 bool handleIMUData(uint32_t timestamp, IMU_data data) {
-	IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
+	onIMUDataReception(data);
+
 	#ifdef XBEE
 	return telemetrySendIMU(timestamp, data);
 	/*#elif defined(KALMAN)
@@ -79,8 +80,8 @@ bool handleBaroData(uint32_t timestamp, BARO_data data) {
 		data.base_altitude = altitudeFromPressure(data.base_pressure);
 	}*/
 
-	BARO_buffer[(++currentBaroSeqNumber) % CIRC_BUFFER_SIZE] = data;
-	currentBaroTimestamp = HAL_GetTick();
+	onBarometerDataReception(data);
+
 
 	#ifdef XBEE
 	return telemetrySendBaro(timestamp, data);
@@ -102,14 +103,13 @@ bool handleABData(uint32_t timestamp, int32_t new_angle) {
 
 bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
 	if(state == STATE_LIFTOFF) {
-    	//start_logging();
-    	liftoff_time = timestamp;
+    	start_logging();
 	} else if(state == STATE_TOUCHDOWN) {
-		//stop_logging();
+		stop_logging();
         on_dump_request();
 	}
 
-	current_state = state; // Update the system state
+	onStateAcknowledged(state); // Update the system state
 
 	return true;
 }
@@ -142,10 +142,6 @@ float can_getAltitude() {
 float can_getSpeed() {
 	//return air_speed_state_estimate; // from TK_state_estimation
 	return kalman_vz;
-}
-
-uint8_t can_getState() {
-	return current_state;
 }
 
 int32_t can_getABangle() {
@@ -252,10 +248,6 @@ void TK_can_reader() {
 					new_state = true;
 					state = msg.data;
 				}
-
-				#ifndef ROCKET_FSM // to avoid self loop on board with FSM
-					telemetrySendState(msg.timestamp, EVENT, 0, current_state);
-				#endif
 
 				break;
 			case DATA_ID_KALMAN_STATE:

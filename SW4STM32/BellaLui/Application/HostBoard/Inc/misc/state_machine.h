@@ -8,8 +8,33 @@
 #ifndef MISC_STATE_MACHINE_H_
 #define MISC_STATE_MACHINE_H_
 
-void TK_state_machine (void const * argument);
-void TK_state_estimation ();
+#include <stdint.h>
+#include <stdbool.h>
+
+#include "datastructs.h"
+#include "common.h"
+
+class StateMachine {
+public:
+	StateMachine();
+	~StateMachine() {};
+
+	void publishState();
+	void requestState(enum State new_state);
+	void enterState(enum State new_state);
+	enum State getCurrentState();
+
+	IMU_data latestIMUData;
+	BARO_data latestBarometerData;
+
+	bool newIMUData;
+	bool newBarometerData;
+
+	uint32_t liftoffTime;
+
+private:
+	enum State current_state;
+};
 
 
 #endif /* MISC_STATE_MACHINE_H_ */
