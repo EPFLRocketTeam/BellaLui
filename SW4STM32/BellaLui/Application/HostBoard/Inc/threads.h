@@ -57,9 +57,11 @@
 #define BOARD_LED_G (50)
 #define BOARD_LED_B (50)
 #define FLASH_LOGGING
+#define TESTING
 #define ROCKET_FSM
 #define KALMAN
 #define DEBUG_TASK
+=======
 #endif
 
 #ifdef FLASH_DUMP_BOARD
@@ -101,7 +103,7 @@
 #endif
 
 #ifdef ROCKET_FSM
-#include <misc/state_machine.h>
+#include <misc/state_manager.h>
 #endif
 
 #ifdef PRESSURE_MONITORING
@@ -114,7 +116,9 @@
 
 #include <storage/heavy_io.h>
 
+
 #ifdef DEBUG_TASK
+#include <Sensors/DataStructures.h>
 #endif
 
 

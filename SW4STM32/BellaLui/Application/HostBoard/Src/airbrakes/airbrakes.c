@@ -10,11 +10,11 @@
 #include "can_reception.h"
 #include "can_transmission.h"
 #include "debug/led.h"
+#include "misc/state_manager.h"
 
 
 #include <stm32f4xx_hal.h>
 #include <cmsis_os.h>
-#include <misc/common.h>
 #include <stdbool.h>
 
 #define AB_PERIOD_MS (50)
@@ -42,13 +42,15 @@ void TK_ab_controller(void const *argument) {
 	osDelay(1000);
 
 	while (true) {
-		if (current_state < STATE_COAST) {
+		enum State currentState = getAvionicsState();
+
+		if (currentState < STATE_COAST) {
 			full_close();
 			led_set_TK_rgb(led_AB_id, 0, 10, 0);
-		} else if (current_state == STATE_COAST) {
+		} else if (currentState == STATE_COAST) {
 			command_aerobrake_controller(can_getAltitude(), can_getSpeed());
 			led_set_TK_rgb(led_AB_id, 50, 50, 50);
-		} else if (current_state >= STATE_PRIMARY) {
+		} else if (currentState >= STATE_PRIMARY) {
 			full_close();
 			led_set_TK_rgb(led_AB_id, 50, 50, 0);
 		}

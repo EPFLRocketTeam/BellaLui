@@ -61,6 +61,7 @@ void test_thread() {
 
 	while(1) {
 		sync_logic(10);
+
 		uint32_t time = HAL_GetTick();
 
 		imuData.accel.x = rand();
@@ -165,7 +166,7 @@ void create_threads() {
 	#endif
 
 
-	#ifdef DEBUG_TASK
+	#ifdef TESTING
 	  osThreadDef(8test_thread, test_thread, osPriorityNormal, 0, 512);
 	  rocketfsmHandle = osThreadCreate(osThread(8test_thread), NULL);
 	  rocket_boot_log("Test thread started.\r\n");
