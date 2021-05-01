@@ -34,14 +34,6 @@ StateMachine::StateMachine() :
 		newIMUData(false),
 		newBarometerData(false),
 		liftoffTime(-1) {
-	enterState(STATE_CALIBRATION);
-}
-
-
-void StateMachine::publishState() {
-	#ifdef XBEE
-	telemetrySendState(HAL_GetTick(), EVENT, 0, this->current_state);
-	#endif
 }
 
 
@@ -88,7 +80,7 @@ void TK_state_machine(void const *argument) {
 
 	// State Machine initialization
 	// Hyp: rocket is on rail waiting for lift-off
-	fsm.enterState(STATE_CALIBRATION);
+	fsm.requestState(STATE_CALIBRATION);
 
 
 	// State Machine main task loop
@@ -118,8 +110,6 @@ void TK_state_machine(void const *argument) {
 
 
 		enum State currentState = fsm.getCurrentState();
-
-		fsm.publishState();
 
 		if(enter_monitor(STATE_MONITOR) && currentState >= 0 && currentState < NUM_STATES) {
 			rocket_log(" Time: %dms\x1b[K\n", HAL_GetTick());

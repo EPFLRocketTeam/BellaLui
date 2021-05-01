@@ -24,7 +24,6 @@ void onBarometerDataReception(BARO_data data);
 void onStateAcknowledged(enum State newState);
 
 enum State getAvionicsState();
-enum State getAvionicsState();
 int32_t getLiftoffTime();
 
 

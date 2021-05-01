@@ -22,7 +22,7 @@ public:
 	void publishState();
 	void requestState(enum State new_state);
 	void enterState(enum State new_state);
-	enum State getCurrentState();
+	enum State getCurrentState() { return current_state; }
 
 	IMU_data latestIMUData;
 	BARO_data latestBarometerData;

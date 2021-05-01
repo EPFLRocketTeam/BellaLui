@@ -358,7 +358,7 @@ void TK_can_reader() {
 
 		end_profiler();
 
-		osDelay(10);
+		sync_logic(1);
 	}
 }
 

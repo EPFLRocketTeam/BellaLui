@@ -10,7 +10,7 @@
 
 #define OS_STKCHECK
 #define LED
-#define TELEMETRY_BOARD
+#define SENSOR_BOARD
 
 
 #ifdef GPS_BOARD
@@ -57,8 +57,8 @@
 #define BOARD_LED_G (50)
 #define BOARD_LED_B (50)
 #define FLASH_LOGGING
+#define TESTING
 #define ROCKET_FSM
-#define KALMAN
 #endif
 
 #ifdef FLASH_DUMP_BOARD
@@ -100,11 +100,15 @@
 #endif
 
 #ifdef ROCKET_FSM
-#include <misc/state_machine.h>
+#include <misc/state_manager.h>
 #endif
 
 #ifdef PRESSURE_MONITORING
 #include <propulsion/pressure_monitor.h>
+#endif
+
+#ifdef TESTING
+#include <Sensors/DataStructures.h>
 #endif
 
 
