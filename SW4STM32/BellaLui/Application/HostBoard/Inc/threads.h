@@ -59,6 +59,7 @@
 #define FLASH_LOGGING
 #define ROCKET_FSM
 #define KALMAN
+#define DEBUG_TASK
 #endif
 
 #ifdef FLASH_DUMP_BOARD
@@ -112,6 +113,9 @@
 #endif
 
 #include <storage/heavy_io.h>
+
+#ifdef DEBUG_TASK
+#endif
 
 
 void create_semaphores();

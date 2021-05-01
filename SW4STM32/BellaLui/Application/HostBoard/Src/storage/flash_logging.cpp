@@ -66,14 +66,12 @@ void flash_log(CAN_msg message) {
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 16);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 8);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 0);
-	}
-
-	// vTaskDelay(400 * portTICK_PERIOD_MS / 1000);  // Add delay to smoothen the thread blocking time due to flash synchronisation
-
-	if(front_buffer_index >= LOGGING_BUFFER_SIZE) {
+	} else {
 		xSemaphoreGive(master_swap);
 		xSemaphoreTake(slave_swap, 10 * portTICK_PERIOD_MS);
 	}
+
+	// vTaskDelay(400 * portTICK_PERIOD_MS / 1000);  // Add delay to smoothen the thread blocking time due to flash synchronisation
 }
 
 void TK_logging_thread(void const *pvArgs) {
