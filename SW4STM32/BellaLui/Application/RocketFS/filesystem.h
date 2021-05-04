@@ -105,4 +105,6 @@ File* rocket_fs_getfile(FileSystem* fs, const char* name);
 bool rocket_fs_touch(FileSystem* fs, File* file);
 bool rocket_fs_stream(Stream* stream, FileSystem* fs, File* file, StreamMode mode);
 
+
+
 #endif /* INC_FILESYSTEM_H_ */

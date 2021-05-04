@@ -75,11 +75,11 @@ extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
 extern TIM_HandleTypeDef htim14;
 
-static const char* err_hardfault = "\x1b[2J===== KERNEL PANIC =====\r\nHard fault detected\nShutting down immediately";
-static const char* err_stackoverflow = "\x1b[2J===== KERNEL PANIC =====\r\nStack overflow detected\nShutting down immediately";
-static const char* err_outofmemory = "\x1b[2J===== KERNEL PANIC =====\r\nOut of memory\nShutting down immediately";
-static const char* err_busfault = "\x1b[2J===== KERNEL PANIC =====\r\nBus fault detected\nShutting down immediately";
-static const char* err_usagefault = "\x1b[2J===== KERNEL PANIC =====\r\nUsage fault detected\nShutting down immediately";
+static const char* err_hardfault = "\x1b[2J===== KERNEL PANIC =====\r\nHard fault detected\r\nShutting down immediately";
+static const char* err_stackoverflow = "\x1b[2J===== KERNEL PANIC =====\r\nStack overflow detected\r\nShutting down immediately";
+static const char* err_outofmemory = "\x1b[2J===== KERNEL PANIC =====\r\nOut of memory\r\nShutting down immediately";
+static const char* err_busfault = "\x1b[2J===== KERNEL PANIC =====\r\nBus fault detected\r\nShutting down immediately";
+static const char* err_usagefault = "\x1b[2J===== KERNEL PANIC =====\r\nUsage fault detected\r\nShutting down immediately";
 
 
 /* USER CODE BEGIN EV */

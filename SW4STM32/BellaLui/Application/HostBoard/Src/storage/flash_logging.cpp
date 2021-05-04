@@ -66,7 +66,9 @@ void flash_log(CAN_msg message) {
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 16);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 8);
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 0);
-	} else {
+	}
+
+	if(front_buffer_index >= LOGGING_BUFFER_SIZE){
 		xSemaphoreGive(master_swap);
 		xSemaphoreTake(slave_swap, 10 * portTICK_PERIOD_MS);
 	}
