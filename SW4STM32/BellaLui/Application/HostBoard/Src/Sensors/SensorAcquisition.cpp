@@ -109,7 +109,7 @@ void TK_sensor_acquisition(const void *argument) {
 		if(altitudeValid) {
 			can_setFrame((int32_t) altitudeData.temperature, DATA_ID_TEMPERATURE, time);
 			can_setFrame((int32_t) (altitudeData.pressure * 100), DATA_ID_PRESSURE, time);
-			can_setFrame((int32_t) (altitudeData.altitude), DATA_ID_ALTITUDE, time);
+			can_setFrame((int32_t) (altitudeData.altitude * 1000), DATA_ID_ALTITUDE, time);
 		}
 
 		end_profiler();
