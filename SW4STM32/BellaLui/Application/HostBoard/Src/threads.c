@@ -23,7 +23,6 @@
 
 #include "Sensors/DataStructures.h"
 
-
 osThreadId loggingHandle;
 osThreadId task_ShellHandle;
 osThreadId sdWriteHandle;

@@ -123,7 +123,7 @@ int32_t dump_file_on_sd(const void* arg) {
 	 * Stage 3: Transfer data from Flash to SD card.
 	 */
 
-	uint8_t buffer[16];
+	uint8_t buffer[2048];
 	uint32_t total_bytes_read = 0;
 	uint32_t total_bytes_written = 0;
 
@@ -135,7 +135,7 @@ int32_t dump_file_on_sd(const void* arg) {
 	while(total_bytes_read < flash_file->length && bytes_read > 0) {
 
 		start_profiler(1);
-		bytes_read = stream.read(buffer, 16);
+		bytes_read = stream.read(buffer, 2048);
 		end_profiler();
 
 		start_profiler(2);
@@ -144,8 +144,6 @@ int32_t dump_file_on_sd(const void* arg) {
 
 		total_bytes_read += bytes_read;
 		total_bytes_written += bytes_written;
-
-		rocket_log("%d\r\n", total_bytes_written);
 
 		rocket_log_lock();
 		rocket_log("\e7\x1b[40;0HDumping file... %d%%\x1b[K\e8", 100 * total_bytes_written / flash_file->length);
