@@ -115,10 +115,12 @@ bool UnbiasedSensor<T>::fetch(T* data) {
 
 template<class T>
 uint8_t UnbiasedSensor<T>::removeOutsiders(float** data) {
-	uint8_t sorting_array[SENSORS_NB] = {0,1,2,3}; //TODO:magic numbers? could work with array of pointers of data instead of indexes... faster code I believe but more RAM (insignificant?)
+	uint8_t sorting_array[SENSORS_NB];
+	for(int i = 0; i < SENSORS_NB; i++)
+		sorting_array[i] = i;
 	sortingNetwork(data, sorting_array);
 
-	return filterOutData(data,sorting_array,0,3);
+	return filterOutData(data, sorting_array, 0, SENSORS_NB-1);
 }
 
 template<class T>
