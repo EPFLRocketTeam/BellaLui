@@ -33,7 +33,7 @@ StateMachine::StateMachine() :
 		latestBarometerData({0}),
 		newIMUData(false),
 		newBarometerData(false),
-		liftoffTime(-1) {
+		liftoffTime(NO_LIFTOFF_TIME) {
 }
 
 
@@ -74,7 +74,7 @@ void TK_state_machine(void const *argument) {
 	uint32_t td_counter = 0;
 
 	uint32_t flight_status = 0;
-	uint32_t preliminary_liftoff_time = 0;
+	uint32_t preliminary_liftoff_time = NO_LIFTOFF_TIME;
 
 	// TODO: Set low package data rate
 
@@ -140,7 +140,7 @@ void TK_state_machine(void const *argument) {
 				uint8_t state_idle_status = state_machine_helpers::handleIdleState(currentTime, preliminary_liftoff_time, abs_fl32(imu_data.acceleration.z));
 
 				if(state_idle_status == state_machine_helpers::state_idle_false_positive){
-					preliminary_liftoff_time = 0;
+					preliminary_liftoff_time = NO_LIFTOFF_TIME;
 					time_tmp = 0;
 				}
 				else if (state_idle_status == state_machine_helpers::state_idle_liftoff_detected){
@@ -148,7 +148,7 @@ void TK_state_machine(void const *argument) {
 					time_tmp = currentTime; // Start timer to estimate motor burn out
 				}
 				else if(state_idle_status == state_machine_helpers::state_idle_switch_to_liftoff_state) {
-					fsm.liftoffTime = preliminary_liftoff_time;
+					fsm.liftoffTime = preliminary_liftoff_time; // TODO: there is a problem here, the state request does not encompass this
 					fsm.requestState(STATE_LIFTOFF); // Switch to lift-off state
 				}
 			}

@@ -37,7 +37,7 @@ TEST(StateMachineTests, ShouldReachTouchdownStateAfterFiveMinutes){
     EXPECT_FALSE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
     currentTime = 8*60*1000;
     EXPECT_TRUE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
-    liftoffTime = 0;
+    liftoffTime = NO_LIFTOFF_TIME;
     EXPECT_FALSE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
 }
 
@@ -57,7 +57,7 @@ TEST(StateMachineTests, ShouldGetCorrectIdleStateStatus){
     state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, acceleration_z);
     EXPECT_EQ(state_idle_status, state_machine_helpers::state_idle_no_op);
 
-    liftoffTime = 0;
+    liftoffTime = NO_LIFTOFF_TIME;
     state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, acceleration_z);
     EXPECT_EQ(state_idle_status, state_machine_helpers::state_idle_liftoff_detected);
 }
