@@ -75,11 +75,11 @@ TEST(StateMachineTests, ShouldGetCorrectPrimaryStateStatus){
     float baro_data_altitude = 120;
 
     uint8_t state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
-    EXPECT_EQ(state_primary_status, state_primary_no_op);
+    EXPECT_EQ(state_primary_status, state_machine_helpers::state_primary_no_op);
 
     sec_counter = SECONDARY_BUFFER_SIZE;
     state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
-    EXPECT_EQ(state_primary_status, state_primary_no_op);
+    EXPECT_EQ(state_primary_status, state_machine_helpers::state_primary_no_op);
 
     currentTime = time_tmp + APOGEE_MUTE_TIME + 1;
     state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
@@ -87,7 +87,7 @@ TEST(StateMachineTests, ShouldGetCorrectPrimaryStateStatus){
 
     sec_counter = SECONDARY_BUFFER_SIZE - 1;
     state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
-    EXPECT_EQ(state_primary_status, state_primary_no_op);
+    EXPECT_EQ(state_primary_status, state_machine_helpers::state_primary_no_op);
 
     sec_counter = SECONDARY_BUFFER_SIZE;
 
@@ -112,11 +112,11 @@ TEST(StateMachineTests, ShouldGetCorrectSecondaryStateStatus){
     float td_last_alt = 130;
 
     uint8_t state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
-    EXPECT_EQ(state_secondary_status, state_secondary_no_op);
+    EXPECT_EQ(state_secondary_status, state_machine_helpers::state_secondary_no_op);
 
     baro_is_ready = true;
     state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
-    EXPECT_EQ(state_secondary_status, state_secondary_no_op);
+    EXPECT_EQ(state_secondary_status, state_machine_helpers::state_secondary_no_op);
 
     currentTime = time_tmp + TOUCHDOWN_DELAY_TIME + 10;
     state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);

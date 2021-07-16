@@ -75,7 +75,7 @@ inline void checkCRC(uint8_t *ptr, int size) {
  * Specific functions for verifying each type of datagram
  */
 
-inline void checkTelemetryDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, IMU_data imu, BARO_data baro, float32_t speed, float32_t altitude) {
+inline void checkTelemetryDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, IMU_data imu, BARO_data baro, float speed, float altitude) {
 	int size = 40; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
@@ -99,7 +99,7 @@ inline void checkTelemetryDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t
 		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
-inline void checkAirbrakesDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, float32_t angle) {
+inline void checkAirbrakesDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, float angle) {
 	int size = 4; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
@@ -128,7 +128,7 @@ inline void checkGpsDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, 
 		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
-inline void checkStateDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, uint8_t id, float32_t val, uint8_t state) {
+inline void checkStateDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, uint8_t id, float val, uint8_t state) {
 	int size = 6; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
