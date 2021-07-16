@@ -48,6 +48,10 @@ void StateMachine::enterState(enum State new_state) {
 	} else {
 		rocket_log("Attempt was made to enter an inconsistent state (%d)\r\n", new_state);
 	}
+	// workaround to update liftoff time which is not propagated in the state request (TODO)
+	if(new_state == STATE_LIFTOFF && this->liftoffTime == NO_LIFTOFF_TIME) {
+		this->liftoffTime = HAL_GetTick();
+	}
 }
 
 
@@ -148,7 +152,7 @@ void TK_state_machine(void const *argument) {
 					time_tmp = currentTime; // Start timer to estimate motor burn out
 				}
 				else if(state_idle_status == state_machine_helpers::state_idle_switch_to_liftoff_state) {
-					fsm.liftoffTime = preliminary_liftoff_time; // TODO: there is a problem here, the state request does not encompass this
+					fsm.liftoffTime = preliminary_liftoff_time; // if liftoff time is null, it will be set when entering the lift-off state
 					fsm.requestState(STATE_LIFTOFF); // Switch to lift-off state
 				}
 			}
