@@ -33,7 +33,8 @@ StateMachine::StateMachine() :
 		latestBarometerData({0}),
 		newIMUData(false),
 		newBarometerData(false),
-		liftoffTime(NO_LIFTOFF_TIME) {
+		liftoffTime(NO_LIFTOFF_TIME),
+		current_state(STATE_SLEEP) {
 }
 
 
