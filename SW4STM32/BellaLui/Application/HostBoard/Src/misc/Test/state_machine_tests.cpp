@@ -62,6 +62,37 @@ TEST(StateMachineTests, ShouldGetCorrectIdleStateStatus){
     EXPECT_EQ(state_idle_status, state_machine_helpers::state_idle_liftoff_detected);
 }
 
+TEST(StateMachineTests, ShouldGetCorrectCoastStateStatus){
+	// APOGEE_BUFFER_SIZE == 100
+	// APOGEE_ALT_DIFF == 1
+	// ROCKET_CST_MIN_TRIG_AGL == 300
+	float max_altitude = 100;
+	float baro_data_altitude = 200;
+	float baro_data_base_altitude = 0;
+	uint32_t apogee_counter = 0;
+
+	uint8_t state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data_altitude, baro_data_base_altitude, apogee_counter);
+	EXPECT_EQ(state_coast_status, state_machine_helpers::state_coast_rocket_is_ascending);
+
+	max_altitude = 400;
+	baro_data_altitude = 350;
+	state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data_altitude, baro_data_base_altitude, apogee_counter);
+	EXPECT_EQ(state_coast_status, state_machine_helpers::state_coast_no_op);
+
+	apogee_counter = APOGEE_BUFFER_SIZE;
+	baro_data_altitude = max_altitude - APOGEE_ALT_DIFF;
+	state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data_altitude, baro_data_base_altitude, apogee_counter);
+	EXPECT_EQ(state_coast_status, state_machine_helpers::state_coast_no_op);
+
+	baro_data_altitude = max_altitude - APOGEE_ALT_DIFF - 1;
+	state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data_altitude, baro_data_base_altitude, apogee_counter);
+	EXPECT_EQ(state_coast_status, state_machine_helpers::state_coast_switch_to_primary_state);
+
+	baro_data_altitude = ROCKET_CST_MIN_TRIG_AGL;
+	state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data_altitude, baro_data_base_altitude, apogee_counter);
+	EXPECT_EQ(state_coast_status, state_machine_helpers::state_coast_no_op);
+}
+
 TEST(StateMachineTests, ShouldGetCorrectPrimaryStateStatus){
     // ROCKET_CST_REC_SECONDARY_ALT == 150
     // APOGEE_MUTE_TIME == 5000

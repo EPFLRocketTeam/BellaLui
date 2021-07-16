@@ -59,7 +59,7 @@ void TK_state_machine(void const *argument) {
 	osDelay(2000);
 
 	// Declare time variable
-	uint32_t time_tmp = 0;
+	uint32_t time_tmp = 0; // TODO: rename this
 
 	// Declare sensor variables
 	IMU_data imu_data = {0};
