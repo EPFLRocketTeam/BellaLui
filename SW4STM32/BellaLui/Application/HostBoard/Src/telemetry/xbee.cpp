@@ -116,6 +116,7 @@ void TK_xBeeTransmit(const void *args) {
 
 		uint32_t elapsed = HAL_GetTick() - packetStartTime;
 
+		// send state - this is auto-rate-limited inside the function
 		telemetrySendState(HAL_GetTick(), EVENT, 0, getAvionicsState());
 
 

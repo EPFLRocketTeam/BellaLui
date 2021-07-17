@@ -64,7 +64,7 @@ void TK_state_machine(void const *argument) {
 
 	// Declare sensor variables
 	IMU_data imu_data = {0};
-	BARO_data baro_data = {0};
+	BARO_data baro_data = {0}; // TODO: correctly manage "base_altitude"
 	uint8_t imuIsReady = 0, baroIsReady = 0;
 
 	// Declare apogee detection variables
@@ -92,6 +92,7 @@ void TK_state_machine(void const *argument) {
 	while(true) {
 		sync_logic(10);
 
+		// TODO: check if race condition is possible here?
 		imuIsReady = fsm.newIMUData;
 
 		if (imuIsReady) {
