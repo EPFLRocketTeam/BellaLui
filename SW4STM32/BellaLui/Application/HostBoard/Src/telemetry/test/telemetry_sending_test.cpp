@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 #include "telemetry/telemetry_sending.h"
+#include "telemetry/queue/Queue.h"
 #include "telemetry/queue/StlMessageQueue.h"
 #include "telemetry/test/datagram_check.hpp"
 #include "Embedded/can.h"
@@ -25,11 +26,11 @@ TEST(TelemetryTest, TelemetrySending_NoQueue) {
 	BARO_data baro = { 15.5, 1.05, 5024.6, 0, 0 };
 	EXPECT_FALSE(telemetrySendBaro(ts, baro));
 
-	float32_t angle = 12.05;
+	float angle = 12.05;
 	EXPECT_FALSE(telemetrySendAirbrakesAngle(ts, angle));
 
 	uint8_t id = 1;
-	float32_t val = 10.1;
+	float val = 10.1;
 	uint8_t state = 0x08;
 	EXPECT_FALSE(telemetrySendState(ts, id, val, state));
 
@@ -114,13 +115,13 @@ TEST(TelemetryTest, TelemetrySending_Airbrakes) {
 
 	// first push is successful
 	uint32_t ts1 = 3456;
-	float32_t angle1 = 12.05;
+	float angle1 = 12.05;
 	EXPECT_TRUE(telemetrySendAirbrakesAngle(ts1, angle1));
 	EXPECT_EQ(queue.count(), 1);
 
 	// second push comes too early -> refused
 	uint32_t ts2 = 2345;
-	float32_t angle2 = 13.05;
+	float angle2 = 13.05;
 	usleep(AB_TIMEMIN * 1000 / 2);
 	EXPECT_FALSE(telemetrySendAirbrakesAngle(ts2, angle2));
 	EXPECT_EQ(queue.count(), 1);
@@ -148,7 +149,7 @@ TEST(TelemetryTest, TelemetrySending_State) {
 	// first push is successful
 	uint32_t ts1 = 4567;
 	uint8_t id1 = 1;
-	float32_t val1 = 10.1;
+	float val1 = 10.1;
 	uint8_t state1 = 0x08;
 	EXPECT_TRUE(telemetrySendState(ts1, id1, val1, state1));
 	EXPECT_EQ(queue.count(), 1);
@@ -156,7 +157,7 @@ TEST(TelemetryTest, TelemetrySending_State) {
 	// second push comes too early -> refused
 	uint32_t ts2 = 5678;
 	uint8_t id2 = 2;
-	float32_t val2 = 20.2;
+	float val2 = 20.2;
 	uint8_t state2 = 0x09;
 	usleep(STATE_TIMEMIN * 1000 / 2);
 	EXPECT_FALSE(telemetrySendState(ts2, id2, val2, state2));

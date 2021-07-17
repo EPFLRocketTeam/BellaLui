@@ -19,6 +19,7 @@
 #include "debug/board_io.h"
 #include "debug/led.h"
 #include "misc/datastructs.h"
+#include "misc/state_manager.h"
 
 #include <stdint.h>
 #include <stm32f4xx_hal.h>
@@ -114,6 +115,10 @@ void TK_xBeeTransmit(const void *args) {
 		start_profiler(1);
 
 		uint32_t elapsed = HAL_GetTick() - packetStartTime;
+
+		// send state - this is auto-rate-limited inside the function
+		telemetrySendState(HAL_GetTick(), EVENT, 0, getAvionicsState());
+
 
 		if((currentXbeeTxBufPos > 0) && (elapsed) > XBEE_SEND_FRAME_TIMEOUT_MS) {
 			//timeout reached and buffer not empty, sending frame whatever the content
