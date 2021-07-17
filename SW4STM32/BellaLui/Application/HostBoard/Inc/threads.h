@@ -61,7 +61,6 @@
 #define ROCKET_FSM
 #define KALMAN
 #define DEBUG_TASK
-=======
 #endif
 
 #ifdef FLASH_DUMP_BOARD
