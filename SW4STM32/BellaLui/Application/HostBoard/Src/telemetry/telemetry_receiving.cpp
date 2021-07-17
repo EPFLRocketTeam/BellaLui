@@ -17,13 +17,21 @@ extern "C" {
 	#include "can_transmission.h"
 }
 
+// custom handling for TVC boot
+#define TVC_BOOT_COMMAND_FROM_GS 0x09
+#define TVC_BOOT_COMMAND_TO_TVC 0x01
+
 
 // Received Packet Handling
 
 bool telemetryReceivePropulsionCommand(uint32_t timestamp, uint8_t* payload) {
 	uint8_t command = payload[0];
 
-	can_setFrame(command, DATA_ID_PROP_COMMAND, timestamp);
+	if(command == TVC_BOOT_COMMAND_FROM_GS) { // handle TVC packet
+		can_setFrame(TVC_BOOT_COMMAND_TO_TVC, DATA_ID_TVC_COMMAND, timestamp);
+	} else { // handle PROP packets
+		can_setFrame(command, DATA_ID_PROP_COMMAND, timestamp);
+	}
 
 	return 0;
 }
