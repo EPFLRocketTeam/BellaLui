@@ -16,8 +16,8 @@ struct Vector {
 };
 
 struct IMUData {
-	Vector accel;
-	Vector gyro;
+	struct Vector accel;
+	struct Vector gyro;
 };
 
 

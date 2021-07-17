@@ -13,6 +13,8 @@
 
 #include "storage/flash_runtime.h"
 #include "storage/heavy_io.h"
+#include "rocket_fs.h"
+#include "flash.h"
 
 #include <cmsis_os.h>
 
@@ -66,12 +68,12 @@ void flash_log(CAN_msg message) {
 		front_buffer[front_buffer_index++] = (uint8_t) (message.data >> 0);
 	}
 
-	// vTaskDelay(400 * portTICK_PERIOD_MS / 1000);  // Add delay to smoothen the thread blocking time due to flash synchronisation
-
-	if(front_buffer_index >= LOGGING_BUFFER_SIZE) {
+	if(front_buffer_index >= LOGGING_BUFFER_SIZE){
 		xSemaphoreGive(master_swap);
 		xSemaphoreTake(slave_swap, 10 * portTICK_PERIOD_MS);
 	}
+
+	// vTaskDelay(400 * portTICK_PERIOD_MS / 1000);  // Add delay to smoothen the thread blocking time due to flash synchronisation
 }
 
 void TK_logging_thread(void const *pvArgs) {
@@ -112,18 +114,6 @@ void TK_logging_thread(void const *pvArgs) {
 		 */
 		Stream stream;
 		rocket_fs_stream(&stream, fs, flight_data, APPEND);
-
-		if(!stream.write) {
-			/*
-			 * Stream is not ready for writing.
-			 * An error occurred whilst initialising the stream.
-			 */
-
-			while(true) {
-				led_set_TK_rgb(led_identifier, 50, 0, 0);
-				osDelay(1000);
-			}
-		}
 
 		/*
 		 * Enter the main loop
@@ -179,6 +169,8 @@ void TK_logging_thread(void const *pvArgs) {
 				bytes_written = 0;
 				last_update = time;
 			}
+
+			rocket_fs_flush(fs);
 
 			if(is_logging) {
 				led_set_TK_rgb(led_identifier, 0, 50, 50);

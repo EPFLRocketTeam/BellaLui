@@ -13,11 +13,11 @@
 Command get_default_command() {
 	Command command = {
 		.qspi_command = {
+			.DummyCycles = 0,
 			.InstructionMode = QSPI_INSTRUCTION_1_LINE,
 			.AddressMode = QSPI_ADDRESS_NONE,
 			.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE,
 			.DataMode = QSPI_DATA_NONE,
-			.DummyCycles = 0,
 			.DdrMode = QSPI_DDR_MODE_DISABLE,
 			.DdrHoldHalfCycle = QSPI_DDR_HHC_ANALOG_DELAY,
 			.SIOOMode = QSPI_SIOO_INST_EVERY_CMD

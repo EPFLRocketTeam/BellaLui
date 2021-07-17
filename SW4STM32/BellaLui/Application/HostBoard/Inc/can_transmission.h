@@ -99,6 +99,11 @@ typedef struct
 #define MAX_BOARD_ID 8 // used to implement redundant info in CAN_handling
 #define MAX_BOARD_NUMBER (MAX_BOARD_ID+1)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 void CAN_Config(uint32_t id);
 void can_setFrame(uint32_t data, uint8_t data_id, uint32_t timestamp);
 void can_addMsg(CAN_msg msg);
@@ -106,6 +111,10 @@ uint32_t can_msgPending();
 CAN_msg can_readBuffer();
 
 uint8_t get_board_id();
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* CAN_COMMUNICATION_H_ */

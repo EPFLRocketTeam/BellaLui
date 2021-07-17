@@ -94,12 +94,13 @@ void flash_init() {
  */
 
 void flash_read(uint32_t address, uint8_t* buffer, uint32_t length) {
-	while(QUADSPI->SR & QUADSPI_SR_BUSY);
-	QUADSPI->CCR = (uint32_t) (FREAD_SINGLE) | (0b00000001 << 24) | (0b00000100 << 16) | (0b00100101 << 8);
-	while(QUADSPI->SR & QUADSPI_SR_BUSY);
-	QUADSPI->AR = address;
-	while(QUADSPI->SR & QUADSPI_SR_BUSY);
-	QUADSPI->DLR = length;
+	Command cmd = get_default_command();
+	with_address(&cmd, address);
+	with_data(&cmd, length);
+
+	if(!qspi_run(&cmd, READ_SINGLE)) {
+		flash_fatal(ERROR_READ | ERROR_RUN);
+	}
 
 	if(!qspi_receive(buffer)) {
 		flash_fatal(ERROR_READ | ERROR_RECEIVE);

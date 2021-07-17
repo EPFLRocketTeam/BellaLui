@@ -22,7 +22,11 @@ BIN_DIR= ./bin
 
 SENSORS_INC_DIR = $(INC_DIR)/Sensors
 SENSORS_SRC_DIR = $(SRC_DIR)/Sensors
-SENSORS_TESTS_DIR = ./Application/HostBoard/Src/Sensors/Test
+SENSORS_TESTS_DIR = $(SENSORS_SRC_DIR)/Test
+
+MISC_INC_DIR = $(INC_DIR)/misc
+MISC_SRC_DIR = $(SRC_DIR)/misc
+MISC_TESTS_DIR = $(MISC_SRC_DIR)/Test
 
 # Where to find gtest_main.cc.
 GTEST_MAIN_CC = $(GOOGLETEST_DIR)/src/gtest_main.cc
@@ -37,9 +41,11 @@ CXX = g++
 CXXFLAGS += -g -std=c++1y
 
 all : $(BIN_DIR)/sensor_tests
+	$(BIN_DIR)/state_machine_tests
 
 check : all
-	./$(BIN_DIR)/sensor_tests
+	./$(BIN_DIR)/sensor_tests \
+	./$(BIN_DIR)/state_machine_tests
 
 fuse_gtest : $(GOOGLETEST_DIR)/scripts/fuse_gtest_files.py
 	python3 $(GOOGLETEST_DIR)/scripts/fuse_gtest_files.py $(FUSED_GTEST_DIR)
@@ -85,5 +91,17 @@ SensorTest.o : $(SENSORS_TESTS_DIR)/SensorTest.cpp \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(SENSORS_TESTS_DIR)/SensorTest.cpp
 
 $(BIN_DIR)/sensor_tests : MockBarometer.o MockIMU.o UnbiasedIMU.o CSV.o UnbiasedBarometer.o AltitudeSimulator.o AltitudeEstimator.o SensorTest.o gtest-all.o gtest_main.o
+	mkdir -p $(BIN_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
+
+
+state_machine_helpers.o : $(MISC_SRC_DIR)/state_machine_helpers.cpp $(MISC_INC_DIR)/state_machine_helpers.h
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(MISC_SRC_DIR)/state_machine_helpers.cpp
+
+state_machine_tests.o : $(MISC_TESTS_DIR)/state_machine_tests.cpp \
+                     $(MISC_INC_DIR)/state_machine_helpers.h $(FUSED_GTEST_H)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(MISC_TESTS_DIR)/state_machine_tests.cpp
+
+$(BIN_DIR)/state_machine_tests : state_machine_helpers.o state_machine_tests.o gtest-all.o gtest_main.o
 	mkdir -p $(BIN_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@

@@ -21,6 +21,7 @@
 #include "task.h"
 #include "cmsis_os.h"
 
+#include "Sensors/DataStructures.h"
 
 osThreadId loggingHandle;
 osThreadId task_ShellHandle;
@@ -44,6 +45,46 @@ void create_semaphores() {
 	init_logging();
 }
 
+
+int32_t seed;
+float rand() {
+	seed += 0xC0FFEE;
+	seed *= 666;
+	return seed / (1 << 31);
+}
+
+void test_thread() {
+
+	struct IMUData imuData = { 0 };
+	struct AltitudeData altitudeData = { 0 };
+
+	while(1) {
+		sync_logic(10);
+
+		uint32_t time = HAL_GetTick();
+
+		imuData.accel.x = rand();
+		imuData.accel.y = rand();
+		imuData.accel.z = rand();
+		imuData.gyro.x = rand();
+		imuData.gyro.y = rand();
+		imuData.gyro.z = rand();
+		altitudeData.temperature = rand();
+		altitudeData.pressure = rand();
+		altitudeData.altitude = rand();
+
+		can_setFrame((int32_t) imuData.accel.x, DATA_ID_ACCELERATION_X, time);
+		can_setFrame((int32_t) imuData.accel.y, DATA_ID_ACCELERATION_Y, time);
+		can_setFrame((int32_t) imuData.accel.z, DATA_ID_ACCELERATION_Z, time);
+		can_setFrame((int32_t) (1000 * imuData.gyro.x), DATA_ID_GYRO_X, time);
+		can_setFrame((int32_t) (1000 * imuData.gyro.y), DATA_ID_GYRO_Y, time);
+		can_setFrame((int32_t) (1000 * imuData.gyro.z), DATA_ID_GYRO_Z, time);
+		can_setFrame((int32_t) altitudeData.temperature, DATA_ID_TEMPERATURE, time);
+		can_setFrame((int32_t) (altitudeData.pressure * 100), DATA_ID_PRESSURE, time);
+		can_setFrame((int32_t) (altitudeData.altitude), DATA_ID_ALTITUDE, time);
+	}
+}
+
 void create_threads() {
 	osThreadDef(task_LED, TK_led_handler, osPriorityNormal, 0, 512);
 	task_LEDHandle = osThreadCreate(osThread(task_LED), NULL);
@@ -62,7 +103,7 @@ void create_threads() {
 	rocket_boot_log("Heavy IO thread started.\r\n");
 
 	#ifdef FLASH_LOGGING
-	 osThreadDef(2task_logging, TK_logging_thread, osPriorityNormal, 0, 512);
+	 osThreadDef(2task_logging, TK_logging_thread, osPriorityNormal, 0, 2048);
 	 loggingHandle = osThreadCreate(osThread(2task_logging), NULL);
 	 rocket_boot_log("Logging thread started.\r\n");
 	#endif
@@ -121,5 +162,12 @@ void create_threads() {
 
 	#ifdef FLASH_DUMP_BOARD
 	  on_fullsd_dump_request();
+	#endif
+
+
+	#ifdef TESTING
+	  osThreadDef(8test_thread, test_thread, osPriorityNormal, 0, 512);
+	  rocketfsmHandle = osThreadCreate(osThread(8test_thread), NULL);
+	  rocket_boot_log("Test thread started.\r\n");
 	#endif
 }
