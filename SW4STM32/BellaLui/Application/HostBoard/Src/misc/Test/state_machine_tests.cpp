@@ -37,7 +37,7 @@ TEST(StateMachineTests, ShouldReachTouchdownStateAfterFiveMinutes){
     EXPECT_FALSE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
     currentTime = 8*60*1000;
     EXPECT_TRUE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
-    liftoffTime = 0;
+    liftoffTime = NO_LIFTOFF_TIME;
     EXPECT_FALSE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
 }
 
@@ -57,9 +57,40 @@ TEST(StateMachineTests, ShouldGetCorrectIdleStateStatus){
     state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, acceleration_z);
     EXPECT_EQ(state_idle_status, state_machine_helpers::state_idle_no_op);
 
-    liftoffTime = 0;
+    liftoffTime = NO_LIFTOFF_TIME;
     state_idle_status = state_machine_helpers::handleIdleState(currentTime, liftoffTime, acceleration_z);
     EXPECT_EQ(state_idle_status, state_machine_helpers::state_idle_liftoff_detected);
+}
+
+TEST(StateMachineTests, ShouldGetCorrectCoastStateStatus){
+	// APOGEE_BUFFER_SIZE == 100
+	// APOGEE_ALT_DIFF == 1
+	// ROCKET_CST_MIN_TRIG_AGL == 300
+	float max_altitude = 100;
+	float baro_data_altitude = 200;
+	float baro_data_base_altitude = 0;
+	uint32_t apogee_counter = 0;
+
+	uint8_t state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data_altitude, baro_data_base_altitude, apogee_counter);
+	EXPECT_EQ(state_coast_status, state_machine_helpers::state_coast_rocket_is_ascending);
+
+	max_altitude = 400;
+	baro_data_altitude = 350;
+	state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data_altitude, baro_data_base_altitude, apogee_counter);
+	EXPECT_EQ(state_coast_status, state_machine_helpers::state_coast_no_op);
+
+	apogee_counter = APOGEE_BUFFER_SIZE;
+	baro_data_altitude = max_altitude - APOGEE_ALT_DIFF;
+	state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data_altitude, baro_data_base_altitude, apogee_counter);
+	EXPECT_EQ(state_coast_status, state_machine_helpers::state_coast_no_op);
+
+	baro_data_altitude = max_altitude - APOGEE_ALT_DIFF - 1;
+	state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data_altitude, baro_data_base_altitude, apogee_counter);
+	EXPECT_EQ(state_coast_status, state_machine_helpers::state_coast_switch_to_primary_state);
+
+	baro_data_altitude = ROCKET_CST_MIN_TRIG_AGL;
+	state_coast_status = state_machine_helpers::handleCoastState(max_altitude, baro_data_altitude, baro_data_base_altitude, apogee_counter);
+	EXPECT_EQ(state_coast_status, state_machine_helpers::state_coast_no_op);
 }
 
 TEST(StateMachineTests, ShouldGetCorrectPrimaryStateStatus){
@@ -75,11 +106,11 @@ TEST(StateMachineTests, ShouldGetCorrectPrimaryStateStatus){
     float baro_data_altitude = 120;
 
     uint8_t state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
-    EXPECT_EQ(state_primary_status, state_primary_no_op);
+    EXPECT_EQ(state_primary_status, state_machine_helpers::state_primary_no_op);
 
     sec_counter = SECONDARY_BUFFER_SIZE;
     state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
-    EXPECT_EQ(state_primary_status, state_primary_no_op);
+    EXPECT_EQ(state_primary_status, state_machine_helpers::state_primary_no_op);
 
     currentTime = time_tmp + APOGEE_MUTE_TIME + 1;
     state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
@@ -87,7 +118,7 @@ TEST(StateMachineTests, ShouldGetCorrectPrimaryStateStatus){
 
     sec_counter = SECONDARY_BUFFER_SIZE - 1;
     state_primary_status = state_machine_helpers::handlePrimaryState(currentTime,  time_tmp, baro_data_altitude, baro_data_base_altitude, sec_counter);
-    EXPECT_EQ(state_primary_status, state_primary_no_op);
+    EXPECT_EQ(state_primary_status, state_machine_helpers::state_primary_no_op);
 
     sec_counter = SECONDARY_BUFFER_SIZE;
 
@@ -112,11 +143,11 @@ TEST(StateMachineTests, ShouldGetCorrectSecondaryStateStatus){
     float td_last_alt = 130;
 
     uint8_t state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
-    EXPECT_EQ(state_secondary_status, state_secondary_no_op);
+    EXPECT_EQ(state_secondary_status, state_machine_helpers::state_secondary_no_op);
 
     baro_is_ready = true;
     state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);
-    EXPECT_EQ(state_secondary_status, state_secondary_no_op);
+    EXPECT_EQ(state_secondary_status, state_machine_helpers::state_secondary_no_op);
 
     currentTime = time_tmp + TOUCHDOWN_DELAY_TIME + 10;
     state_secondary_status = state_machine_helpers::handleSecondaryState(currentTime, time_tmp, baro_is_ready, baro_data_altitude, td_last_alt, td_counter);

@@ -7,10 +7,10 @@ namespace state_machine_helpers {
     uint8_t handleIdleState(const uint32_t currentTime, const uint32_t liftoff_time, const float acceleration_z) {
         bool liftoffAccelTrig = acceleration_z > ROCKET_CST_LIFTOFF_TRIG_ACCEL; //Compute lift-off triggers for acceleration
 
-        if(liftoff_time == 0 && liftoffAccelTrig){
+        if(liftoff_time == NO_LIFTOFF_TIME && liftoffAccelTrig){
             return state_idle_liftoff_detected;
         }
-        else if (liftoff_time != 0) {
+        else if (liftoff_time != NO_LIFTOFF_TIME) {
             if(!liftoffAccelTrig){
                 return state_idle_false_positive;
             }
@@ -104,7 +104,7 @@ namespace state_machine_helpers {
 
     bool touchdownStateIsReached(const uint32_t currentTime, const uint32_t liftoff_time){
         const bool timeExceedsFiveMinutes = ((int32_t) currentTime - (int32_t) liftoff_time) > 5 * 60 * 1000;
-        return liftoff_time != 0 && timeExceedsFiveMinutes;
+        return liftoff_time != NO_LIFTOFF_TIME && timeExceedsFiveMinutes;
     }
 
 }

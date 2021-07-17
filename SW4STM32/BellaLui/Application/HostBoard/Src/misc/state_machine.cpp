@@ -33,7 +33,8 @@ StateMachine::StateMachine() :
 		latestBarometerData({0}),
 		newIMUData(false),
 		newBarometerData(false),
-		liftoffTime(-1) {
+		liftoffTime(NO_LIFTOFF_TIME),
+		current_state(STATE_SLEEP) {
 }
 
 
@@ -48,6 +49,10 @@ void StateMachine::enterState(enum State new_state) {
 	} else {
 		rocket_log("Attempt was made to enter an inconsistent state (%d)\r\n", new_state);
 	}
+	// workaround to update liftoff time which is not propagated in the state request (TODO)
+	if(new_state == STATE_LIFTOFF && this->liftoffTime == NO_LIFTOFF_TIME) {
+		this->liftoffTime = HAL_GetTick();
+	}
 }
 
 
@@ -55,11 +60,11 @@ void TK_state_machine(void const *argument) {
 	osDelay(2000);
 
 	// Declare time variable
-	uint32_t time_tmp = 0;
+	uint32_t time_tmp = 0; // TODO: rename this
 
 	// Declare sensor variables
 	IMU_data imu_data = {0};
-	BARO_data baro_data = {0};
+	BARO_data baro_data = {0}; // TODO: correctly manage "base_altitude"
 	uint8_t imuIsReady = 0, baroIsReady = 0;
 
 	// Declare apogee detection variables
@@ -74,7 +79,7 @@ void TK_state_machine(void const *argument) {
 	uint32_t td_counter = 0;
 
 	uint32_t flight_status = 0;
-	uint32_t preliminary_liftoff_time = 0;
+	uint32_t preliminary_liftoff_time = NO_LIFTOFF_TIME;
 
 	// TODO: Set low package data rate
 
@@ -87,6 +92,7 @@ void TK_state_machine(void const *argument) {
 	while(true) {
 		sync_logic(10);
 
+		// TODO: check if race condition is possible here?
 		imuIsReady = fsm.newIMUData;
 
 		if (imuIsReady) {
@@ -140,7 +146,7 @@ void TK_state_machine(void const *argument) {
 				uint8_t state_idle_status = state_machine_helpers::handleIdleState(currentTime, preliminary_liftoff_time, abs_fl32(imu_data.acceleration.z));
 
 				if(state_idle_status == state_machine_helpers::state_idle_false_positive){
-					preliminary_liftoff_time = 0;
+					preliminary_liftoff_time = NO_LIFTOFF_TIME;
 					time_tmp = 0;
 				}
 				else if (state_idle_status == state_machine_helpers::state_idle_liftoff_detected){
@@ -148,7 +154,7 @@ void TK_state_machine(void const *argument) {
 					time_tmp = currentTime; // Start timer to estimate motor burn out
 				}
 				else if(state_idle_status == state_machine_helpers::state_idle_switch_to_liftoff_state) {
-					fsm.liftoffTime = preliminary_liftoff_time;
+					fsm.liftoffTime = preliminary_liftoff_time; // if liftoff time is null, it will be set when entering the lift-off state
 					fsm.requestState(STATE_LIFTOFF); // Switch to lift-off state
 				}
 			}

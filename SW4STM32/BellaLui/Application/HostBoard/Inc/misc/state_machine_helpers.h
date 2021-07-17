@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define NO_LIFTOFF_TIME 0
+
 namespace state_machine_helpers {
     // TODO: change to Enum
     const uint8_t state_idle_false_positive = 11;
@@ -24,7 +26,9 @@ namespace state_machine_helpers {
     const uint8_t state_secondary_no_op = 44;
 
 
+    // TODO: discuss use of acceleration_z vs. acceleration norm for this detection
     uint8_t handleIdleState(const uint32_t currentTime, const uint32_t liftoff_time, const float acceleration_z);
+    // TODO: capture TVC's stop motor command for this
     bool handleLiftoffState(const uint32_t currentTime, const uint32_t previousTime);
     uint8_t handleCoastState(const float max_altitude, const float baro_data_altitude, const float baro_data_base_altitude, const uint32_t apogee_counter);
     uint8_t handlePrimaryState(const uint32_t currentTime, const uint32_t time_tmp, const float baro_data_altitude, const float baro_data_base_altitude, const uint32_t sec_counter);
