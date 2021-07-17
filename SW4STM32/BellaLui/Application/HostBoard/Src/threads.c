@@ -23,7 +23,6 @@
 
 #include "Sensors/DataStructures.h"
 
-
 osThreadId loggingHandle;
 osThreadId task_ShellHandle;
 osThreadId sdWriteHandle;
@@ -60,7 +59,8 @@ void test_thread() {
 	struct AltitudeData altitudeData = { 0 };
 
 	while(1) {
-		sync_logic(1);
+		sync_logic(10);
+
 		uint32_t time = HAL_GetTick();
 
 		imuData.accel.x = rand();
@@ -103,7 +103,7 @@ void create_threads() {
 	rocket_boot_log("Heavy IO thread started.\r\n");
 
 	#ifdef FLASH_LOGGING
-	 osThreadDef(2task_logging, TK_logging_thread, osPriorityNormal, 0, 512);
+	 osThreadDef(2task_logging, TK_logging_thread, osPriorityNormal, 0, 2048);
 	 loggingHandle = osThreadCreate(osThread(2task_logging), NULL);
 	 rocket_boot_log("Logging thread started.\r\n");
 	#endif

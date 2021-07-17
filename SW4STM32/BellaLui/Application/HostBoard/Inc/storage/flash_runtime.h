@@ -11,9 +11,17 @@
 
 #include "rocket_fs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 void init_filesystem();
 FileSystem* get_flash_fs();
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* APPLICATION_HOSTBOARD_INC_FLASH_RUNTIME_H_ */

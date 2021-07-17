@@ -59,6 +59,8 @@
 #define FLASH_LOGGING
 #define TESTING // TODO: not used for now, but check if it's really OK
 #define ROCKET_FSM
+#define KALMAN
+#define DEBUG_TASK
 #endif
 
 #ifdef FLASH_DUMP_BOARD
@@ -107,10 +109,16 @@
 #include <propulsion/pressure_monitor.h>
 #endif
 
-#ifdef TESTING
-#include <Sensors/DataStructures.h>
+#ifdef FLASH_LOGGING
+#include <storage/flash_logging.h>
 #endif
 
+#include <storage/heavy_io.h>
+
+
+#ifdef DEBUG_TASK
+#include <Sensors/DataStructures.h>
+#endif
 
 
 void create_semaphores();

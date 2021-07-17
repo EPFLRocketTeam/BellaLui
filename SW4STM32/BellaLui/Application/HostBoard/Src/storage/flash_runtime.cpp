@@ -32,7 +32,7 @@ void init_filesystem() {
 	ready = true;
 }
 
-FileSystem* get_flash_fs() {
+extern "C" FileSystem* get_flash_fs() {
 	if(!ready) {
 		return 0;
 	}

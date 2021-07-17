@@ -7,7 +7,11 @@
 
 #include "storage/log_manager.h"
 #include "storage/flash_logging.h"
+#include "storage/flash_runtime.h"
 #include "storage/heavy_io.h"
+#include "flash.h"
+#include "rocket_fs.h"
+
 
 #include "debug/console.h"
 #include "debug/profiler.h"
@@ -32,11 +36,11 @@ void on_upload_feedback(int32_t error_code) {
 }
 
 const char* file = "FLIGHT";
-void on_dump_request() {
+extern "C" void on_dump_request() {
 	schedule_heavy_task(&dump_file_on_sd, file, &on_dump_feedback);
 }
 
-void on_fullsd_dump_request() {
+extern "C" void on_fullsd_dump_request() {
 	schedule_heavy_task(&dump_everything_on_sd, 0, &on_dump_feedback);
 }
 
@@ -53,7 +57,7 @@ void on_upload_request(uint16_t block_id) {
 /*
  * Returns an error code.
  */
-int32_t dump_file_on_sd(void* arg) {
+int32_t dump_file_on_sd(const void* arg) {
 	const char* filename = (const char*) arg;
 	/*
 	 * Stage 1: Initialise the SD output stream.
@@ -114,19 +118,12 @@ int32_t dump_file_on_sd(void* arg) {
 	Stream stream;
 	rocket_fs_stream(&stream, fs, flash_file, OVERWRITE);
 
-	if(!stream.read) {
-		/*
-		 * Stream is not ready for reading.
-		 * An error occurred whilst initialising the stream.
-		 */
-		return -5;
-	}
 
 	/*
 	 * Stage 3: Transfer data from Flash to SD card.
 	 */
 
-	uint8_t buffer[LOGGING_BUFFER_SIZE];
+	uint8_t buffer[2048];
 	uint32_t total_bytes_read = 0;
 	uint32_t total_bytes_written = 0;
 
@@ -136,8 +133,9 @@ int32_t dump_file_on_sd(void* arg) {
 	rocket_fs_touch(fs, flash_file);
 
 	while(total_bytes_read < flash_file->length && bytes_read > 0) {
+
 		start_profiler(1);
-		bytes_read = stream.read(buffer, LOGGING_BUFFER_SIZE);
+		bytes_read = stream.read(buffer, 2048);
 		end_profiler();
 
 		start_profiler(2);
@@ -150,6 +148,8 @@ int32_t dump_file_on_sd(void* arg) {
 		rocket_log_lock();
 		rocket_log("\e7\x1b[40;0HDumping file... %d%%\x1b[K\e8", 100 * total_bytes_written / flash_file->length);
 		rocket_log_release();
+
+
 
 
 		if(bytes_written < 64) {
@@ -172,7 +172,7 @@ int32_t dump_file_on_sd(void* arg) {
 	return 0;
 }
 
-int32_t dump_everything_on_sd(void* arg) {
+int32_t dump_everything_on_sd(const void* arg) {
 	/*
 	 * Stage 1: Initialise the SD output stream.
 	 */
@@ -255,7 +255,7 @@ int32_t dump_everything_on_sd(void* arg) {
 	return 0;
 }
 
-int32_t upload_block(void* arg) {
+int32_t upload_block(const void* arg) {
 	uint16_t block = *((uint16_t*) arg);
 
 	acquire_flash_lock();
