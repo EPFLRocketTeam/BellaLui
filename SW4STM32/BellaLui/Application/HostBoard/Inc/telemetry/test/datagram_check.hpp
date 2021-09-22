@@ -162,4 +162,17 @@ inline void checkPropulsionDatagram(Telemetry_Message *msg, uint32_t ts, uint32_
 		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
+inline void checkTVCDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, TVCStatus tvc) {
+	int size = 8; //bytes
+
+	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
+	checkHeader((uint8_t*) msg->buf, TVC_STATUS_PACKET, ts, seq);
+
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 0, tvc.thrust_cmd, "thrust command incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 4, tvc.tvc_status, "TVC status incorrect");
+
+	if(ACTIVATE_DATAGRAM_CHECKSUM)
+		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
+}
+
 #endif //TELEMETRY_TEST_DATAGRAM_CHECK
