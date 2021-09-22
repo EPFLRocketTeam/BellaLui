@@ -137,6 +137,15 @@ Telemetry_Message *createPropulsionDatagram(uint32_t timestamp, PropulsionData* 
 	return builder.finalizeDatagram();
 }
 
+Telemetry_Message *createTVCStatusDatagram(uint32_t timestamp, TVCStatus* data) {
+	DatagramBuilder builder = DatagramBuilder(TVC_STATUS_PAYLOAD_SIZE, TVC_STATUS_PACKET, timestamp, telemetrySeqNumber++);
+
+	builder.write32<uint32_t>(data->thrust_cmd);
+	builder.write32<uint32_t>(data->tvc_status);
+
+	return builder.finalizeDatagram();
+}
+
 /*
  Telemetry_Message createOrderPacketDatagram(uint32_t time_stamp)
  {

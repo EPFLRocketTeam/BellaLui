@@ -47,6 +47,12 @@ typedef struct
 
 typedef struct
 {
+	uint32_t thrust_cmd;
+	uint32_t tvc_status;
+} TVCStatus;
+
+typedef struct
+{
   uint16_t size;
   uint8_t buf[];
 } Telemetry_Message;

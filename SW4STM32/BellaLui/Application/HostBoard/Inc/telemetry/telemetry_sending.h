@@ -19,6 +19,7 @@ extern "C" {
 #define GPS_TIMEMIN 200
 #define STATE_TIMEMIN 200
 #define PROP_DATA_TIMEMIN 100
+#define TVC_STATUS_TIMEMIN 100
 #define AB_TIMEMIN 100
 //#define TELE_RAW_TIMEMIN 100
 
@@ -29,6 +30,7 @@ bool telemetrySendState(uint32_t timestamp, uint8_t id, float value, uint8_t av_
 bool telemetrySendMotorPressure(uint32_t timestamp, uint32_t pressure);
 bool telemetrySendAirbrakesAngle(uint32_t timestamp, float angle); // TODO: int32_t or float ???
 bool telemetrySendPropulsionData(uint32_t timestamp, PropulsionData* payload);
+bool telemetrySendTVCStatus(uint32_t timestamp, TVCStatus* data);
 
 #ifdef __cplusplus
 }

@@ -134,6 +134,21 @@ bool handlePropulsionData(uint32_t timestamp, PropulsionData* data) {
 	return true;
 }
 
+bool handleTVCStatus(uint32_t timestamp, TVCStatus* data) {
+	if(enter_monitor(TVC_MONITOR)) {
+		rocket_log(" Thrust command: %d\x1b[K\n", data->thrust_cmd);
+		rocket_log(" TVC status: %x\x1b[K\n", data->tvc_status);
+
+		exit_monitor(TVC_MONITOR);
+	}
+
+	#ifdef XBEE
+	telemetrySendTVCStatus(timestamp, data);
+	#endif
+
+	return true;
+}
+
 float can_getAltitude() {
 	//return altitude_estimate; // from TK_state_estimation
 	return kalman_z;
@@ -172,12 +187,14 @@ void TK_can_reader() {
 	IMU_data  imu [MAX_BOARD_NUMBER] = {0};
 	BARO_data baro[MAX_BOARD_NUMBER] = {0};
 	PropulsionData prop_data;
+	TVCStatus tvc_status;
 	uint8_t state = 0;
 
 	bool new_baro[MAX_BOARD_NUMBER] = {0};
 	bool new_imu [MAX_BOARD_NUMBER] = {0};
 	bool new_ab = 0;
 	bool new_prop_data = 0;
+	bool new_tvc_status = 0;
 	bool new_state = 0;
 	int idx = 0;
 	uint32_t shell_command;
@@ -299,6 +316,13 @@ void TK_can_reader() {
 				prop_data.motor_position = (int32_t) msg.data;
 				new_prop_data = true;
 				break;
+			case DATA_ID_TVC_HEARTBEAT:
+				tvc_status.tvc_status = msg.data;
+				new_tvc_status = true;
+				break;
+			case DATA_ID_THRUST_CMD:
+				tvc_status.thrust_cmd = msg.data;
+				break;
 			case DATA_ID_SHELL_CONTROL:
 				shell_command = msg.data & 0xFF000000;
 				shell_payload = msg.data & 0x00FFFFFF;
@@ -354,6 +378,10 @@ void TK_can_reader() {
 
 		if (new_prop_data) {
 			new_prop_data = !handlePropulsionData(msg.timestamp, &prop_data);
+		}
+
+		if (new_tvc_status) {
+			new_tvc_status = !handleTVCStatus(msg.timestamp, &tvc_status);
 		}
 
 		end_profiler();
