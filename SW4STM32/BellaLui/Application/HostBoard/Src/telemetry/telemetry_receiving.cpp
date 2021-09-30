@@ -27,11 +27,17 @@ extern "C" {
 bool telemetryReceivePropulsionCommand(uint32_t timestamp, uint8_t* payload) {
 	uint8_t command = payload[0];
 
-	if(command == TVC_BOOT_COMMAND_FROM_GS) { // handle TVC packet
-		can_setFrame(TVC_BOOT_COMMAND_TO_TVC, DATA_ID_TVC_COMMAND, timestamp);
-	} else { // handle PROP packets
-		can_setFrame(command, DATA_ID_PROP_COMMAND, timestamp);
-	}
+	// handle PROP packets
+	can_setFrame(command, DATA_ID_PROP_COMMAND, timestamp);
+
+	return 0;
+}
+
+bool telemetryReceiveTVCCommand(uint32_t timestamp, uint8_t* payload) {
+	uint8_t command = payload[0];
+
+	// handle TVC packets
+	can_setFrame(command, DATA_ID_TVC_COMMAND, timestamp);
 
 	return 0;
 }

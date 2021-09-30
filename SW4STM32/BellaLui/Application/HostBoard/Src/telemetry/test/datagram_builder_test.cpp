@@ -138,6 +138,15 @@ TEST(TelemetryTest, DatagramCreation_Propulsion) {
 	checkPropulsionDatagram(msg, ts, 4, prop);
 }
 
+TEST(TelemetryTest, DatagramCreation_TVC) {
+	uint32_t ts = 5218;
+	TVCStatus tvc = {97, 2};
+
+	Telemetry_Message *msg = createTVCStatusDatagram(ts, &tvc);
+
+	checkTVCDatagram(msg, ts, 5, tvc);
+}
+
 
 
 

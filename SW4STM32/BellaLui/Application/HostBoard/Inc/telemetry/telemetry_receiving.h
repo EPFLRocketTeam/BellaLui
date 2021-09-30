@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 bool telemetryReceivePropulsionCommand(uint32_t timestamp, uint8_t* payload);
+bool telemetryReceiveTVCCommand(uint32_t timestamp, uint8_t* payload);
 
 #ifdef __cplusplus
 }

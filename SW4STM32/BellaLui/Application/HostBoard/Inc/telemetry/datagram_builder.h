@@ -82,5 +82,6 @@ Telemetry_Message *createAirbrakesDatagram(uint32_t timestamp, float angle);
 Telemetry_Message *createGPSDatagram(uint32_t timestamp, GPS_data gpsData);
 Telemetry_Message *createStateDatagram(uint32_t timestamp, uint8_t id, float value, uint8_t av_state);
 Telemetry_Message *createPropulsionDatagram(uint32_t timestamp, PropulsionData* data);
+Telemetry_Message *createTVCStatusDatagram(uint32_t timestamp, TVCStatus* data);
 
 #endif /* MISC_DATAGRAM_BUILDER_H_ */

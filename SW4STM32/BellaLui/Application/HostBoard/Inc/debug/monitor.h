@@ -22,6 +22,7 @@
 #define GPS_MONITOR 		  6
 #define AIRBRAKES_MONITOR 	  7
 #define PROPULSION_MONITOR 	  8
+#define TVC_MONITOR 		  9
 
 #ifdef __cplusplus
 extern "C" {

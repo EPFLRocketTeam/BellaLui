@@ -352,6 +352,9 @@ void processReceivedPacket(struct RxPacket *packet) {
 	case PROPULSION_COMMAND_PACKET:
 		telemetryReceivePropulsionCommand(packet->timestamp, packet->payload);
 		break;
+	case TVC_COMMAND_PACKET:
+		telemetryReceiveTVCCommand(packet->timestamp, packet->payload);
+		break;
 	default:
 		rocket_boot_log("Unhandled telemetry packet ID %d\n", packet->packet_id); // Might be called from interrupt for debug
 		break;
