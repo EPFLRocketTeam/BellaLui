@@ -22,7 +22,7 @@ struct IMUData {
 
 
 struct BarometerData {
-	float pressure;	   // hPa
+	float pressure;	   // Pa
 	float temperature; // Centi-degrees
 };
 
@@ -32,9 +32,9 @@ struct ThrustData {
 
 
 struct AltitudeData {
-	float pressure;
-	float temperature;
-	float altitude;
+	float pressure; // Pa
+	float temperature; // centi-degC
+	float altitude; // m
 	float base_pressure;
 	float base_temperature;
 };

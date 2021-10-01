@@ -27,9 +27,9 @@ typedef struct
 
 typedef struct
 {
-  float temperature;
-  float pressure;
-  float altitude;
+  float temperature; // degC
+  float pressure; // hPa
+  float altitude; // m
   float base_pressure;
   float base_altitude;
 } BARO_data;

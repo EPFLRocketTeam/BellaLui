@@ -4,6 +4,7 @@ Ground altitude is 0m */
 #include <cmath>
 #include <cstdbool>
 #include <Sensors/AltitudeEstimator.h>
+#include <Sensors/sensor_calibration.h>
 
 //#define DEBUG
 
@@ -15,6 +16,18 @@ float T0_averaged = 0;
 float P0_averaged = 0;
 bool constants_set = false; //true when constants have been set
 int constants_iterator = 0;
+
+/*
+ * recalibrate_altitude_estimator
+ * Resets the above global variables to restart a calibration process
+ */
+
+void recalibrate_altitude_estimator() {
+	T0_averaged = 0;
+	P0_averaged = 0;
+	constants_set = false;
+	constants_iterator = 0;
+}
 
 /*setConstants
 Sets values for temperature and pressure at ground level.

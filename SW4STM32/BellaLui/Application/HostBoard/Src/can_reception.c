@@ -32,6 +32,8 @@
 #include "debug/led.h"
 #include "debug/monitor.h"
 
+#include "Sensors/sensor_calibration.h"
+
 
 #include <stdbool.h>
 #include <cmsis_os.h>
@@ -145,6 +147,17 @@ bool handleTVCStatus(uint32_t timestamp, TVCStatus* data) {
 	#ifdef XBEE
 	telemetrySendTVCStatus(timestamp, data);
 	#endif
+
+	return true;
+}
+
+bool handlePropulsionCommand(uint32_t timestamp, uint8_t command) {
+	const uint8_t prop_cmd_arm = 0x02; // propulsion ARM command value
+
+	if(command == prop_cmd_arm) {
+		start_logging();
+		recalibrate_altitude_estimator();
+	}
 
 	return true;
 }
@@ -288,6 +301,9 @@ void TK_can_reader() {
 				break;
 			case DATA_ID_ALTITUDE:
 				baro[idx].altitude = (float) ((int32_t) msg.data) / 1000; // m
+				break;
+			case DATA_ID_PROP_COMMAND:
+				handlePropulsionCommand(msg.timestamp, msg.data);
 				break;
 			case DATA_ID_PROP_PRESSURE1:
 				prop_data.pressure1 = (int32_t) msg.data;
