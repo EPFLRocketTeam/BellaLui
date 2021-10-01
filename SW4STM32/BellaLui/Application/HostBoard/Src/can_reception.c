@@ -287,6 +287,7 @@ void TK_can_reader() {
 				// new_ab = true;
 				break;
 			case DATA_ID_ALTITUDE:
+				baro[idx].altitude = (float) ((int32_t) msg.data) / 1000; // m
 				break;
 			case DATA_ID_PROP_PRESSURE1:
 				prop_data.pressure1 = (int32_t) msg.data;
