@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 #include "telemetry/telemetry_sending.h"
+#include "telemetry/queue/Queue.h"
 #include "telemetry/queue/StlMessageQueue.h"
 #include "telemetry/test/datagram_check.hpp"
 #include "Embedded/can.h"
@@ -25,11 +26,11 @@ TEST(TelemetryTest, TelemetrySending_NoQueue) {
 	BARO_data baro = { 15.5, 1.05, 5024.6, 0, 0 };
 	EXPECT_FALSE(telemetrySendBaro(ts, baro));
 
-	float32_t angle = 12.05;
+	float angle = 12.05;
 	EXPECT_FALSE(telemetrySendAirbrakesAngle(ts, angle));
 
 	uint8_t id = 1;
-	float32_t val = 10.1;
+	float val = 10.1;
 	uint8_t state = 0x08;
 	EXPECT_FALSE(telemetrySendState(ts, id, val, state));
 
@@ -62,10 +63,10 @@ TEST(TelemetryTest, TelemetrySending_Gps) {
 	// check contents of queue
 	Telemetry_Message *msg;
 	EXPECT_TRUE(queue.pop(&msg, 0));
-	checkGpsDatagram(msg, ts1, 5, gps1);
+	checkGpsDatagram(msg, ts1, 6, gps1);
 
 	EXPECT_TRUE(queue.pop(&msg, 0));
-	checkGpsDatagram(msg, ts2, 6, gps2);
+	checkGpsDatagram(msg, ts2, 7, gps2);
 
 	EXPECT_EQ(queue.count(), 0);
 }
@@ -100,10 +101,10 @@ TEST(TelemetryTest, TelemetrySending_ImuBaro) {
 	// check contents of queue
 	Telemetry_Message *msg;
 	EXPECT_TRUE(queue.pop(&msg, 0));
-	checkTelemetryDatagram(msg, ts1, 7, imu, baro, can_getSpeed(), can_getAltitude());
+	checkTelemetryDatagram(msg, ts1, 8, imu, baro, can_getSpeed(), can_getAltitude());
 
 	EXPECT_TRUE(queue.pop(&msg, 0));
-	checkTelemetryDatagram(msg, ts2, 8, imu, baro, can_getSpeed(), can_getAltitude());
+	checkTelemetryDatagram(msg, ts2, 9, imu, baro, can_getSpeed(), can_getAltitude());
 
 	EXPECT_EQ(queue.count(), 0);
 }
@@ -114,13 +115,13 @@ TEST(TelemetryTest, TelemetrySending_Airbrakes) {
 
 	// first push is successful
 	uint32_t ts1 = 3456;
-	float32_t angle1 = 12.05;
+	float angle1 = 12.05;
 	EXPECT_TRUE(telemetrySendAirbrakesAngle(ts1, angle1));
 	EXPECT_EQ(queue.count(), 1);
 
 	// second push comes too early -> refused
 	uint32_t ts2 = 2345;
-	float32_t angle2 = 13.05;
+	float angle2 = 13.05;
 	usleep(AB_TIMEMIN * 1000 / 2);
 	EXPECT_FALSE(telemetrySendAirbrakesAngle(ts2, angle2));
 	EXPECT_EQ(queue.count(), 1);
@@ -133,10 +134,10 @@ TEST(TelemetryTest, TelemetrySending_Airbrakes) {
 	// check contents of queue
 	Telemetry_Message *msg;
 	EXPECT_TRUE(queue.pop(&msg, 0));
-	checkAirbrakesDatagram(msg, ts1, 9, angle1);
+	checkAirbrakesDatagram(msg, ts1, 10, angle1);
 
 	EXPECT_TRUE(queue.pop(&msg, 0));
-	checkAirbrakesDatagram(msg, ts2, 10, angle2);
+	checkAirbrakesDatagram(msg, ts2, 11, angle2);
 
 	EXPECT_EQ(queue.count(), 0);
 }
@@ -148,7 +149,7 @@ TEST(TelemetryTest, TelemetrySending_State) {
 	// first push is successful
 	uint32_t ts1 = 4567;
 	uint8_t id1 = 1;
-	float32_t val1 = 10.1;
+	float val1 = 10.1;
 	uint8_t state1 = 0x08;
 	EXPECT_TRUE(telemetrySendState(ts1, id1, val1, state1));
 	EXPECT_EQ(queue.count(), 1);
@@ -156,7 +157,7 @@ TEST(TelemetryTest, TelemetrySending_State) {
 	// second push comes too early -> refused
 	uint32_t ts2 = 5678;
 	uint8_t id2 = 2;
-	float32_t val2 = 20.2;
+	float val2 = 20.2;
 	uint8_t state2 = 0x09;
 	usleep(STATE_TIMEMIN * 1000 / 2);
 	EXPECT_FALSE(telemetrySendState(ts2, id2, val2, state2));
@@ -170,10 +171,10 @@ TEST(TelemetryTest, TelemetrySending_State) {
 	// check contents of queue
 	Telemetry_Message *msg;
 	EXPECT_TRUE(queue.pop(&msg, 0));
-	checkStateDatagram(msg, ts1, 11, id1, val1, state1);
+	checkStateDatagram(msg, ts1, 12, id1, val1, state1);
 
 	EXPECT_TRUE(queue.pop(&msg, 0));
-	checkStateDatagram(msg, ts2, 12, id2, val2, state2);
+	checkStateDatagram(msg, ts2, 13, id2, val2, state2);
 
 	EXPECT_EQ(queue.count(), 0);
 }
@@ -203,10 +204,43 @@ TEST(TelemetryTest, TelemetrySending_Propulsion) {
 	// check contents of queue
 	Telemetry_Message *msg;
 	EXPECT_TRUE(queue.pop(&msg, 0));
-	checkPropulsionDatagram(msg, ts1, 13, prop1);
+	checkPropulsionDatagram(msg, ts1, 14, prop1);
 
 	EXPECT_TRUE(queue.pop(&msg, 0));
-	checkPropulsionDatagram(msg, ts2, 14, prop2);
+	checkPropulsionDatagram(msg, ts2, 15, prop2);
+
+	EXPECT_EQ(queue.count(), 0);
+}
+
+TEST(TelemetryTest, TelemetrySending_TVC) {
+	StlMessageQueue<Telemetry_Message> queue(64);
+	registerSendQueue(&queue);
+
+	// first push is successful
+	uint32_t ts1 = 2354;
+	TVCStatus tvc1 = {95, 1};
+	EXPECT_TRUE(telemetrySendTVCStatus(ts1, &tvc1));
+	EXPECT_EQ(queue.count(), 1);
+
+	// second push comes too early -> refused
+	uint32_t ts2 = 3465;
+	TVCStatus tvc2 = {90, 2};
+	usleep(TVC_STATUS_TIMEMIN * 1000 / 2);
+	EXPECT_FALSE(telemetrySendTVCStatus(ts2, &tvc2));
+	EXPECT_EQ(queue.count(), 1);
+
+	// third try is successful
+	usleep(TVC_STATUS_TIMEMIN * 1000);
+	EXPECT_TRUE(telemetrySendTVCStatus(ts2, &tvc2));
+	EXPECT_EQ(queue.count(), 2);
+
+	// check contents of queue
+	Telemetry_Message *msg;
+	EXPECT_TRUE(queue.pop(&msg, 0));
+	checkTVCDatagram(msg, ts1, 16, tvc1);
+
+	EXPECT_TRUE(queue.pop(&msg, 0));
+	checkTVCDatagram(msg, ts2, 17, tvc2);
 
 	EXPECT_EQ(queue.count(), 0);
 }

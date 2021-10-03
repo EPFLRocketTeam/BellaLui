@@ -147,7 +147,7 @@ TEST(SensorTest, BarometerRedundancyTest) {
 		accumPress += diffPress * diffPress;
 		accumTemp += diffTemp * diffTemp;
 
-		if(abs(diffPress) > 2.0f || abs(diffTemp) > 1.0f) {
+		if(abs(diffPress / realData.pressure) > 0.01f || abs(diffTemp / realData.temperature) > 0.05f) {
 			numOutliers++;
 		}
 
@@ -232,6 +232,7 @@ TEST(SensorTest, AltitudeEstimatorApogeeTest) {
 
 TEST(SensorTest, RemoteSensorTest) {
 	RemoteSensor<ThrustData> sensor("Thrust Remote Sensor");
+	sensor.load();
 
 	ThrustData data;
 	data.thrust = 42.0f;

@@ -31,6 +31,7 @@ public:
 	bool unload();
 	bool fetch(T* data);
 	uint16_t getExcludedCount() { return excludedCount; }
+	uint8_t getCount() { return count; }
 
 protected:
 	virtual uint16_t filterData(T* measurements, uint8_t count, T* output) = 0;
@@ -114,19 +115,23 @@ bool UnbiasedSensor<T>::fetch(T* data) {
 
 template<class T>
 uint8_t UnbiasedSensor<T>::removeOutsiders(float** data) {
-	uint8_t sorting_array[SENSORS_NB] = {0,1,2,3}; //TODO:magic numbers? could work with array of pointers of data instead of indexes... faster code I believe but more RAM (insignificant?)
+	uint8_t sorting_array[SENSORS_NB];
+	for(int i = 0; i < SENSORS_NB; i++)
+		sorting_array[i] = i;
 	sortingNetwork(data, sorting_array);
 
-	return filterOutData(data,sorting_array,0,3);
+	return filterOutData(data, sorting_array, 0, SENSORS_NB-1);
 }
 
 template<class T>
-void UnbiasedSensor<T>::sortingNetwork(float** data, uint8_t* sorting_array) { //TODO: can use sorting network? fixed amount of sensors?
-    if(*data[sorting_array[0]] > *data[sorting_array[2]])		std::swap(sorting_array[0],sorting_array[2]);
-    if(*data[sorting_array[1]] > *data[sorting_array[3]]) 		std::swap(sorting_array[1],sorting_array[3]);
-    if(*data[sorting_array[0]] > *data[sorting_array[1]])		std::swap(sorting_array[0],sorting_array[1]);
-    if(*data[sorting_array[2]] > *data[sorting_array[3]]) 		std::swap(sorting_array[2],sorting_array[3]);
-    if(*data[sorting_array[1]] > *data[sorting_array[2]])		std::swap(sorting_array[1],sorting_array[2]);
+void UnbiasedSensor<T>::sortingNetwork(float** data, uint8_t* sorting_array) {
+	std::sort(sorting_array, sorting_array + count, [data](uint8_t a, uint8_t b) {
+		if(nullptr == data[a])
+			return false;
+		if(nullptr == data[b])
+			return true;
+		return *data[a] < *data[b];
+	});
 }
 
 template<class T>

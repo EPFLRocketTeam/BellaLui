@@ -35,6 +35,7 @@ bool MockBarometer::fetch(BarometerData* data) {
 
 	do {
 		fscanf(file, "%f,%f,%f", &time_read, &data->pressure, &data->temperature);
+		data->temperature *= 100.0f; // connvert degC to cDegC
 	} while((uint32_t) time_read < start);
 
 	if((uint32_t) time_read >= end) {

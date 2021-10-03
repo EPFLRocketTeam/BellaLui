@@ -75,7 +75,7 @@ inline void checkCRC(uint8_t *ptr, int size) {
  * Specific functions for verifying each type of datagram
  */
 
-inline void checkTelemetryDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, IMU_data imu, BARO_data baro, float32_t speed, float32_t altitude) {
+inline void checkTelemetryDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, IMU_data imu, BARO_data baro, float speed, float altitude) {
 	int size = 40; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
@@ -99,7 +99,7 @@ inline void checkTelemetryDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t
 		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
-inline void checkAirbrakesDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, float32_t angle) {
+inline void checkAirbrakesDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, float angle) {
 	int size = 4; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
@@ -128,7 +128,7 @@ inline void checkGpsDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, 
 		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
 }
 
-inline void checkStateDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, uint8_t id, float32_t val, uint8_t state) {
+inline void checkStateDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, uint8_t id, float val, uint8_t state) {
 	int size = 6; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
@@ -143,20 +143,33 @@ inline void checkStateDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq
 }
 
 inline void checkPropulsionDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, PropulsionData prop) {
-	int size = 14; //bytes
+	int size = 22; //bytes
 
 	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
 	checkHeader((uint8_t*) msg->buf, PROPULSION_DATA_PACKET, ts, seq);
 
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 0, prop.pressure1, "pressure 1 incorrect");
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 2, prop.pressure2, "pressure 2 incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 0, prop.pressure1, "pressure 1 incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 4, prop.pressure2, "pressure 2 incorrect");
 
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 4, prop.temperature1, "temp 1 incorrect");
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 6, prop.temperature2, "temp 2 incorrect");
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 8, prop.temperature3, "temp 3 incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 8, prop.temperature1, "temp 1 incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 10, prop.temperature2, "temp 2 incorrect");
+	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 12, prop.temperature3, "temp 3 incorrect");
 
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 10, prop.status, "status incorrect");
-	checkVal16((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 12, prop.motor_position, "motor position incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 14, prop.status, "status incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 18, prop.motor_position, "motor position incorrect");
+
+	if(ACTIVATE_DATAGRAM_CHECKSUM)
+		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);
+}
+
+inline void checkTVCDatagram(Telemetry_Message *msg, uint32_t ts, uint32_t seq, TVCStatus tvc) {
+	int size = 8; //bytes
+
+	ASSERT_EQ(msg->size, TOTAL_DATAGRAM_OVERHEAD + size);
+	checkHeader((uint8_t*) msg->buf, TVC_STATUS_PACKET, ts, seq);
+
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 0, tvc.thrust_cmd, "thrust command incorrect");
+	checkVal32((uint8_t*) msg->buf + TOTAL_DATAGRAM_HEADER + 4, tvc.tvc_status, "TVC status incorrect");
 
 	if(ACTIVATE_DATAGRAM_CHECKSUM)
 		checkCRC((uint8_t*) msg->buf, msg->size - CHECKSUM_SIZE);

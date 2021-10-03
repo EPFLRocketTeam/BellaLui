@@ -43,8 +43,6 @@
 #include "debug/shell.h"
 #include "debug/terminal.h"
 
-#include "storage/flash_runtime.h"
-
 
 /* USER CODE END Includes */
 
@@ -73,7 +71,7 @@
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-
+void init_filesystem();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/

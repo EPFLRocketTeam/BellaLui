@@ -28,6 +28,7 @@ uint32_t last_gps_update = 0;
 uint32_t last_sensor_update = 0;
 uint32_t last_motor_update = 0;
 uint32_t last_propulsion_update = 0;
+uint32_t last_tvc_update = 0;
 uint32_t last_airbrakes_update = 0;
 uint32_t last_state_update = 0;
 //uint32_t last_sensor_raw_update = 0;
@@ -121,5 +122,19 @@ bool telemetrySendPropulsionData(uint32_t timestamp, PropulsionData* data) {
 		vPortFree(msg); // free the datagram if we couldn't queue it
 	}
 	last_propulsion_update = now;
+	return true;
+}
+
+bool telemetrySendTVCStatus(uint32_t timestamp, TVCStatus* data) {
+	uint32_t now = HAL_GetTick();
+
+	if (now - last_tvc_update <= TVC_STATUS_TIMEMIN || nullptr == msgQueue)
+		return false;
+
+	Telemetry_Message *msg = createTVCStatusDatagram(timestamp, data);
+	if (!msgQueue->push(msg, 10)) {
+		vPortFree(msg); // free the datagram if we couldn't queue it
+	}
+	last_tvc_update = now;
 	return true;
 }

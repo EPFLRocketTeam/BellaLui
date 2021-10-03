@@ -119,11 +119,6 @@ bool IMU::fetch(IMUData* data) {
 		return false;
 	}
 
-	static uint8_t accel_data[BNO055_ACCEL_XYZ_DATA_SIZE];
-	static uint8_t gyro_data[BNO055_GYRO_XYZ_DATA_SIZE];
-	static uint8_t accel_counter = 0;
-	static uint8_t gyro_counter = 0;
-
 	uint8_t result = 0;
 
 	if(++accel_counter == ACCEL_ACQUISITION_DIVIDER) {

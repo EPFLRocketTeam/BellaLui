@@ -23,7 +23,7 @@
 #include "storage/log_manager.h"
 
 #include "misc/datastructs.h"
-#include "misc/common.h"
+#include "misc/state_manager.h"
 #include "misc/rocket_constants.h"
 
 #include "debug/console.h"
@@ -31,6 +31,8 @@
 #include "debug/profiler.h"
 #include "debug/led.h"
 #include "debug/monitor.h"
+
+#include "Sensors/sensor_calibration.h"
 
 
 #include <stdbool.h>
@@ -63,7 +65,8 @@ int board2Idx(uint32_t board) {
 }
 
 bool handleIMUData(uint32_t timestamp, IMU_data data) {
-	IMU_buffer[(++currentImuSeqNumber) % CIRC_BUFFER_SIZE] = data;
+	onIMUDataReception(data);
+
 	#ifdef XBEE
 	return telemetrySendIMU(timestamp, data);
 	/*#elif defined(KALMAN)
@@ -79,8 +82,8 @@ bool handleBaroData(uint32_t timestamp, BARO_data data) {
 		data.base_altitude = altitudeFromPressure(data.base_pressure);
 	}*/
 
-	BARO_buffer[(++currentBaroSeqNumber) % CIRC_BUFFER_SIZE] = data;
-	currentBaroTimestamp = HAL_GetTick();
+	onBarometerDataReception(data);
+
 
 	#ifdef XBEE
 	return telemetrySendBaro(timestamp, data);
@@ -102,14 +105,13 @@ bool handleABData(uint32_t timestamp, int32_t new_angle) {
 
 bool handleStateUpdate(uint32_t timestamp, uint8_t state) {
 	if(state == STATE_LIFTOFF) {
-    	//start_logging();
-    	liftoff_time = timestamp;
+    	start_logging();
 	} else if(state == STATE_TOUCHDOWN) {
-		//stop_logging();
+		stop_logging();
         on_dump_request();
 	}
 
-	current_state = state; // Update the system state
+	onStateAcknowledged(state); // Update the system state
 
 	return true;
 }
@@ -134,6 +136,32 @@ bool handlePropulsionData(uint32_t timestamp, PropulsionData* data) {
 	return true;
 }
 
+bool handleTVCStatus(uint32_t timestamp, TVCStatus* data) {
+	if(enter_monitor(TVC_MONITOR)) {
+		rocket_log(" Thrust command: %d\x1b[K\n", data->thrust_cmd);
+		rocket_log(" TVC status: %x\x1b[K\n", data->tvc_status);
+
+		exit_monitor(TVC_MONITOR);
+	}
+
+	#ifdef XBEE
+	telemetrySendTVCStatus(timestamp, data);
+	#endif
+
+	return true;
+}
+
+bool handlePropulsionCommand(uint32_t timestamp, uint8_t command) {
+	const uint8_t prop_cmd_arm = 0x02; // propulsion ARM command value
+
+	if(command == prop_cmd_arm) {
+		start_logging();
+		recalibrate_altitude_estimator();
+	}
+
+	return true;
+}
+
 float can_getAltitude() {
 	//return altitude_estimate; // from TK_state_estimation
 	return kalman_z;
@@ -142,10 +170,6 @@ float can_getAltitude() {
 float can_getSpeed() {
 	//return air_speed_state_estimate; // from TK_state_estimation
 	return kalman_vz;
-}
-
-uint8_t can_getState() {
-	return current_state;
 }
 
 int32_t can_getABangle() {
@@ -176,12 +200,14 @@ void TK_can_reader() {
 	IMU_data  imu [MAX_BOARD_NUMBER] = {0};
 	BARO_data baro[MAX_BOARD_NUMBER] = {0};
 	PropulsionData prop_data;
+	TVCStatus tvc_status;
 	uint8_t state = 0;
 
 	bool new_baro[MAX_BOARD_NUMBER] = {0};
 	bool new_imu [MAX_BOARD_NUMBER] = {0};
 	bool new_ab = 0;
 	bool new_prop_data = 0;
+	bool new_tvc_status = 0;
 	bool new_state = 0;
 	int idx = 0;
 	uint32_t shell_command;
@@ -253,10 +279,6 @@ void TK_can_reader() {
 					state = msg.data;
 				}
 
-				#ifndef ROCKET_FSM // to avoid self loop on board with FSM
-					telemetrySendState(msg.timestamp, EVENT, 0, current_state);
-				#endif
-
 				break;
 			case DATA_ID_KALMAN_STATE:
 				break;
@@ -278,6 +300,10 @@ void TK_can_reader() {
 				// new_ab = true;
 				break;
 			case DATA_ID_ALTITUDE:
+				baro[idx].altitude = (float) ((int32_t) msg.data) / 1000; // m
+				break;
+			case DATA_ID_PROP_COMMAND:
+				handlePropulsionCommand(msg.timestamp, msg.data);
 				break;
 			case DATA_ID_PROP_PRESSURE1:
 				prop_data.pressure1 = (int32_t) msg.data;
@@ -306,6 +332,13 @@ void TK_can_reader() {
 			case DATA_ID_PROP_MOTOR_POSITION:
 				prop_data.motor_position = (int32_t) msg.data;
 				new_prop_data = true;
+				break;
+			case DATA_ID_TVC_HEARTBEAT:
+				tvc_status.tvc_status = msg.data;
+				new_tvc_status = true;
+				break;
+			case DATA_ID_THRUST_CMD:
+				tvc_status.thrust_cmd = msg.data;
 				break;
 			case DATA_ID_SHELL_CONTROL:
 				shell_command = msg.data & 0xFF000000;
@@ -364,9 +397,13 @@ void TK_can_reader() {
 			new_prop_data = !handlePropulsionData(msg.timestamp, &prop_data);
 		}
 
+		if (new_tvc_status) {
+			new_tvc_status = !handleTVCStatus(msg.timestamp, &tvc_status);
+		}
+
 		end_profiler();
 
-		osDelay(10);
+		sync_logic(1);
 	}
 }
 

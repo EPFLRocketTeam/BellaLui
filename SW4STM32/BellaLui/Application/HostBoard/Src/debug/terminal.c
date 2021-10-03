@@ -183,8 +183,11 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 				} else if(EQUALS(2, "propulsion")) {
 					enable_monitor(PROPULSION_MONITOR, location, refresh_rate);
 					respond("> Propulsion monitor enabled with %dHz frequency\r\n", refresh_rate);
+				} else if(EQUALS(2, "tvc")) {
+					enable_monitor(TVC_MONITOR, location, refresh_rate);
+					respond("> TVC monitor enabled with %dHz frequency\r\n", refresh_rate);
 				} else {
-					respond("> Usage: monitor enable { sensor | state | kalman | flash | can | telemetry | airbrakes } location [refresh rate; default: 1Hz]\r\n");
+					respond("> Usage: monitor enable { sensor | state | kalman | flash | can | telemetry | airbrakes | propulsion | tvc } location [refresh rate; default: 1Hz]\r\n");
 				}
 			} else if(EQUALS(1, "disable") && cmd->num_components == 3) {
 				respond("\x1b[2J");
@@ -216,8 +219,11 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 				} else if(EQUALS(2, "propulsion")) {
 					disable_monitor(PROPULSION_MONITOR);
 					respond("> Propulsion monitor disabled\r\n");
+				} else if(EQUALS(2, "tvc")) {
+					disable_monitor(TVC_MONITOR);
+					respond("> TVC monitor disabled\r\n");
 				} else {
-					respond("> Usage: monitor disable { sensor | state | kalman | flash | can | telemetry | airbrakes }\r\n");
+					respond("> Usage: monitor disable { sensor | state | kalman | flash | can | telemetry | airbrakes | propulsion | tvc }\r\n");
 				}
 			} else {
 				respond("> Usage: monitor { enable | disable } { sensor | state | kalman | flash | can | telemetry | airbrakes } [location] [refresh rate; default: 10]\r\n");
@@ -327,7 +333,7 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 				respond("> Flash dump requested\r\n");
 			} else if(EQUALS(1, "erase")) {
 				respond("> Erasing flash memory... ");
-				flash_erase_all();
+				//flash_erase_all();
 				respond("done\nPlease reset the board to format the filesystem.\r\n");
 			} else if(EQUALS(1, "download")) {
 				for(uint8_t i = 2; i < cmd->num_components; i++) {
@@ -339,7 +345,7 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 					}
 				}
 			} else {
-				respond("> Usage: flash { dump | erase | download } [blocks...]\r\n");
+				respond("> Usage: flash { dump | erase | format | download } [blocks...]\r\n");
 			}
 		} else {
 			respond("> %.*s: command not found\r\n", cmd->components[0].length, cmd->components[0].component);

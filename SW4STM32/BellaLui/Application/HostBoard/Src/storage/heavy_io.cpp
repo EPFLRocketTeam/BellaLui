@@ -6,10 +6,12 @@
  */
 
 #include "storage/heavy_io.h"
+#include "storage/flash_runtime.h"
 
 #include "debug/led.h"
 #include "debug/console.h"
 #include "debug/profiler.h"
+
 
 #include <cmsis_os.h>
 
@@ -50,7 +52,7 @@ void init_heavy_scheduler() {
 /*
  * TODO: Better concurrent implementation of FIFO queue.
  */
-void schedule_heavy_task(int32_t (*task)(void*), const void* arg, void (*feedback)(int32_t)) {
+extern "C" void schedule_heavy_task(int32_t (*task)(const void*), const void* arg, void (*feedback)(int32_t)) {
 	struct Node* node = &node_heap[heap_counter++]; // To avoid using malloc from interrupts
 
 	node->task = task;
@@ -69,13 +71,13 @@ void schedule_heavy_task(int32_t (*task)(void*), const void* arg, void (*feedbac
 	scheduled_tasks++;
 }
 
-void TK_heavy_io_scheduler() {
+extern "C" void TK_heavy_io_scheduler() {
 	uint32_t led_identifier = led_register_TK();
 
 	while(true) {
 		while(!scheduled_tasks);
 
-		//rocket_log("Launching task\n");
+		rocket_log("Launching task\r\n");
 
 		led_set_TK_rgb(led_identifier, 0xFF, 0xAA, 0);
 
@@ -88,7 +90,7 @@ void TK_heavy_io_scheduler() {
 			queue.last = queue.first;
 		}
 
-		//rocket_log("Task finished\n");
+		rocket_log("Task finished\r\n");
 
 		led_set_TK_rgb(led_identifier, 0, 0, 0);
 

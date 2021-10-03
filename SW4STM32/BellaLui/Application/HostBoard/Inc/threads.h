@@ -10,7 +10,7 @@
 
 #define OS_STKCHECK
 #define LED
-#define TELEMETRY_BOARD
+#define SENSOR_BOARD
 
 
 #ifdef GPS_BOARD
@@ -57,8 +57,10 @@
 #define BOARD_LED_G (50)
 #define BOARD_LED_B (50)
 #define FLASH_LOGGING
+#define TESTING // TODO: not used for now, but check if it's really OK
 #define ROCKET_FSM
 #define KALMAN
+#define DEBUG_TASK
 #endif
 
 #ifdef FLASH_DUMP_BOARD
@@ -100,13 +102,23 @@
 #endif
 
 #ifdef ROCKET_FSM
-#include <misc/state_machine.h>
+#include <misc/state_manager.h>
 #endif
 
 #ifdef PRESSURE_MONITORING
 #include <propulsion/pressure_monitor.h>
 #endif
 
+#ifdef FLASH_LOGGING
+#include <storage/flash_logging.h>
+#endif
+
+#include <storage/heavy_io.h>
+
+
+#ifdef DEBUG_TASK
+#include <Sensors/DataStructures.h>
+#endif
 
 
 void create_semaphores();

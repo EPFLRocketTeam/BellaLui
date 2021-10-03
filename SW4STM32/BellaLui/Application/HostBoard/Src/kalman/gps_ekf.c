@@ -25,7 +25,7 @@
 #include "debug/profiler.h"
 #include "debug/console.h"
 #include "debug/monitor.h"
-#include "misc/common.h"
+#include "misc/state_manager.h"
 
 
 #include <stdbool.h>
@@ -260,7 +260,7 @@ void TK_kalman() {
 				exit_monitor(KALMAN_MONITOR);
 			}
 
-			if(altitude > altimax && liftoff_time != 0) {
+			if(altitude > altimax && getAvionicsState() >= STATE_LIFTOFF) {
 				if(altimax_time == 0) {
 					rocket_log("Initial altitude is %dmm at %dms\n", altitude, HAL_GetTick());
 				}
@@ -270,7 +270,7 @@ void TK_kalman() {
 			}
 
 			if(HAL_GetTick() - altimax_time > 5000 && altimax_time != 0) {
-				rocket_log("Maximal altitude of %dmm reached after %dms\n", altimax, altimax_time - liftoff_time);
+				rocket_log("Maximal altitude of %dmm reached after %dms\n", altimax, altimax_time - getLiftoffTime());
 				altimax_time = 0;
 			}
 

@@ -55,7 +55,7 @@ typedef struct
 #define DATA_ID_KALMAN_PITCH 47 // mrad
 #define DATA_ID_KALMAN_ROLL  48 // mrad
 
-#define DATA_ID_ALTITUDE 49 // m
+#define DATA_ID_ALTITUDE 49 // mm
 
 #define DATA_ID_STATE 50 // enum
 
@@ -76,11 +76,13 @@ typedef struct
 #define DATA_ID_VANE_POS_3 94
 #define DATA_ID_VANE_POS_4 95
 
-#define DATA_ID_THRUST_CMD 100
-#define DATA_ID_VANE_CMD_1 101
-#define DATA_ID_VANE_CMD_2 102
-#define DATA_ID_VANE_CMD_3 103
-#define DATA_ID_VANE_CMD_4 104
+#define DATA_ID_TVC_COMMAND 	100
+#define DATA_ID_THRUST_CMD 		101
+#define DATA_ID_VANE_CMD_1 		102
+#define DATA_ID_VANE_CMD_2 		103
+#define DATA_ID_VANE_CMD_3 		104
+#define DATA_ID_VANE_CMD_4 		105
+#define DATA_ID_TVC_HEARTBEAT	106
 
 #define DATA_ID_SHELL_CONTROL  200
 #define DATA_ID_SHELL_INPUT    201
@@ -99,6 +101,11 @@ typedef struct
 #define MAX_BOARD_ID 8 // used to implement redundant info in CAN_handling
 #define MAX_BOARD_NUMBER (MAX_BOARD_ID+1)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 void CAN_Config(uint32_t id);
 void can_setFrame(uint32_t data, uint8_t data_id, uint32_t timestamp);
 void can_addMsg(CAN_msg msg);
@@ -106,6 +113,10 @@ uint32_t can_msgPending();
 CAN_msg can_readBuffer();
 
 uint8_t get_board_id();
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* CAN_COMMUNICATION_H_ */

@@ -27,9 +27,9 @@ typedef struct
 
 typedef struct
 {
-  float temperature;
-  float pressure;
-  float altitude;
+  float temperature; // degC
+  float pressure; // hPa
+  float altitude; // m
   float base_pressure;
   float base_altitude;
 } BARO_data;
@@ -44,6 +44,12 @@ typedef struct
   uint32_t status;
   int32_t motor_position;
 } PropulsionData;
+
+typedef struct
+{
+	uint32_t thrust_cmd;
+	uint32_t tvc_status;
+} TVCStatus;
 
 typedef struct
 {

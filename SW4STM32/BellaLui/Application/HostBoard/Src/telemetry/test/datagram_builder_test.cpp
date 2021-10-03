@@ -93,7 +93,7 @@ TEST(TelemetryTest, DatagramCreation_Telemetry) {
 	uint32_t ts = 1234;
 	IMU_data imu = { { 1.1, 2.2, 3.3 }, { 4.4, 5.5, 6.6 } };
 	BARO_data baro = { 15.5, 1.05, 5024.6, 0, 0 };
-	float32_t speed = 10.1, altitude = baro.altitude;
+	float speed = 10.1, altitude = baro.altitude;
 
 	Telemetry_Message *msg = createTelemetryDatagram(ts, &imu, &baro, speed, altitude);
 
@@ -102,7 +102,7 @@ TEST(TelemetryTest, DatagramCreation_Telemetry) {
 
 TEST(TelemetryTest, DatagramCreation_Airbrakes) {
 	uint32_t ts = 2345;
-	float32_t angle = 12.05;
+	float angle = 12.05;
 
 	Telemetry_Message *msg = createAirbrakesDatagram(ts, angle);
 
@@ -121,7 +121,7 @@ TEST(TelemetryTest, DatagramCreation_GPS) {
 TEST(TelemetryTest, DatagramCreation_State) {
 	uint32_t ts = 4567;
 	uint8_t id = 2;
-	float32_t val = 10.1;
+	float val = 10.1;
 	uint8_t state = 0x08;
 
 	Telemetry_Message *msg = createStateDatagram(ts, id, val, state);
@@ -136,6 +136,15 @@ TEST(TelemetryTest, DatagramCreation_Propulsion) {
 	Telemetry_Message *msg = createPropulsionDatagram(ts, &prop);
 
 	checkPropulsionDatagram(msg, ts, 4, prop);
+}
+
+TEST(TelemetryTest, DatagramCreation_TVC) {
+	uint32_t ts = 5218;
+	TVCStatus tvc = {97, 2};
+
+	Telemetry_Message *msg = createTVCStatusDatagram(ts, &tvc);
+
+	checkTVCDatagram(msg, ts, 5, tvc);
 }
 
 
