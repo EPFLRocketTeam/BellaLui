@@ -9,7 +9,7 @@
 #include "debug/console.h"
 
 #define ACCEL_ACQUISITION_DIVIDER 1
-#define GYRO_ACQUISITION_DIVIDER 10
+#define GYRO_ACQUISITION_DIVIDER 1
 
 
 
