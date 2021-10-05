@@ -155,5 +155,5 @@ float AltitudeEstimator::altitudeComputation(float raw_pressure, float raw_tempe
 
 	altitude2 = getAltFromPres(pressure2);
 
-	return altitude2;
+	return altitude1; // return first approximation of altitude for now
 }

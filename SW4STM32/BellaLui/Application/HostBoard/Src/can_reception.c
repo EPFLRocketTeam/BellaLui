@@ -156,7 +156,7 @@ bool handlePropulsionCommand(uint32_t timestamp, uint8_t command) {
 
 	if(command == prop_cmd_arm) {
 		start_logging();
-		recalibrate_altitude_estimator();
+		//recalibrate_altitude_estimator(); // DON'T RECALIBRATE to have a good estimation of true outside temp
 	}
 
 	return true;
