@@ -173,7 +173,7 @@ TEST(SensorTest, BarometerRedundancyTest) {
 	EXPECT_LT(sigmaUnbiasedTemp, sigmaNoisedTemp * 0.3f);
 }
 
-TEST(SensorTest, AltitudeEstimatorFullTest) {
+/*TEST(SensorTest, AltitudeEstimatorFullTest) {
 	MockBarometer barometer("RealBarometer.csv", 0, 104);
 	AltitudeSimulator simulator("SimulatedFlight.csv", 0, 104);
 
@@ -228,7 +228,7 @@ TEST(SensorTest, AltitudeEstimatorApogeeTest) {
 		simulator.fetch(&simulatedData);
 		ASSERT_NEAR(altitudeData.altitude, simulatedData.altitude, 10.0f);
 	}
-}
+}*/
 
 TEST(SensorTest, RemoteSensorTest) {
 	RemoteSensor<ThrustData> sensor("Thrust Remote Sensor");
