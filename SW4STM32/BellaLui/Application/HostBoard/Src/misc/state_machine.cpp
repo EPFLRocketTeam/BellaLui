@@ -118,13 +118,13 @@ void TK_state_machine(void const *argument) {
 		enum State currentState = fsm.getCurrentState();
 
 		if(enter_monitor(STATE_MONITOR) && currentState >= 0 && currentState < NUM_STATES) {
-			rocket_log(" Time: %dms\x1b[K\n", HAL_GetTick());
-			rocket_log(" Current state: %s\x1b[K\n", state_names[currentState]);
+			rocket_log(" Time: %dms\x1b[K\r\n", HAL_GetTick());
+			rocket_log(" Current state: %s\x1b[K\r\n", state_names[currentState]);
 
 			if(baroIsReady) {
-				rocket_log(" Altitude: %d\x1b[K\n", (int32_t) (1000 * (baro_data.altitude - baro_data.base_altitude)));
+				rocket_log(" Altitude: %d\x1b[K\r\n", (int32_t) (1000 * (baro_data.altitude - baro_data.base_altitude)));
 			} else {
-				rocket_log(" Altitude unavailable\x1b[K\n");
+				rocket_log(" Altitude unavailable\x1b[K\r\n");
 			}
 
 			exit_monitor(STATE_MONITOR);

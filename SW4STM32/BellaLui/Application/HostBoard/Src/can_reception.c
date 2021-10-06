@@ -284,6 +284,7 @@ void TK_can_reader() {
 				break;
 			case DATA_ID_KALMAN_Z:
 				kalman_z = ((float) ((int32_t) msg.data))/1e3; // from mm to m
+				flash_log(msg);
 				break;
 			case DATA_ID_KALMAN_VZ:
 				kalman_vz = ((float) ((int32_t) msg.data))/1e3; // from mm/s to m/s
@@ -301,6 +302,7 @@ void TK_can_reader() {
 				break;
 			case DATA_ID_ALTITUDE:
 				baro[idx].altitude = (float) ((int32_t) msg.data) / 1000; // m
+				new_baro[idx] = true; // only update when we get the pressure
 				break;
 			case DATA_ID_PROP_COMMAND:
 				handlePropulsionCommand(msg.timestamp, msg.data);
