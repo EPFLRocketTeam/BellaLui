@@ -55,12 +55,20 @@ bool qspi_poll(Command* cmd, uint32_t instruction, uint8_t bit, bool value);
 bool qspi_transmit(uint8_t* buffer);
 bool qspi_receive(uint8_t* buffer);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void flash_init();
 void flash_read(uint32_t address, uint8_t* buffer, uint32_t length);
 void flash_write(uint32_t address, uint8_t* buffer, uint32_t length);
 void flash_erase_subsector(uint32_t address);
 void flash_erase_sector(uint32_t address);
 void flash_erase_all();
+
+#ifdef __cplusplus
+}
+#endif
 
 
 
