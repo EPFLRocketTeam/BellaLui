@@ -181,6 +181,12 @@ void flash_write(uint32_t address, uint8_t* buffer, uint32_t length) {
  *
  */
 void flash_erase_all() {
+	for(uint32_t i = 0; i < NUM_SECTORS; i++) {
+		flash_erase_sector(i * SECTOR_SIZE);
+	}
+}
+
+void __NOT_WORKING__flash_erase_all() {
    __write_enable_latch();
 
    Command cmd = get_default_command();

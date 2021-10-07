@@ -18,6 +18,6 @@ void flash_write(uint32_t address, uint8_t* buffer, uint32_t length);
 void flash_write_fast(uint32_t address, uint8_t* buffer, uint32_t length);
 void flash_erase_subsector(uint32_t address);
 void flash_erase_sector(uint32_t address);
-
+void flash_erase_all();
 
 #endif /* FLASH_H_ */
