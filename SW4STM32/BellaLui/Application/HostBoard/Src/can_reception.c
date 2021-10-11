@@ -153,10 +153,13 @@ bool handleTVCStatus(uint32_t timestamp, TVCStatus* data) {
 
 bool handlePropulsionCommand(uint32_t timestamp, uint8_t command) {
 	const uint8_t prop_cmd_arm = 0x02; // propulsion ARM command value
+	const uint8_t prop_cmd_disarm = 0x03; // propulsion DISARM command value
 
 	if(command == prop_cmd_arm) {
 		start_logging();
 		//recalibrate_altitude_estimator(); // DON'T RECALIBRATE to have a good estimation of true outside temp
+	} else if(command == prop_cmd_disarm) {
+		stop_logging();
 	}
 
 	return true;
@@ -288,6 +291,7 @@ void TK_can_reader() {
 				break;
 			case DATA_ID_KALMAN_VZ:
 				kalman_vz = ((float) ((int32_t) msg.data))/1e3; // from mm/s to m/s
+				flash_log(msg);
 				break;
 			case DATA_ID_AB_STATE:
 				break;
@@ -341,6 +345,7 @@ void TK_can_reader() {
 				break;
 			case DATA_ID_THRUST_CMD:
 				tvc_status.thrust_cmd = msg.data;
+				flash_log(msg);
 				break;
 			case DATA_ID_SHELL_CONTROL:
 				shell_command = msg.data & 0xFF000000;
@@ -367,6 +372,8 @@ void TK_can_reader() {
 				break;
 			case DATA_ID_SHELL_OUTPUT:
 				rocket_direct_transmit((uint8_t*) &msg.data, 4);
+				break;
+			case DATA_ID_TVC_COMMAND:
 				break;
 			default:
 				rocket_log("Unhandled can frame ID %d\r\n", msg.id);
