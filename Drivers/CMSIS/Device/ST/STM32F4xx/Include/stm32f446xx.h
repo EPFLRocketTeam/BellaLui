@@ -15968,6 +15968,9 @@ typedef struct
 #define FSMC_IRQHandler        FMC_IRQHandler
 #define QuadSPI_IRQHandler     QUADSPI_IRQHandler
 
+
+#define LSI_STARTUP_TIME                40U /*!< LSI Maximum startup time in us */
+
 /**
   * @}
   */

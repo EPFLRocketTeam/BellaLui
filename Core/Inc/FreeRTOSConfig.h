@@ -69,7 +69,7 @@
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION  1
 #define configUSE_TRACE_FACILITY 				 1
 #define configCHECK_FOR_STACK_OVERFLOW			 2
-
+#define configRECORD_STACK_HIGH_ADDRESS (1)
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES                    0
 #define configMAX_CO_ROUTINE_PRIORITIES          ( 2 )
@@ -84,6 +84,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelayUntil             0
 #define INCLUDE_vTaskDelay                  1
 #define INCLUDE_xTaskGetSchedulerState      1
+#define INCLUDE_uxTaskGetStackHighWaterMark 1
 
 /* Cortex-M specific definitions. */
 #ifdef __NVIC_PRIO_BITS

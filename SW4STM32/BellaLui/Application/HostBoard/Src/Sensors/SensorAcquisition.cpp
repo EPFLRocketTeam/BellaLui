@@ -20,6 +20,9 @@
 #include "sync.h"
 
 #include <stdint.h>
+#include <cmsis_os.h>
+#include <iwdg.h>
+
 
 void TK_sensor_acquisition(const void *argument) {
 	uint16_t retry_counter = 0;
@@ -46,6 +49,8 @@ void TK_sensor_acquisition(const void *argument) {
 
 	AltitudeData altitudeData;
 	IMUData imuData;
+
+	MX_IWDG_Init();
 
 	while(true) {
 		start_profiler(1); // Whole thread profiling
@@ -137,6 +142,11 @@ void TK_sensor_acquisition(const void *argument) {
 			exit_monitor(SENSOR_MONITOR);
 		}
 
-		sync_logic(10);
+		//UBaseType_t watermark = uxTaskGetStackHighWaterMark( NULL );
+		//rocket_log("Stack high water mark: %d\r\n", (uint32_t) watermark);
+
+		HAL_IWDG_Refresh(&hiwdg);
+
+		sync_logic(50);
 	}
 }

@@ -46,6 +46,7 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <can_transmission.h>
+#include "stm32f4xx_ll_iwdg.h"
 #include "threads.h"
 /* USER CODE END Includes */
 
