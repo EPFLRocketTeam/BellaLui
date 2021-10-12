@@ -63,9 +63,9 @@ static void _spaces(uint8_t count) {
 void end_profiler() {
 	TaskHandle_t handle = xTaskGetCurrentTaskHandle();
 	uint8_t* task_name = (uint8_t*) pcTaskGetName(handle);
-	uint8_t task_id = task_name[0] - 0x30;
+	int16_t task_id = task_name[0] - 0x30;
 
-	if(task_id < NUM_PROFILERS) {
+	if(task_id >= 0 && task_id < NUM_PROFILERS) {
 		struct ThreadProfiler* profiler = &profilers[task_id];
 
 		profiler->depth--;
