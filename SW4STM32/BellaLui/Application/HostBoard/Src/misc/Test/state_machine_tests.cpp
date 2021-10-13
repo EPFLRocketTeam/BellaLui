@@ -31,11 +31,11 @@ TEST(StateMachineTests, ShouldGetCorrectBarometerStatus){
     EXPECT_EQ(barometerIsReady, 0);
 }
 
-TEST(StateMachineTests, ShouldReachTouchdownStateAfterFiveMinutes){
+TEST(StateMachineTests, ShouldReachTouchdownStateAfterTimeout){
     uint32_t currentTime = 2*60*1000;
     uint32_t liftoffTime = 1*60*1000;
     EXPECT_FALSE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
-    currentTime = 8*60*1000;
+    currentTime = 12*60*1000;
     EXPECT_TRUE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
     liftoffTime = NO_LIFTOFF_TIME;
     EXPECT_FALSE(state_machine_helpers::touchdownStateIsReached(currentTime, liftoffTime));
