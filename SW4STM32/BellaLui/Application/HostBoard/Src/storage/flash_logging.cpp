@@ -15,6 +15,7 @@
 #include "storage/heavy_io.h"
 #include "rocket_fs.h"
 #include "flash.h"
+#include "can_transmission.h"
 
 #include <cmsis_os.h>
 
@@ -32,6 +33,7 @@ static volatile SemaphoreHandle_t slave_io_semaphore;
 static volatile bool flash_ignore_write = false;
 
 static volatile bool is_logging = false;
+static volatile bool is_flushing = false;
 
 void init_logging() {
 	master_swap = xSemaphoreCreateBinary();
@@ -42,10 +44,20 @@ void init_logging() {
 
 void start_logging() {
 	is_logging = true;
+	enable_flushing();
 }
 
 void stop_logging() {
 	is_logging = false;
+	disable_flushing();
+}
+
+void enable_flushing() {
+	is_flushing = true;
+}
+
+void disable_flushing() {
+	is_flushing = false;
 }
 
 void flash_log(CAN_msg message) {
@@ -53,7 +65,7 @@ void flash_log(CAN_msg message) {
 	 * Write the CAN message to the front buffer.
 	 */
 
-	if(!is_logging && message.id < 50) {
+	if(!is_logging && message.id != DATA_ID_STATE) {
 		return;
 	}
 
@@ -170,7 +182,9 @@ void TK_logging_thread(void const *pvArgs) {
 				last_update = time;
 			}
 
-			rocket_fs_flush(fs);
+			//if(is_flushing) {
+				rocket_fs_flush(fs);
+			//}
 
 			if(is_logging) {
 				led_set_TK_rgb(led_identifier, 0, 50, 50);

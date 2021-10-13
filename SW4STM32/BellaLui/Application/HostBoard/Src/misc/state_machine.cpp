@@ -11,6 +11,7 @@
 #include "misc/rocket_constants.h"
 #include "debug/monitor.h"
 #include "debug/console.h"
+#include "storage/flash_logging.h"
 #include "telemetry/telemetry_sending.h"
 #include "sync.h"
 
@@ -109,7 +110,7 @@ void TK_state_machine(void const *argument) {
 			fsm.newBarometerData = false;
 		}
 
-		if(state_machine_helpers::touchdownStateIsReached(HAL_GetTick(), preliminary_liftoff_time)){
+		if(fsm.getCurrentState() != STATE_TOUCHDOWN && state_machine_helpers::touchdownStateIsReached(HAL_GetTick(), preliminary_liftoff_time)){
 			fsm.requestState(STATE_TOUCHDOWN);
 			flight_status = 40; // TODO: flight_status numbers should be defined as consts
 		}

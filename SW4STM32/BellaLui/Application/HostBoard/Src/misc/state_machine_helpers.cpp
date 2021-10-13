@@ -103,7 +103,7 @@ namespace state_machine_helpers {
     }
 
     bool touchdownStateIsReached(const uint32_t currentTime, const uint32_t liftoff_time){
-        const bool timeExceedsFiveMinutes = ((int32_t) currentTime - (int32_t) liftoff_time) > 5 * 60 * 1000;
+        const bool timeExceedsFiveMinutes = ((int32_t) currentTime - (int32_t) liftoff_time) > 10 * 1000;
         return liftoff_time != NO_LIFTOFF_TIME && timeExceedsFiveMinutes;
     }
 
