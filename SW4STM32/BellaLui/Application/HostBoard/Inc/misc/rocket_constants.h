@@ -26,7 +26,7 @@
 
 #define ROCKET_CST_LIFTOFF_TRIG_ACCEL 2 // acceleration lift-off detection trigger [g]
 #define ROCKET_CST_MIN_TRIG_AGL 300 // min altitude above ground level to allow apogee detection [m]
-#define ROCKET_CST_MOTOR_BURNTIME 10000 // motor burn time [ms]
+#define ROCKET_CST_MOTOR_BURNTIME 8500 // motor burn time [ms]
 #define ROCKET_CST_REC_SECONDARY_ALT 400 // altitude of secondary recovery event [m]
 #define LIFTOFF_DETECTION_DELAY 500 // delay to trigger the liftoff event [ms]
 
@@ -43,7 +43,7 @@
 #define TOUCHDOWN_DELAY_TIME 2000 // delay time in ms between two evaluations of the touch-down event
 #define TOUCHDOWN_ALT_DIFF 2 // touch-down altitude offset in which the rocket is considered as static
 #define TOUCHDOWN_BUFFER_SIZE 5 // Number of static altitude events before the touch-down detection is triggered
-
+#define TOUCHDOWN_TIMEOUT 10 // Number of minutes after lift-off after which a touchdown event is forced
 
 /*
 #define ROCKET_CST_LIFTOFF_TRIG_ACCEL 1 // acceleration lift-off detection trigger [g]

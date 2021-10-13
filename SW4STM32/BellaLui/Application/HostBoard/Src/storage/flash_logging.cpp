@@ -15,6 +15,7 @@
 #include "storage/heavy_io.h"
 #include "rocket_fs.h"
 #include "flash.h"
+#include "can_transmission.h"
 
 #include <cmsis_os.h>
 
@@ -53,7 +54,7 @@ void flash_log(CAN_msg message) {
 	 * Write the CAN message to the front buffer.
 	 */
 
-	if(!is_logging && message.id < 50) {
+	if(!is_logging && message.id != DATA_ID_STATE) {
 		return;
 	}
 
