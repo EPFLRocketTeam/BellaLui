@@ -57,10 +57,8 @@
 #define BOARD_LED_G (50)
 #define BOARD_LED_B (50)
 #define FLASH_LOGGING
-#define TESTING // TODO: not used for now, but check if it's really OK
 #define ROCKET_FSM
-#define KALMAN
-#define DEBUG_TASK
+#define XBEE
 #endif
 
 #ifdef FLASH_DUMP_BOARD

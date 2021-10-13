@@ -9,9 +9,10 @@
 #define MT25QL128ABA_H_
 
 
-#define SECTOR_SIZE 1 << 16
 #define PAGE_SIZE 256
 #define READ_MAX_BUFFER 2048
+#define NUM_SECTORS 256
+#define SECTOR_SIZE (256 * 256)
 
 // State commands
 #define READ_STATUS_REGISTER 0x05

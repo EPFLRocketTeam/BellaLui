@@ -333,7 +333,7 @@ void terminal_execute(ShellCommand* cmd, void (*respond)(const char* format, ...
 				respond("> Flash dump requested\r\n");
 			} else if(EQUALS(1, "erase")) {
 				respond("> Erasing flash memory... ");
-				//flash_erase_all();
+				flash_erase_all();
 				respond("done\nPlease reset the board to format the filesystem.\r\n");
 			} else if(EQUALS(1, "download")) {
 				for(uint8_t i = 2; i < cmd->num_components; i++) {
